@@ -55,14 +55,14 @@ func (r *JobService) New(ctx context.Context, body JobNewParams, opts ...option.
 
 // Returns detailed information about a batch job including its runtime
 // configuration, execution history, and deployment status.
-func (r *JobService) Get(ctx context.Context, jobID string, query JobGetParams, opts ...option.RequestOption) (res *Job, err error) {
+func (r *JobService) Get(ctx context.Context, jobID string, opts ...option.RequestOption) (res *Job, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s", jobID)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
 
@@ -1191,20 +1191,6 @@ func (r JobNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *JobNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-type JobGetParams struct {
-	// Show secret values (requires workspace admin role)
-	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [JobGetParams]'s query parameters as `url.Values`.
-func (r JobGetParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
 }
 
 type JobUpdateParams struct {
