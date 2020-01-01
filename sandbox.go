@@ -310,6 +310,8 @@ type Sandbox struct {
 	ExpiresIn int64 `json:"expiresIn"`
 	// Last time the sandbox was used (read-only, managed by the system)
 	LastUsedAt string `json:"lastUsedAt"`
+	// Infrastructure generation this sandbox is deployed on (mk3.0 or mk3.1).
+	NodeGeneration string `json:"nodeGeneration"`
 	// Current state of the sandbox (read-only, managed by the system)
 	//
 	// Any of "RUNNING", "STANDBY".
@@ -321,15 +323,16 @@ type Sandbox struct {
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		ExpiresIn   respjson.Field
-		LastUsedAt  respjson.Field
-		State       respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Metadata       respjson.Field
+		Spec           respjson.Field
+		Events         respjson.Field
+		ExpiresIn      respjson.Field
+		LastUsedAt     respjson.Field
+		NodeGeneration respjson.Field
+		State          respjson.Field
+		Status         respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 
@@ -955,21 +958,33 @@ func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Configuration for attaching a persistent volume to a sandbox at a specific
-// filesystem path
+// Configuration for attaching a volume to a sandbox at a specific filesystem path.
+// Defaults to a persistent volume; set type to "ephemeral" for disk-backed scratch
+// space created with the sandbox and destroyed when it stops.
 type VolumeAttachment struct {
 	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath string `json:"mountPath"`
-	// Name of the volume resource to attach (must exist in the same workspace and
-	// region)
+	// For persistent volumes, the name of the volume resource to attach (must exist in
+	// the same workspace and region). For ephemeral volumes, an identifier used to
+	// reference the volume internally.
 	Name string `json:"name"`
 	// If true, the volume is mounted read-only and cannot be modified by the sandbox
 	ReadOnly bool `json:"readOnly"`
+	// Storage capacity in megabytes. Required for ephemeral volumes, ignored for
+	// persistent volumes.
+	SizeMB int64 `json:"sizeMb"`
+	// Type of volume. Defaults to "persistent" (an existing volume resource). Use
+	// "ephemeral" for temporary disk-backed storage created with the sandbox.
+	//
+	// Any of "persistent", "ephemeral".
+	Type VolumeAttachmentType `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MountPath   respjson.Field
 		Name        respjson.Field
 		ReadOnly    respjson.Field
+		SizeMB      respjson.Field
+		Type        respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -990,16 +1005,35 @@ func (r VolumeAttachment) ToParam() VolumeAttachmentParam {
 	return param.Override[VolumeAttachmentParam](json.RawMessage(r.RawJSON()))
 }
 
-// Configuration for attaching a persistent volume to a sandbox at a specific
-// filesystem path
+// Type of volume. Defaults to "persistent" (an existing volume resource). Use
+// "ephemeral" for temporary disk-backed storage created with the sandbox.
+type VolumeAttachmentType string
+
+const (
+	VolumeAttachmentTypePersistent VolumeAttachmentType = "persistent"
+	VolumeAttachmentTypeEphemeral  VolumeAttachmentType = "ephemeral"
+)
+
+// Configuration for attaching a volume to a sandbox at a specific filesystem path.
+// Defaults to a persistent volume; set type to "ephemeral" for disk-backed scratch
+// space created with the sandbox and destroyed when it stops.
 type VolumeAttachmentParam struct {
 	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath param.Opt[string] `json:"mountPath,omitzero"`
-	// Name of the volume resource to attach (must exist in the same workspace and
-	// region)
+	// For persistent volumes, the name of the volume resource to attach (must exist in
+	// the same workspace and region). For ephemeral volumes, an identifier used to
+	// reference the volume internally.
 	Name param.Opt[string] `json:"name,omitzero"`
 	// If true, the volume is mounted read-only and cannot be modified by the sandbox
 	ReadOnly param.Opt[bool] `json:"readOnly,omitzero"`
+	// Storage capacity in megabytes. Required for ephemeral volumes, ignored for
+	// persistent volumes.
+	SizeMB param.Opt[int64] `json:"sizeMb,omitzero"`
+	// Type of volume. Defaults to "persistent" (an existing volume resource). Use
+	// "ephemeral" for temporary disk-backed storage created with the sandbox.
+	//
+	// Any of "persistent", "ephemeral".
+	Type VolumeAttachmentType `json:"type,omitzero"`
 	paramObj
 }
 
