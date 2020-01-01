@@ -63,7 +63,8 @@ type EgressgatewayListResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {

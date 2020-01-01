@@ -142,7 +142,8 @@ type ImageMetadata struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// The date and time when the image was last updated.
 	UpdatedAt string `json:"updatedAt"`
