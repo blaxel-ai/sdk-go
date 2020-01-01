@@ -226,6 +226,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 				}},
 				Vpc: blaxel.String("default"),
 			},
+			NodeGeneration: blaxel.String("nodeGeneration"),
 		},
 		CreateIfNotExist: blaxel.Bool(true),
 	})
@@ -482,6 +483,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 					}},
 					Vpc: blaxel.String("default"),
 				},
+				NodeGeneration: blaxel.String("nodeGeneration"),
 			},
 		},
 	)
