@@ -41,7 +41,7 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestImageGet(t *testing.T) {
+func TestImageGetWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -58,7 +58,8 @@ func TestImageGet(t *testing.T) {
 		context.TODO(),
 		"imageName",
 		blaxel.ImageGetParams{
-			ResourceType: "resourceType",
+			ResourceType:    "resourceType",
+			SourceWorkspace: blaxel.String("sourceWorkspace"),
 		},
 	)
 	if err != nil {
@@ -70,7 +71,7 @@ func TestImageGet(t *testing.T) {
 	}
 }
 
-func TestImageList(t *testing.T) {
+func TestImageListWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -83,7 +84,13 @@ func TestImageList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.List(context.TODO())
+	_, err := client.Images.List(context.TODO(), blaxel.ImageListParams{
+		Cursor:       blaxel.String("cursor"),
+		Limit:        blaxel.Int(100),
+		Q:            blaxel.String("q"),
+		ResourceType: blaxel.String("resourceType"),
+		Sort:         blaxel.String("sort"),
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
