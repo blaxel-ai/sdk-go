@@ -7,10 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 )
 
 // ImageTagService contains methods and other services that help with interacting
@@ -30,6 +34,39 @@ func NewImageTagService(opts ...option.RequestOption) (r ImageTagService) {
 	r = ImageTagService{}
 	r.Options = opts
 	return
+}
+
+// Returns a bounded page of image tags. Search by prefix or exact name. Tags are
+// ordered by name only.
+func (r *ImageTagService) List(ctx context.Context, imageName string, params ImageTagListParams, opts ...option.RequestOption) (res *pagination.CursorPage[ImageTag], err error) {
+	var raw *http.Response
+	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
+	if params.ResourceType == "" {
+		err = errors.New("missing required resourceType parameter")
+		return nil, err
+	}
+	if imageName == "" {
+		err = errors.New("missing required imageName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("images/%s/%s/tags", params.ResourceType, imageName)
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns a bounded page of image tags. Search by prefix or exact name. Tags are
+// ordered by name only.
+func (r *ImageTagService) ListAutoPaging(ctx context.Context, imageName string, params ImageTagListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[ImageTag] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, imageName, params, opts...))
 }
 
 // Deletes a specific tag from a container image. The underlying image layers are
@@ -52,6 +89,39 @@ func (r *ImageTagService) Delete(ctx context.Context, tagName string, body Image
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }
+
+type ImageTagListParams struct {
+	ResourceType string            `path:"resourceType" api:"required" json:"-"`
+	Cursor       param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	Limit        param.Opt[int64]  `query:"limit,omitzero" json:"-"`
+	// Exact tag name, mutually exclusive with q.
+	Name param.Opt[string] `query:"name,omitzero" json:"-"`
+	// Case-sensitive name prefix. Selects name order.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Owner workspace for an account-shared image.
+	SourceWorkspace param.Opt[string] `query:"sourceWorkspace,omitzero" json:"-"`
+	// Order by tag name. Creation-time sorting is not supported.
+	//
+	// Any of "name:asc", "name:desc".
+	Sort ImageTagListParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [ImageTagListParams]'s query parameters as `url.Values`.
+func (r ImageTagListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Order by tag name. Creation-time sorting is not supported.
+type ImageTagListParamsSort string
+
+const (
+	ImageTagListParamsSortNameAsc  ImageTagListParamsSort = "name:asc"
+	ImageTagListParamsSortNameDesc ImageTagListParamsSort = "name:desc"
+)
 
 type ImageTagDeleteParams struct {
 	ResourceType string `path:"resourceType" api:"required" json:"-"`
