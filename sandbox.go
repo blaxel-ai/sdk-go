@@ -157,8 +157,8 @@ type ExpirationPolicy struct {
 	//
 	// Any of "ttl-idle", "ttl-max-age", "date".
 	Type ExpirationPolicyType `json:"type"`
-	// Duration value for TTL policies (e.g., '30m', '24h', '7d', minimum '5m') or ISO
-	// 8601 date for date policies
+	// Duration value for TTL policies (e.g., '30m', '24h', '7d'; minimum '60s' for
+	// ttl-idle, '5m' for ttl-max-age) or ISO 8601 date for date policies
 	Value string `json:"value"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -204,8 +204,8 @@ const (
 
 // Expiration policy for automatic sandbox cleanup based on time conditions
 type ExpirationPolicyParam struct {
-	// Duration value for TTL policies (e.g., '30m', '24h', '7d', minimum '5m') or ISO
-	// 8601 date for date policies
+	// Duration value for TTL policies (e.g., '30m', '24h', '7d'; minimum '60s' for
+	// ttl-idle, '5m' for ttl-max-age) or ISO 8601 date for date policies
 	Value param.Opt[string] `json:"value,omitzero"`
 	// Action to take when the expiration condition is met
 	//
