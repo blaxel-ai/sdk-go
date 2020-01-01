@@ -251,6 +251,13 @@ type PreviewSpec struct {
 	CustomDomain string `json:"customDomain"`
 	// The expiration date for the preview in ISO 8601 format - 2024-12-31T23:59:59Z
 	Expires string `json:"expires"`
+	// How the request Host header is forwarded to the previewed app. "passthrough"
+	// (default) keeps the platform behavior; "rewrite" sends Host localhost:<port> so
+	// host-checking dev servers (Vite allowedHosts, Django ALLOWED_HOSTS) work
+	// unmodified.
+	//
+	// Any of "passthrough", "rewrite".
+	HostHeader PreviewSpecHostHeader `json:"hostHeader"`
 	// Port of the preview
 	Port int64 `json:"port"`
 	// Prefix URL
@@ -274,6 +281,7 @@ type PreviewSpec struct {
 	JSON struct {
 		CustomDomain    respjson.Field
 		Expires         respjson.Field
+		HostHeader      respjson.Field
 		Port            respjson.Field
 		PrefixURL       respjson.Field
 		Public          respjson.Field
@@ -302,6 +310,17 @@ func (r PreviewSpec) ToParam() PreviewSpecParam {
 	return param.Override[PreviewSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// How the request Host header is forwarded to the previewed app. "passthrough"
+// (default) keeps the platform behavior; "rewrite" sends Host localhost:<port> so
+// host-checking dev servers (Vite allowedHosts, Django ALLOWED_HOSTS) work
+// unmodified.
+type PreviewSpecHostHeader string
+
+const (
+	PreviewSpecHostHeaderPassthrough PreviewSpecHostHeader = "passthrough"
+	PreviewSpecHostHeaderRewrite     PreviewSpecHostHeader = "rewrite"
+)
+
 // Preview of a Resource
 type PreviewSpecParam struct {
 	// Custom domain bound to this preview
@@ -317,6 +336,13 @@ type PreviewSpecParam struct {
 	// Time to live for the preview (e.g., "1h", "24h", "7d"). After this duration, the
 	// preview will be automatically deleted.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
+	// How the request Host header is forwarded to the previewed app. "passthrough"
+	// (default) keeps the platform behavior; "rewrite" sends Host localhost:<port> so
+	// host-checking dev servers (Vite allowedHosts, Django ALLOWED_HOSTS) work
+	// unmodified.
+	//
+	// Any of "passthrough", "rewrite".
+	HostHeader PreviewSpecHostHeader `json:"hostHeader,omitzero"`
 	// Those headers will be set in all requests to your preview. This is especially
 	// useful to set the Authorization header.
 	RequestHeaders map[string]string `json:"requestHeaders,omitzero"`
