@@ -1003,6 +1003,11 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
+	// Build the image resolved to when the sandbox was created, as the image with its
+	// tag replaced by the build tag, followed by the build digest when one is
+	// recorded. Set by the platform at creation and kept while the instance runs; a
+	// value sent by a client is ignored.
+	ResolvedImage string `json:"resolvedImage"`
 	// Seconds the sandbox gets after a SIGUSR2 to prepare before it goes to standby
 	// (scale to zero). The workload can say it is done earlier by writing to
 	// $BLAXEL_STANDBY_READY_FILE. Defaults to 0: no signal, immediate standby.
@@ -1024,6 +1029,7 @@ type SandboxRuntime struct {
 		Image                         respjson.Field
 		Memory                        respjson.Field
 		Ports                         respjson.Field
+		ResolvedImage                 respjson.Field
 		StandbyGracePeriodSeconds     respjson.Field
 		TerminationGracePeriodSeconds respjson.Field
 		Ttl                           respjson.Field
