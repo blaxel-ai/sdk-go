@@ -321,11 +321,7 @@ type FunctionSpec struct {
 	// When false, the function is disabled and will not serve requests
 	Enabled                bool     `json:"enabled"`
 	IntegrationConnections []string `json:"integrationConnections"`
-	// Let MCP clients sign in with their Blaxel account (OAuth 2.1) instead of an API
-	// key. API keys are refused on such a server. Only for MCP Hub servers that
-	// support it, on mk3 generation with a region set. Cannot be combined with public.
-	OAuthSignIn bool     `json:"oauthSignIn"`
-	Policies    []string `json:"policies"`
+	Policies               []string `json:"policies"`
 	// When true, the function is publicly accessible without authentication. Only
 	// available for mk3 generation.
 	Public bool `json:"public"`
@@ -343,7 +339,6 @@ type FunctionSpec struct {
 	JSON struct {
 		Enabled                respjson.Field
 		IntegrationConnections respjson.Field
-		OAuthSignIn            respjson.Field
 		Policies               respjson.Field
 		Public                 respjson.Field
 		Region                 respjson.Field
@@ -375,10 +370,6 @@ func (r FunctionSpec) ToParam() FunctionSpecParam {
 type FunctionSpecParam struct {
 	// When false, the function is disabled and will not serve requests
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	// Let MCP clients sign in with their Blaxel account (OAuth 2.1) instead of an API
-	// key. API keys are refused on such a server. Only for MCP Hub servers that
-	// support it, on mk3 generation with a region set. Cannot be combined with public.
-	OAuthSignIn param.Opt[bool] `json:"oauthSignIn,omitzero"`
 	// When true, the function is publicly accessible without authentication. Only
 	// available for mk3 generation.
 	Public param.Opt[bool] `json:"public,omitzero"`

@@ -40,7 +40,6 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 			Spec: blaxel.FunctionSpecParam{
 				Enabled:                blaxel.Bool(true),
 				IntegrationConnections: []string{"string"},
-				OAuthSignIn:            blaxel.Bool(false),
 				Policies:               []string{"string"},
 				Public:                 blaxel.Bool(false),
 				Region:                 blaxel.String("us-pdx-1"),
@@ -147,7 +146,6 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 				Spec: blaxel.FunctionSpecParam{
 					Enabled:                blaxel.Bool(true),
 					IntegrationConnections: []string{"string"},
-					OAuthSignIn:            blaxel.Bool(false),
 					Policies:               []string{"string"},
 					Public:                 blaxel.Bool(false),
 					Region:                 blaxel.String("us-pdx-1"),
