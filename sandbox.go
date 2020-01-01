@@ -1260,6 +1260,12 @@ type SandboxGetHubResponse struct {
 	Hidden bool `json:"hidden"`
 	// Icon of the definition
 	Icon string `json:"icon"`
+	// Nonempty dark-mode icon URL in responses. Blank inputs use the resolved
+	// light-mode icon.
+	IconDark string `json:"iconDark"`
+	// Nonempty light-mode icon URL in responses. Blank inputs use icon, iconDark, then
+	// the default Hub icon.
+	IconLight string `json:"iconLight"`
 	// Image of the Sandbox definition
 	Image string `json:"image"`
 	// Long description of the definition
@@ -1284,6 +1290,8 @@ type SandboxGetHubResponse struct {
 		Enterprise      respjson.Field
 		Hidden          respjson.Field
 		Icon            respjson.Field
+		IconDark        respjson.Field
+		IconLight       respjson.Field
 		Image           respjson.Field
 		LongDescription respjson.Field
 		Memory          respjson.Field
