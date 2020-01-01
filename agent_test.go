@@ -98,7 +98,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestAgentGetWithOptionalParams(t *testing.T) {
+func TestAgentGet(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -111,13 +111,7 @@ func TestAgentGetWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.Get(
-		context.TODO(),
-		"agentName",
-		blaxel.AgentGetParams{
-			ShowSecrets: blaxel.Bool(true),
-		},
-	)
+	_, err := client.Agents.Get(context.TODO(), "agentName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
