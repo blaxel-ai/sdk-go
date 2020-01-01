@@ -117,10 +117,10 @@ func (r *ImageService) Delete(ctx context.Context, imageName string, body ImageD
 // that are not currently referenced by any active agent, function, sandbox, or job
 // deployment. One call runs for a limited time; when hasMore is true, only part of
 // the unused images were deleted and the call should be repeated.
-func (r *ImageService) Cleanup(ctx context.Context, opts ...option.RequestOption) (res *ImageCleanupResponse, err error) {
+func (r *ImageService) Cleanup(ctx context.Context, body ImageCleanupParams, opts ...option.RequestOption) (res *ImageCleanupResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
 	return res, err
 }
 
@@ -351,11 +351,13 @@ func (r *ImageNewResponse) UnmarshalJSON(data []byte) error {
 }
 
 type ImageCleanupResponse struct {
-	// Number of images deleted
+	// Number of image tags deleted (with dryRun, to delete)
 	Deleted int64 `json:"deleted"`
 	// True when the cleanup stopped on its time limit before every unused image was
 	// deleted. Call it again to continue.
 	HasMore bool `json:"hasMore"`
+	// Images the cleanup deleted tags from (with dryRun, would delete tags from)
+	Images []ImageCleanupResponseImage `json:"images"`
 	// Result message
 	Message string `json:"message"`
 	// Number of unused images left for a next call
@@ -364,6 +366,7 @@ type ImageCleanupResponse struct {
 	JSON struct {
 		Deleted     respjson.Field
 		HasMore     respjson.Field
+		Images      respjson.Field
 		Message     respjson.Field
 		Remaining   respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -374,6 +377,35 @@ type ImageCleanupResponse struct {
 // Returns the unmodified JSON received from the API
 func (r ImageCleanupResponse) RawJSON() string { return r.JSON.raw }
 func (r *ImageCleanupResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageCleanupResponseImage struct {
+	// True when no tag is left, so the image is removed completely
+	FullyRemoved bool `json:"fullyRemoved"`
+	// Number of tags the image keeps
+	KeptTags int64 `json:"keptTags"`
+	// Image name
+	Name string `json:"name"`
+	// Image resource type
+	ResourceType string `json:"resourceType"`
+	// Tags deleted (with dryRun, to delete)
+	Tags []string `json:"tags"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		FullyRemoved respjson.Field
+		KeptTags     respjson.Field
+		Name         respjson.Field
+		ResourceType respjson.Field
+		Tags         respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageCleanupResponseImage) RawJSON() string { return r.JSON.raw }
+func (r *ImageCleanupResponseImage) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -448,4 +480,21 @@ func (r ImageListParams) URLQuery() (v url.Values, err error) {
 type ImageDeleteParams struct {
 	ResourceType string `path:"resourceType" api:"required" json:"-"`
 	paramObj
+}
+
+type ImageCleanupParams struct {
+	// Only report the image tags a cleanup would delete, without deleting anything.
+	DryRun param.Opt[bool] `query:"dryRun,omitzero" json:"-"`
+	// Never delete the most recently created tag of each image, so no image is removed
+	// completely.
+	KeepLatest param.Opt[bool] `query:"keepLatest,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [ImageCleanupParams]'s query parameters as `url.Values`.
+func (r ImageCleanupParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
