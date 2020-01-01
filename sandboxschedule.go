@@ -335,8 +335,7 @@ type SandboxScheduleInput struct {
 	// Shell command to execute inside the sandbox
 	Command string `json:"command"`
 	// Environment variables to set for the process. May contain secrets, so values are
-	// encrypted at rest and masked in API responses unless an admin requests
-	// show_secrets=true.
+	// encrypted at rest and masked in API responses.
 	Env map[string]string `json:"env"`
 	// Keep the sandbox alive (disable scale-to-zero) while the process runs. Defaults
 	// to true.
@@ -391,8 +390,7 @@ type SandboxScheduleInputParam struct {
 	// Working directory for the command
 	WorkingDir param.Opt[string] `json:"workingDir,omitzero"`
 	// Environment variables to set for the process. May contain secrets, so values are
-	// encrypted at rest and masked in API responses unless an admin requests
-	// show_secrets=true.
+	// encrypted at rest and masked in API responses.
 	Env map[string]string `json:"env,omitzero"`
 	paramObj
 }

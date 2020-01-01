@@ -65,14 +65,14 @@ func (r *SandboxService) New(ctx context.Context, params SandboxNewParams, opts 
 
 // Returns detailed information about a sandbox including its configuration,
 // attached volumes, lifecycle policies, and API endpoint URL.
-func (r *SandboxService) Get(ctx context.Context, sandboxName string, query SandboxGetParams, opts ...option.RequestOption) (res *Sandbox, err error) {
+func (r *SandboxService) Get(ctx context.Context, sandboxName string, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
 
@@ -1389,20 +1389,6 @@ func (r *SandboxNewParams) UnmarshalJSON(data []byte) error {
 
 // URLQuery serializes [SandboxNewParams]'s query parameters as `url.Values`.
 func (r SandboxNewParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type SandboxGetParams struct {
-	// Show secret values (requires workspace admin role)
-	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [SandboxGetParams]'s query parameters as `url.Values`.
-func (r SandboxGetParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
