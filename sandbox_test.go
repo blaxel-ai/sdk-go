@@ -228,6 +228,9 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 				}},
 				Vpc: blaxel.String("default"),
 			},
+			Archive: blaxel.SandboxArchiveParam{
+				Restore: blaxel.SandboxArchiveRestoreParam{},
+			},
 		},
 		CreateIfNotExist: blaxel.Bool(true),
 	})
@@ -485,6 +488,9 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						Type:      blaxel.VolumeAttachmentTypePersistent,
 					}},
 					Vpc: blaxel.String("default"),
+				},
+				Archive: blaxel.SandboxArchiveParam{
+					Restore: blaxel.SandboxArchiveRestoreParam{},
 				},
 			},
 		},
