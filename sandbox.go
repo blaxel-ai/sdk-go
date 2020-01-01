@@ -1239,6 +1239,9 @@ type SandboxGetHubResponse struct {
 	Categories []map[string]any `json:"categories"`
 	// If the definition is coming soon
 	ComingSoon bool `json:"coming_soon"`
+	// Optional Hub template settings applied by the console without additional sandbox
+	// creation lookups.
+	CreationOptions SandboxGetHubResponseCreationOptions `json:"creationOptions"`
 	// Description of the definition
 	Description string `json:"description"`
 	// Display name of the definition
@@ -1267,6 +1270,7 @@ type SandboxGetHubResponse struct {
 	JSON struct {
 		Categories      respjson.Field
 		ComingSoon      respjson.Field
+		CreationOptions respjson.Field
 		Description     respjson.Field
 		DisplayName     respjson.Field
 		Enterprise      respjson.Field
@@ -1287,6 +1291,29 @@ type SandboxGetHubResponse struct {
 // Returns the unmodified JSON received from the API
 func (r SandboxGetHubResponse) RawJSON() string { return r.JSON.raw }
 func (r *SandboxGetHubResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Optional Hub template settings applied by the console without additional sandbox
+// creation lookups.
+type SandboxGetHubResponseCreationOptions struct {
+	// Kernel selection arguments copied into runtime.extraArgs. At most 8 entries.
+	ExtraArgs map[string]string `json:"extraArgs"`
+	// Volume attachments included in the creation request. At most 5 attachments per
+	// template.
+	Volumes []VolumeAttachment `json:"volumes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraArgs   respjson.Field
+		Volumes     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxGetHubResponseCreationOptions) RawJSON() string { return r.JSON.raw }
+func (r *SandboxGetHubResponseCreationOptions) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
