@@ -969,6 +969,10 @@ func (r *SandboxNetworkProxyRoutingParam) UnmarshalJSON(data []byte) error {
 // Runtime configuration defining how the sandbox VM is provisioned and its
 // resource limits
 type SandboxRuntime struct {
+	// Maximum share of the sandbox memory its filesystem can use, in percent (10-95).
+	// The filesystem is held in memory, so files written count against the sandbox
+	// memory. Defaults to 50. mk3.1 only. Immutable after creation.
+	DiskPercent int64 `json:"diskPercent"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.Env `json:"envs"`
@@ -1007,6 +1011,7 @@ type SandboxRuntime struct {
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		DiskPercent                   respjson.Field
 		Envs                          respjson.Field
 		Expires                       respjson.Field
 		ExtraArgs                     respjson.Field
@@ -1039,6 +1044,10 @@ func (r SandboxRuntime) ToParam() SandboxRuntimeParam {
 // Runtime configuration defining how the sandbox VM is provisioned and its
 // resource limits
 type SandboxRuntimeParam struct {
+	// Maximum share of the sandbox memory its filesystem can use, in percent (10-95).
+	// The filesystem is held in memory, so files written count against the sandbox
+	// memory. Defaults to 50. mk3.1 only. Immutable after creation.
+	DiskPercent param.Opt[int64] `json:"diskPercent,omitzero"`
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires param.Opt[string] `json:"expires,omitzero"`
