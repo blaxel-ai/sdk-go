@@ -82,21 +82,10 @@ func (r *SandboxCodegenService) Fastapply(ctx context.Context, filePath string, 
 	return res, err
 }
 
-// Uses Relace's code reranking model to find the most relevant files for a given
-// query. This is useful as a first pass in agentic exploration to narrow down the
-// search space.
+// Deprecated: Relace and Morph discontinued their reranking APIs, so this endpoint
+// no longer returns results (503 when a codegen provider is configured).
 //
-// Based on: https://docs.relace.ai/docs/code-reranker/agent
-//
-// Query Construction: The query can be a short question or a more detailed
-// conversation with the user request included. For a first pass, use the full
-// conversation; for subsequent calls, use more targeted questions.
-//
-// Token Limit and Score Threshold: For 200k token context models like Claude 4
-// Sonnet, recommended defaults are scoreThreshold=0.5 and tokenLimit=30000.
-//
-// The response will be a list of file paths and contents ordered from most
-// relevant to least relevant.
+// Deprecated: deprecated
 func (r *SandboxCodegenService) Reranking(ctx context.Context, filePath string, query SandboxCodegenRerankingParams, opts ...option.RequestOption) (res *RerankingResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
