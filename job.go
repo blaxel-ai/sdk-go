@@ -635,8 +635,8 @@ type JobRuntime struct {
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
 	Envs []shared.Env `json:"envs"`
-	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
-	// sub-25ms cold starts)
+	// Infrastructure generation. Jobs always run on mk3 (microVMs); any value sent on
+	// input is ignored.
 	//
 	// Any of "mk2", "mk3".
 	Generation JobRuntimeGeneration `json:"generation"`
@@ -682,8 +682,8 @@ func (r JobRuntime) ToParam() JobRuntimeParam {
 	return param.Override[JobRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
-// sub-25ms cold starts)
+// Infrastructure generation. Jobs always run on mk3 (microVMs); any value sent on
+// input is ignored.
 type JobRuntimeGeneration string
 
 const (
@@ -710,8 +710,8 @@ type JobRuntimeParam struct {
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
-	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
-	// sub-25ms cold starts)
+	// Infrastructure generation. Jobs always run on mk3 (microVMs); any value sent on
+	// input is ignored.
 	//
 	// Any of "mk2", "mk3".
 	Generation JobRuntimeGeneration `json:"generation,omitzero"`
