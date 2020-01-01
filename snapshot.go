@@ -138,8 +138,11 @@ type SandboxForkRequestParam struct {
 	Port param.Opt[int64] `json:"port,omitzero"`
 	// URL prefix for the application
 	Prefix param.Opt[string] `json:"prefix,omitzero"`
-	// Snapshot ID to fork from. When set, the application revision references this
-	// snapshot.
+	// Snapshot ID to fork from. When set, the fork is created from that existing
+	// snapshot (and an application revision references it). When omitted, a fork to a
+	// sandbox copies the source sandbox's live state directly and no snapshot is
+	// persisted; a fork to an application still takes a snapshot, since its revision
+	// references one.
 	SnapshotID param.Opt[string] `json:"snapshotId,omitzero"`
 	// Traffic percentage for canary deployment (0-100). When set on an existing
 	// target, creates a new revision with this traffic percentage.
@@ -164,7 +167,10 @@ func (r *SandboxForkRequestParam) UnmarshalJSON(data []byte) error {
 type SandboxForkResponse struct {
 	// Name of the created or updated resource
 	Name string `json:"name"`
-	// The snapshot ID the fork was created from
+	// The snapshot ID the fork was created from. Set only when the fork went through a
+	// snapshot, meaning an explicit snapshotId was supplied or the fork target is an
+	// application. Empty when the fork copied the source sandbox's live state
+	// directly.
 	SnapshotID string `json:"snapshotId"`
 	// Type of resource that was created (sandbox or application)
 	//
