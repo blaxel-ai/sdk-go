@@ -385,6 +385,10 @@ type ImageNewParams struct {
 	// Memory for the registry import worker in MiB. Only supported when image is a
 	// registry reference. When omitted, the platform default is used.
 	MemoryMB param.Opt[int64] `json:"memoryMb,omitzero"`
+	// Tag for the imported image. Only supported when image is a registry reference.
+	// When omitted, a tag is derived from the build inputs. Tags are immutable, so a
+	// tag that already exists is rejected. latest, pending and failed are reserved.
+	Tag param.Opt[string] `json:"tag,omitzero"`
 	// Temporary scratch disk for the registry import worker in MiB. Only supported
 	// when image is a registry reference. When omitted, the platform default is used.
 	// Set to 0 to use memory-backed scratch. Positive values are not supported for
