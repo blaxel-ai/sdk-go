@@ -106,8 +106,9 @@ func (r *DriveService) ListAutoPaging(ctx context.Context, query DriveListParams
 	return pagination.NewCursorPageAutoPager(r.List(ctx, query, opts...))
 }
 
-// Deletes a drive immediately. The drive record is removed from the database
-// synchronously.
+// Starts the deletion of a drive. The drive is marked DELETING and its storage is
+// wiped asynchronously; the drive disappears from listings once the cleanup
+// completes.
 func (r *DriveService) Delete(ctx context.Context, driveName string, opts ...option.RequestOption) (res *DriveDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
@@ -469,10 +470,12 @@ func (r *DriveListResponseState) UnmarshalJSON(data []byte) error {
 type DriveDeleteResponse struct {
 	Message string `json:"message"`
 	Name    string `json:"name"`
+	Status  string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Message     respjson.Field
 		Name        respjson.Field
+		Status      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
