@@ -323,8 +323,12 @@ type JobExecutionSpec struct {
 	MemoryOverride int64 `json:"memoryOverride"`
 	// Number of parallel tasks
 	Parallelism int64 `json:"parallelism"`
+	// Number of tasks of this execution
+	TaskCount int64 `json:"taskCount"`
 	// List of execution tasks
 	Tasks []JobExecutionSpecTask `json:"tasks"`
+	// Where this execution's task list is stored (server-managed)
+	TasksRef string `json:"tasksRef"`
 	// Job timeout in seconds (captured at execution creation time)
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -332,7 +336,9 @@ type JobExecutionSpec struct {
 		EnvOverride    respjson.Field
 		MemoryOverride respjson.Field
 		Parallelism    respjson.Field
+		TaskCount      respjson.Field
 		Tasks          respjson.Field
+		TasksRef       respjson.Field
 		Timeout        respjson.Field
 		ExtraFields    map[string]respjson.Field
 		raw            string
