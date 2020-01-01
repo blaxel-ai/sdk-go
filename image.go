@@ -42,10 +42,11 @@ func NewImageService(opts ...option.RequestOption) (r ImageService) {
 	return
 }
 
-// Builds a container image without creating a deployment. Returns a presigned URL
-// for uploading source code. After upload, the image will be built and stored in
-// the registry, but no agent, function, sandbox, or job will be created or
-// updated.
+// Builds or imports a container image without creating a deployment. Provide a
+// registry image reference to download and convert an existing image, or omit
+// image to receive a presigned URL for uploading source code. Registry imports can
+// specify memoryMb and volumeMb for the import worker. These settings do not
+// change the resources of workloads using the image.
 func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...option.RequestOption) (res *ImageNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
@@ -373,12 +374,22 @@ type ImageNewParams struct {
 	Name string `json:"name" api:"required"`
 	// Resource type (agent, function, sandbox, job)
 	ResourceType string `json:"resourceType" api:"required"`
+	// Docker configuration JSON containing credentials for the source registry.
+	DockerConfig param.Opt[string] `json:"dockerConfig,omitzero"`
 	// Runtime generation (e.g., mk3). Defaults to mk3 if not specified.
 	Generation param.Opt[string] `json:"generation,omitzero"`
-	// A pre-built Docker image reference (e.g., docker.io/myorg/myimage:latest). When
-	// provided, the build step is skipped and the image is used directly as the source
-	// for the resource runtime.
+	// A pre-built Docker image reference (e.g., docker.io/myorg/myimage:latest).
+	// References with a registry hostname start an asynchronous import that downloads
+	// and converts the image for the resource runtime.
 	Image param.Opt[string] `json:"image,omitzero"`
+	// Memory for the registry import worker in MiB. Only supported when image is a
+	// registry reference. When omitted, the platform default is used.
+	MemoryMB param.Opt[int64] `json:"memoryMb,omitzero"`
+	// Temporary scratch disk for the registry import worker in MiB. Only supported
+	// when image is a registry reference. When omitted, the platform default is used.
+	// Set to 0 to use memory-backed scratch. Positive values are not supported for
+	// HIPAA workspaces.
+	VolumeMB param.Opt[int64] `json:"volumeMb,omitzero"`
 	paramObj
 }
 
