@@ -31,7 +31,8 @@ func TestJobExecutionNewWithOptionalParams(t *testing.T) {
 		"jobId",
 		blaxel.JobExecutionNewParams{
 			CreateJobExecutionRequest: blaxel.CreateJobExecutionRequestParam{
-				ID: blaxel.String("id"),
+				ID:         blaxel.String("id"),
+				AllowQueue: blaxel.Bool(true),
 				Env: map[string]string{
 					"0":  "{",
 					"1":  "\"",
