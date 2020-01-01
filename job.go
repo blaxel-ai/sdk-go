@@ -139,6 +139,11 @@ func (r *JobService) ListRevisions(ctx context.Context, jobID string, opts ...op
 type CreateJobExecutionRequestParam struct {
 	// Unique message ID
 	ID param.Opt[string] `json:"id,omitzero"`
+	// When false, capacity is checked synchronously and the request is rejected
+	// immediately with a 429 error if the execution cannot start right now, instead of
+	// being queued and retried in the background. No execution is created on
+	// rejection. Defaults to true (queue and retry).
+	AllowQueue param.Opt[bool] `json:"allowQueue,omitzero"`
 	// Execution ID (optional, will be generated if not provided)
 	ExecutionID param.Opt[string] `json:"executionId,omitzero"`
 	// Job ID
@@ -179,7 +184,8 @@ type Job struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -929,7 +935,8 @@ type Model struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
