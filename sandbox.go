@@ -986,8 +986,11 @@ type SandboxRuntime struct {
 	// nfs. Android and landlock requests are rejected if routing selects mk3.0.
 	// 'kernelExtensions' (mk3.1, android only for now) switches on the selected
 	// kernel's loadable modules and kernel tracing (eBPF, kprobes, perf); without it
-	// they are disabled, even for root. Values: 'enabled' or 'disabled'. Determines
-	// which kernel variant the workload runs on. Immutable after creation.
+	// they are disabled, even for root. 'kernelPreview' (mk3.1) selects the preview
+	// kernel, the next kernel version offered before it becomes the default; it
+	// includes tun and iptables, cannot be combined with android, landlock or nfs, and
+	// is rejected if routing selects mk3.0. Values: 'enabled' or 'disabled'.
+	// Determines which kernel variant the workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -1079,8 +1082,11 @@ type SandboxRuntimeParam struct {
 	// nfs. Android and landlock requests are rejected if routing selects mk3.0.
 	// 'kernelExtensions' (mk3.1, android only for now) switches on the selected
 	// kernel's loadable modules and kernel tracing (eBPF, kprobes, perf); without it
-	// they are disabled, even for root. Values: 'enabled' or 'disabled'. Determines
-	// which kernel variant the workload runs on. Immutable after creation.
+	// they are disabled, even for root. 'kernelPreview' (mk3.1) selects the preview
+	// kernel, the next kernel version offered before it becomes the default; it
+	// includes tun and iptables, cannot be combined with android, landlock or nfs, and
+	// is rejected if routing selects mk3.0. Values: 'enabled' or 'disabled'.
+	// Determines which kernel variant the workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
