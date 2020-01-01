@@ -976,8 +976,10 @@ type SandboxRuntime struct {
 	// deleted
 	Expires string `json:"expires"`
 	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
-	// 'tun' (mk3.1). Values: 'enabled' or 'disabled'. Determines which kernel variant
-	// the workload runs on. Immutable after creation.
+	// 'tun' and 'android' (mk3.1). The android variant includes tun and iptables and
+	// cannot be combined with nfs. Android requests are rejected if routing selects
+	// mk3.0. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -1049,8 +1051,10 @@ type SandboxRuntimeParam struct {
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
-	// 'tun' (mk3.1). Values: 'enabled' or 'disabled'. Determines which kernel variant
-	// the workload runs on. Immutable after creation.
+	// 'tun' and 'android' (mk3.1). The android variant includes tun and iptables and
+	// cannot be combined with nfs. Android requests are rejected if routing selects
+	// mk3.0. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
