@@ -64,6 +64,8 @@ type Workspace struct {
 	ID string `json:"id"`
 	// Workspace account id
 	AccountID string `json:"accountId"`
+	// Baseten team this workspace was provisioned for; absent on native workspaces
+	BasetenTeamID string `json:"basetenTeamId"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -107,6 +109,7 @@ type Workspace struct {
 	JSON struct {
 		ID             respjson.Field
 		AccountID      respjson.Field
+		BasetenTeamID  respjson.Field
 		CreatedAt      respjson.Field
 		CreatedBy      respjson.Field
 		DisplayName    respjson.Field
@@ -136,9 +139,9 @@ func (r *Workspace) UnmarshalJSON(data []byte) error {
 type WorkspaceGroupMapping struct {
 	// Name of the IdP group (e.g. "Engineering", "Platform")
 	GroupName string `json:"groupName"`
-	// Role to assign in this workspace (admin or member)
+	// Role to assign in this workspace (admin, member or viewer)
 	//
-	// Any of "admin", "member".
+	// Any of "admin", "member", "viewer".
 	Role string `json:"role"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
