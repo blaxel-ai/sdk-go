@@ -53,14 +53,14 @@ func (r *AgentService) New(ctx context.Context, body AgentNewParams, opts ...opt
 
 // Returns detailed information about an agent including its current deployment
 // status, configuration, events history, and inference endpoint URL.
-func (r *AgentService) Get(ctx context.Context, agentName string, query AgentGetParams, opts ...option.RequestOption) (res *Agent, err error) {
+func (r *AgentService) Get(ctx context.Context, agentName string, opts ...option.RequestOption) (res *Agent, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
 
@@ -848,20 +848,6 @@ func (r AgentNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *AgentNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-type AgentGetParams struct {
-	// Show secret values (requires workspace admin role)
-	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [AgentGetParams]'s query parameters as `url.Values`.
-func (r AgentGetParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
 }
 
 type AgentUpdateParams struct {
