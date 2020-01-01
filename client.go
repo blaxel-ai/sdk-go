@@ -19,6 +19,7 @@ import (
 type Client struct {
 	Options            []option.RequestOption
 	Agents             AgentService
+	Applications       ApplicationService
 	Functions          FunctionService
 	Integrations       IntegrationService
 	Images             ImageService
@@ -79,6 +80,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r = Client{Options: opts}
 
 	r.Agents = NewAgentService(opts...)
+	r.Applications = NewApplicationService(opts...)
 	r.Functions = NewFunctionService(opts...)
 	r.Integrations = NewIntegrationService(opts...)
 	r.Images = NewImageService(opts...)
