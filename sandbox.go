@@ -1298,6 +1298,11 @@ type SandboxNewParams struct {
 	// If true, return existing sandbox instead of 409 error when sandbox exists and is
 	// not in FAILED/TERMINATED/TERMINATING state
 	CreateIfNotExist param.Opt[bool] `query:"createIfNotExist,omitzero" json:"-"`
+	// Maximum time in seconds to wait for the sandbox to be ready before the creation
+	// is cancelled and its resources released. Can only shorten the deadline, not
+	// extend it; a value above the server maximum is rejected with 400. Defaults to
+	// the server maximum when omitted.
+	CreationTimeout param.Opt[int64] `query:"creationTimeout,omitzero" json:"-"`
 	paramObj
 }
 
