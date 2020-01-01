@@ -157,8 +157,8 @@ type ExpirationPolicy struct {
 	//
 	// Any of "ttl-idle", "ttl-max-age", "date".
 	Type ExpirationPolicyType `json:"type"`
-	// Duration value for TTL policies (e.g., '30m', '24h', '7d') or ISO 8601 date for
-	// date policies
+	// Duration value for TTL policies (e.g., '30m', '24h', '7d', minimum '5m') or ISO
+	// 8601 date for date policies
 	Value string `json:"value"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -204,8 +204,8 @@ const (
 
 // Expiration policy for automatic sandbox cleanup based on time conditions
 type ExpirationPolicyParam struct {
-	// Duration value for TTL policies (e.g., '30m', '24h', '7d') or ISO 8601 date for
-	// date policies
+	// Duration value for TTL policies (e.g., '30m', '24h', '7d', minimum '5m') or ISO
+	// 8601 date for date policies
 	Value param.Opt[string] `json:"value,omitzero"`
 	// Action to take when the expiration condition is met
 	//
@@ -996,8 +996,8 @@ type SandboxRuntime struct {
 	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
 	// Max-age from creation: the sandbox is deleted this long after it is created,
 	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
-	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
-	// type ttl-idle.
+	// '24h', '7d', '2w'), minimum '5m'. For idle-based cleanup, use a lifecycle
+	// expiration policy of type ttl-idle.
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1046,8 +1046,8 @@ type SandboxRuntimeParam struct {
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
 	// Max-age from creation: the sandbox is deleted this long after it is created,
 	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
-	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
-	// type ttl-idle.
+	// '24h', '7d', '2w'), minimum '5m'. For idle-based cleanup, use a lifecycle
+	// expiration policy of type ttl-idle.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
