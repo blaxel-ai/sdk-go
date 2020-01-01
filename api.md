@@ -310,6 +310,22 @@ Methods:
 - <code title="delete /volumes/{volumeName}">client.Volumes.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, volumeName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Volume">Volume</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /volumes/by-external-id/{externalId}">client.Volumes.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeService.GetByExternalID">GetByExternalID</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, externalID <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Volume">Volume</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+# Secrets
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SecretParam">SecretParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Secret">Secret</a>
+
+Methods:
+
+- <code title="post /secrets">client.Secrets.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SecretService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SecretNewParams">SecretNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Secret">Secret</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /secrets">client.Secrets.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SecretService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Secret">Secret</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /secrets/{secretName}">client.Secrets.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SecretService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, secretName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Secret">Secret</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 # Snapshots
 
 Params Types:
