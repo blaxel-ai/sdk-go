@@ -133,6 +133,10 @@ type ProcessRequestParam struct {
 	MaxRestarts      param.Opt[int64]  `json:"maxRestarts,omitzero"`
 	Name             param.Opt[string] `json:"name,omitzero"`
 	RestartOnFailure param.Opt[bool]   `json:"restartOnFailure,omitzero"`
+	// Open a writable stdin pipe, fed via POST /process/{identifier}/stdin and closed
+	// via DELETE. The pipe does not survive a sandbox-api restart: the process then
+	// sees EOF.
+	Stdin param.Opt[bool] `json:"stdin,omitzero"`
 	// Timeout in seconds. When keepAlive is true, defaults to 600s (10 minutes). Set
 	// to 0 for infinite (no auto-kill).
 	Timeout           param.Opt[int64]  `json:"timeout,omitzero"`
@@ -169,6 +173,8 @@ type ProcessResponse struct {
 	MaxRestarts      int64 `json:"maxRestarts"`
 	RestartCount     int64 `json:"restartCount"`
 	RestartOnFailure bool  `json:"restartOnFailure"`
+	// Whether the process was started with a writable stdin pipe
+	Stdin bool `json:"stdin"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Command          respjson.Field
@@ -186,6 +192,7 @@ type ProcessResponse struct {
 		MaxRestarts      respjson.Field
 		RestartCount     respjson.Field
 		RestartOnFailure respjson.Field
+		Stdin            respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
 	} `json:"-"`

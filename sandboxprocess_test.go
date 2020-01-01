@@ -36,6 +36,7 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 			MaxRestarts:       blaxel.Int(3),
 			Name:              blaxel.String("my-process"),
 			RestartOnFailure:  blaxel.Bool(true),
+			Stdin:             blaxel.Bool(false),
 			Timeout:           blaxel.Int(30),
 			WaitForCompletion: blaxel.Bool(false),
 			WaitForPorts:      []int64{3000, 8080},

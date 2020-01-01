@@ -13,7 +13,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-func TestSandboxSnapshotNewWithOptionalParams(t *testing.T) {
+func TestSnapshotNewWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -26,19 +26,15 @@ func TestSandboxSnapshotNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Sandboxes.Snapshots.New(
-		context.TODO(),
-		"sandboxName",
-		blaxel.SandboxSnapshotNewParams{
-			SandboxSnapshotRequest: blaxel.SandboxSnapshotRequestParam{
-				Name: blaxel.String("my-snapshot"),
-				Source: blaxel.SandboxSnapshotSourceParam{
-					Name: "name",
-					Kind: blaxel.SandboxSnapshotSourceKindSandbox,
-				},
+	_, err := client.Snapshots.New(context.TODO(), blaxel.SnapshotNewParams{
+		SandboxSnapshotRequest: blaxel.SandboxSnapshotRequestParam{
+			Name: blaxel.String("my-snapshot"),
+			Source: blaxel.SandboxSnapshotSourceParam{
+				Name: "name",
+				Kind: blaxel.SandboxSnapshotSourceKindSandbox,
 			},
 		},
-	)
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -48,7 +44,7 @@ func TestSandboxSnapshotNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxSnapshotList(t *testing.T) {
+func TestSnapshotGet(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -61,7 +57,7 @@ func TestSandboxSnapshotList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Sandboxes.Snapshots.List(context.TODO(), "sandboxName")
+	_, err := client.Snapshots.Get(context.TODO(), "snapshotName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -71,7 +67,7 @@ func TestSandboxSnapshotList(t *testing.T) {
 	}
 }
 
-func TestSandboxSnapshotDelete(t *testing.T) {
+func TestSnapshotListWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -84,40 +80,71 @@ func TestSandboxSnapshotDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	err := client.Sandboxes.Snapshots.Delete(
+	_, err := client.Snapshots.List(context.TODO(), blaxel.SnapshotListParams{
+		Anchor: blaxel.SnapshotListParamsAnchorEnd,
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.SnapshotListParamsSortCreatedAtDesc,
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestSnapshotDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	err := client.Snapshots.Delete(context.TODO(), "snapshotName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestSnapshotForkWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Snapshots.Fork(
 		context.TODO(),
-		"snapshotId",
-		blaxel.SandboxSnapshotDeleteParams{
-			SandboxName: "sandboxName",
-		},
-	)
-	if err != nil {
-		var apierr *blaxel.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestSandboxSnapshotRestore(t *testing.T) {
-	t.Skip("Mock server tests are disabled")
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := blaxel.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Sandboxes.Snapshots.Restore(
-		context.TODO(),
-		"snapshotId",
-		blaxel.SandboxSnapshotRestoreParams{
-			SandboxName: "sandboxName",
+		"snapshotName",
+		blaxel.SnapshotForkParams{
+			SandboxForkRequest: blaxel.SandboxForkRequestParam{
+				TargetName:   "my-app",
+				TargetType:   "application",
+				CustomDomain: blaxel.String("customDomain"),
+				Port:         blaxel.Int(8080),
+				Prefix:       blaxel.String("prefix"),
+				SnapshotID:   blaxel.String("snapshotId"),
+				Traffic:      blaxel.Int(10),
+			},
 		},
 	)
 	if err != nil {
