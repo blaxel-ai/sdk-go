@@ -116,7 +116,9 @@ func (r *ImageService) Delete(ctx context.Context, imageName string, body ImageD
 // Cleans up unused container images in the workspace registry. Only removes images
 // that are not currently referenced by any active agent, function, sandbox, or job
 // deployment. One call runs for a limited time; when hasMore is true, only part of
-// the unused images were deleted and the call should be repeated.
+// the unused images were deleted and the call should be repeated. Images are never
+// removed automatically, only by this call or an explicit delete, so an image does
+// not need a running sandbox to be kept.
 func (r *ImageService) Cleanup(ctx context.Context, body ImageCleanupParams, opts ...option.RequestOption) (res *ImageCleanupResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
