@@ -523,6 +523,7 @@ func TestSandboxListWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{
 		Anchor:         blaxel.SandboxListParamsAnchorEnd,
+		CreatedBy:      blaxel.String("createdBy"),
 		Cursor:         blaxel.String("cursor"),
 		ExternalID:     blaxel.String("externalId"),
 		Limit:          blaxel.Int(1),
@@ -554,6 +555,33 @@ func TestSandboxDelete(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Delete(context.TODO(), "sandboxName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestSandboxListCreatorsWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Sandboxes.ListCreators(context.TODO(), blaxel.SandboxListCreatorsParams{
+		Q:              blaxel.String("q"),
+		ShowTerminated: blaxel.Bool(true),
+		Status:         blaxel.String("status"),
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
