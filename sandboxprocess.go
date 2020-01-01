@@ -158,11 +158,14 @@ type ProcessRequestParam struct {
 	Stdin param.Opt[bool] `json:"stdin,omitzero"`
 	// Timeout in seconds. When keepAlive is true, defaults to 600s (10 minutes). Set
 	// to 0 for infinite (no auto-kill).
-	Timeout           param.Opt[int64]  `json:"timeout,omitzero"`
-	WaitForCompletion param.Opt[bool]   `json:"waitForCompletion,omitzero"`
-	WorkingDir        param.Opt[string] `json:"workingDir,omitzero"`
-	Env               map[string]string `json:"env,omitzero"`
-	WaitForPorts      []int64           `json:"waitForPorts,omitzero"`
+	Timeout           param.Opt[int64] `json:"timeout,omitzero"`
+	WaitForCompletion param.Opt[bool]  `json:"waitForCompletion,omitzero"`
+	// Working directory of the command. Created with its missing parents when it does
+	// not exist, like `docker run -w`, as the user the command runs as. A path that
+	// exists but is not a directory, or that this user may not create, fails with 422.
+	WorkingDir   param.Opt[string] `json:"workingDir,omitzero"`
+	Env          map[string]string `json:"env,omitzero"`
+	WaitForPorts []int64           `json:"waitForPorts,omitzero"`
 	paramObj
 }
 
