@@ -42,7 +42,6 @@ func TestDriveNewWithOptionalParams(t *testing.T) {
 				Path:   blaxel.String("/data"),
 			}},
 			Region: blaxel.String("us-pdx-1"),
-			Size:   blaxel.Int(100),
 		},
 	})
 	if err != nil {
@@ -109,7 +108,6 @@ func TestDriveUpdateWithOptionalParams(t *testing.T) {
 					Path:   blaxel.String("/data"),
 				}},
 				Region: blaxel.String("us-pdx-1"),
-				Size:   blaxel.Int(100),
 			},
 		},
 	)
