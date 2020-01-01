@@ -61,6 +61,7 @@ func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
 		blaxel.SandboxFilesystemContentSearchParams{
 			Query:         "query",
 			CaseSensitive: blaxel.Bool(true),
+			ContextLines:  blaxel.Int(0),
 			ExcludeDirs:   blaxel.String("excludeDirs"),
 			FilePattern:   blaxel.String("filePattern"),
 			MaxResults:    blaxel.Int(0),
@@ -210,6 +211,7 @@ func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
 			ExcludeHidden: blaxel.Bool(true),
 			MaxResults:    blaxel.Int(0),
 			Patterns:      blaxel.String("patterns"),
+			Query:         blaxel.String("query"),
 		},
 	)
 	if err != nil {

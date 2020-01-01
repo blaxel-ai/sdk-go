@@ -98,7 +98,9 @@ func (r *SandboxFilesystemMultipartService) ListParts(ctx context.Context, uploa
 	return res, err
 }
 
-// Upload a single part of a multipart upload
+// Upload a single part of a multipart upload. Re-uploading a part number replaces
+// that part. Wait for the previous request for that part to finish before
+// retrying.
 func (r *SandboxFilesystemMultipartService) UploadPart(ctx context.Context, uploadID string, params SandboxFilesystemMultipartUploadPartParams, opts ...option.RequestOption) (res *UploadPartResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if uploadID == "" {
