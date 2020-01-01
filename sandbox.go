@@ -56,7 +56,7 @@ func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 // Creates a new sandbox VM for secure AI code execution. Sandboxes automatically
 // scale to zero when idle and resume instantly, preserving memory state including
 // running processes and filesystem.
-func (r *SandboxService) New(ctx context.Context, params SandboxNewParams, opts ...option.RequestOption) (res *Sandbox, err error) {
+func (r *SandboxService) New(ctx context.Context, params SandboxNewParams, opts ...option.RequestOption) (res *SandboxNewResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
@@ -1236,6 +1236,69 @@ func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// SandboxNewResponseUnion contains all possible properties and values from
+// [Sandbox], [[]Sandbox].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfSandboxArray]
+type SandboxNewResponseUnion struct {
+	// This field will be present if the value is a [[]Sandbox] instead of an object.
+	OfSandboxArray []Sandbox `json:",inline"`
+	// This field is from variant [Sandbox].
+	Metadata Metadata `json:"metadata"`
+	// This field is from variant [Sandbox].
+	Spec SandboxSpec `json:"spec"`
+	// This field is from variant [Sandbox].
+	Archive SandboxArchive `json:"archive"`
+	// This field is from variant [Sandbox].
+	Errors []SandboxError `json:"errors"`
+	// This field is from variant [Sandbox].
+	Events []CoreEvent `json:"events"`
+	// This field is from variant [Sandbox].
+	ExpiresIn int64 `json:"expiresIn"`
+	// This field is from variant [Sandbox].
+	LastUsedAt string `json:"lastUsedAt"`
+	// This field is from variant [Sandbox].
+	NodeGeneration string `json:"nodeGeneration"`
+	// This field is from variant [Sandbox].
+	State SandboxState `json:"state"`
+	// This field is from variant [Sandbox].
+	Status Status `json:"status"`
+	JSON   struct {
+		OfSandboxArray respjson.Field
+		Metadata       respjson.Field
+		Spec           respjson.Field
+		Archive        respjson.Field
+		Errors         respjson.Field
+		Events         respjson.Field
+		ExpiresIn      respjson.Field
+		LastUsedAt     respjson.Field
+		NodeGeneration respjson.Field
+		State          respjson.Field
+		Status         respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+func (u SandboxNewResponseUnion) AsSandbox() (v Sandbox) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u SandboxNewResponseUnion) AsSandboxArray() (v []Sandbox) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u SandboxNewResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *SandboxNewResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Pre-configured sandbox template available in the Sandbox Hub for quick
 // deployment with predefined tools and configurations
 type SandboxGetHubResponse struct {
@@ -1326,6 +1389,15 @@ type SandboxNewParams struct {
 	// standby in under 25ms and automatically scale to zero after inactivity,
 	// preserving memory state including running processes and filesystem.
 	Sandbox SandboxParam
+	// Bulk creation. When set, `count` identical sandboxes are created from the same
+	// spec with server-generated names and the response is an array of sandboxes (even
+	// for `count=1`). The quota is validated for the whole batch before anything is
+	// created and a batch that fails before the response is cleaned up; it never
+	// returns a partial batch. Like a single creation, the request answers 200 when
+	// every sandbox is deployed within the sync window, otherwise 202 with the array
+	// of sandboxes still deploying. Cannot be combined with `metadata.name`,
+	// `metadata.displayName`, `createIfNotExist` or `upload`.
+	Count param.Opt[int64] `query:"count,omitzero" json:"-"`
 	// If true, return existing sandbox instead of 409 error when sandbox exists and is
 	// not in FAILED/TERMINATED/TERMINATING state
 	CreateIfNotExist param.Opt[bool] `query:"createIfNotExist,omitzero" json:"-"`
