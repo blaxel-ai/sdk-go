@@ -241,6 +241,8 @@ func (r *VolumeStateParam) UnmarshalJSON(data []byte) error {
 type VolumeSpec struct {
 	// The internal infrastructure resource identifier for this volume
 	InfrastructureID string `json:"infrastructureId"`
+	// Resolved virtual-kubelet provider for this volume (kraft or blaxel).
+	NodeType string `json:"nodeType"`
 	// Deployment region for the volume (e.g., us-pdx-1, eu-lon-1). Must match the
 	// region of sandboxes it attaches to.
 	Region string `json:"region"`
@@ -253,6 +255,7 @@ type VolumeSpec struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		InfrastructureID respjson.Field
+		NodeType         respjson.Field
 		Region           respjson.Field
 		Size             respjson.Field
 		Template         respjson.Field
