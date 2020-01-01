@@ -194,6 +194,10 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 								"33": "\"",
 								"34": "}",
 							},
+							Standby: blaxel.SandboxNetworkProxyRoutingStandbyParam{
+								AfterSeconds: blaxel.Int(1),
+								Enabled:      blaxel.Bool(true),
+							},
 						}},
 					},
 					Subnet: blaxel.String("default"),
@@ -456,6 +460,10 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 									"32": ".",
 									"33": "\"",
 									"34": "}",
+								},
+								Standby: blaxel.SandboxNetworkProxyRoutingStandbyParam{
+									AfterSeconds: blaxel.Int(1),
+									Enabled:      blaxel.Bool(true),
 								},
 							}},
 						},
