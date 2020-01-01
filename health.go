@@ -43,18 +43,20 @@ func (r *HealthService) Check(ctx context.Context, opts ...option.RequestOption)
 }
 
 type HealthCheckResponse struct {
-	Arch          string                         `json:"arch" api:"required"`
-	BuildTime     string                         `json:"buildTime" api:"required"`
-	GitCommit     string                         `json:"gitCommit" api:"required"`
-	GoVersion     string                         `json:"goVersion" api:"required"`
-	LastUpgrade   HealthCheckResponseLastUpgrade `json:"lastUpgrade" api:"required"`
-	Os            string                         `json:"os" api:"required"`
-	StartedAt     string                         `json:"startedAt" api:"required"`
-	Status        string                         `json:"status" api:"required"`
-	UpgradeCount  int64                          `json:"upgradeCount" api:"required"`
-	Uptime        string                         `json:"uptime" api:"required"`
-	UptimeSeconds float64                        `json:"uptimeSeconds" api:"required"`
-	Version       string                         `json:"version" api:"required"`
+	Arch string `json:"arch" api:"required"`
+	// Build time in RFC 3339 (UTC), or "unknown" for builds without it
+	BuildTime   string                         `json:"buildTime" api:"required"`
+	GitCommit   string                         `json:"gitCommit" api:"required"`
+	GoVersion   string                         `json:"goVersion" api:"required"`
+	LastUpgrade HealthCheckResponseLastUpgrade `json:"lastUpgrade" api:"required"`
+	Os          string                         `json:"os" api:"required"`
+	// API start time in RFC 3339
+	StartedAt     string  `json:"startedAt" api:"required"`
+	Status        string  `json:"status" api:"required"`
+	UpgradeCount  int64   `json:"upgradeCount" api:"required"`
+	Uptime        string  `json:"uptime" api:"required"`
+	UptimeSeconds float64 `json:"uptimeSeconds" api:"required"`
+	Version       string  `json:"version" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Arch          respjson.Field
