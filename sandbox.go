@@ -989,9 +989,11 @@ type SandboxRuntime struct {
 	// they are disabled, even for root. 'kernelPreview' (mk3.1) selects the preview
 	// kernel, the next kernel version offered before it becomes the default; it has
 	// the default kernel's features (iptables included), cannot be combined with
-	// android, landlock, nfs, tun or a dedicated egress gateway, and is rejected if
-	// routing selects mk3.0. Values: 'enabled' or 'disabled'. Determines which kernel
-	// variant the workload runs on. Immutable after creation.
+	// landlock or nfs, and is rejected if routing selects mk3.0. Together with android
+	// it selects the android variant on the preview kernel (tun, iptables and a
+	// dedicated egress gateway included); without android it cannot be combined with
+	// tun or a dedicated egress gateway. Values: 'enabled' or 'disabled'. Determines
+	// which kernel variant the workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -1086,9 +1088,11 @@ type SandboxRuntimeParam struct {
 	// they are disabled, even for root. 'kernelPreview' (mk3.1) selects the preview
 	// kernel, the next kernel version offered before it becomes the default; it has
 	// the default kernel's features (iptables included), cannot be combined with
-	// android, landlock, nfs, tun or a dedicated egress gateway, and is rejected if
-	// routing selects mk3.0. Values: 'enabled' or 'disabled'. Determines which kernel
-	// variant the workload runs on. Immutable after creation.
+	// landlock or nfs, and is rejected if routing selects mk3.0. Together with android
+	// it selects the android variant on the preview kernel (tun, iptables and a
+	// dedicated egress gateway included); without android it cannot be combined with
+	// tun or a dedicated egress gateway. Values: 'enabled' or 'disabled'. Determines
+	// which kernel variant the workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
