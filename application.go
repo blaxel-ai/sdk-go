@@ -601,6 +601,14 @@ type ApplicationListParams struct {
 	// fingerprint so a cursor opened with one query cannot be reused with another.
 	// Only honoured starting on Blaxel-Version 2026-04-28.
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Comma-separated list of statuses to filter on (e.g. `DEPLOYED,FAILED`). Values
+	// are case-insensitive; unknown values are rejected with a 400. Selecting every
+	// status is equivalent to omitting the parameter. Bound into the cursor
+	// fingerprint so a cursor opened with one selection cannot be reused with another.
+	// Filtering itself requires the 2026-04-28 Blaxel-Version (the paginated listing);
+	// on earlier versions the value is still validated but the listing is unfiltered,
+	// except for sandboxes where it is applied on every version.
+	Status param.Opt[string] `query:"status,omitzero" json:"-"`
 	// Start from a known pagination boundary. `end` is only supported for `createdAt`
 	// listings (asc or desc) and returns the tail page directly without walking every
 	// cursor from the first page.

@@ -519,6 +519,7 @@ func TestSandboxListWithOptionalParams(t *testing.T) {
 		Q:              blaxel.String("q"),
 		ShowTerminated: blaxel.Bool(true),
 		Sort:           blaxel.SandboxListParamsSortCreatedAtDesc,
+		Status:         blaxel.String("status"),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
