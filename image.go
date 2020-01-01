@@ -7,11 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
@@ -50,11 +53,11 @@ func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...opt
 	return res, err
 }
 
-// Returns detailed information about a container image including all available
-// tags, creation dates, and size information.
-func (r *ImageService) Get(ctx context.Context, imageName string, query ImageGetParams, opts ...option.RequestOption) (res *Image, err error) {
+// Returns a bounded image summary starting with API version 2026-04-28. Older
+// versions return the image with all tags.
+func (r *ImageService) Get(ctx context.Context, imageName string, params ImageGetParams, opts ...option.RequestOption) (res *ImageSummary, err error) {
 	opts = slices.Concat(r.Options, opts)
-	if query.ResourceType == "" {
+	if params.ResourceType == "" {
 		err = errors.New("missing required resourceType parameter")
 		return nil, err
 	}
@@ -62,19 +65,34 @@ func (r *ImageService) Get(ctx context.Context, imageName string, query ImageGet
 		err = errors.New("missing required imageName parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("images/%s/%s", query.ResourceType, imageName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	path := fmt.Sprintf("images/%s/%s", params.ResourceType, imageName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }
 
-// Returns all container images stored in the workspace registry, grouped by
-// repository with their available tags. Images are created during deployments of
-// agents, functions, sandboxes, and jobs.
-func (r *ImageService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Image, err error) {
+// Returns paginated image summaries starting with API version 2026-04-28. Older
+// versions return a bare array including all tags.
+func (r *ImageService) List(ctx context.Context, query ImageListParams, opts ...option.RequestOption) (res *pagination.CursorPage[ImageSummary], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	path := "images"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns paginated image summaries starting with API version 2026-04-28. Older
+// versions return a bare array including all tags.
+func (r *ImageService) ListAutoPaging(ctx context.Context, query ImageListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[ImageSummary] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, query, opts...))
 }
 
 // Deletes a container image and all its tags from the workspace registry. Will
@@ -176,7 +194,7 @@ type ImageSpec struct {
 	// The size of the image in bytes.
 	Size int64 `json:"size"`
 	// List of tags available for this image.
-	Tags []ImageSpecTag `json:"tags"`
+	Tags []ImageTag `json:"tags"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Size        respjson.Field
@@ -192,7 +210,93 @@ func (r *ImageSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ImageSpecTag struct {
+type ImageSummary struct {
+	Metadata ImageSummaryMetadata `json:"metadata" api:"required"`
+	Spec     ImageSummarySpec     `json:"spec" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metadata    respjson.Field
+		Spec        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageSummary) RawJSON() string { return r.JSON.raw }
+func (r *ImageSummary) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageSummaryMetadata struct {
+	// The date and time when the image was created.
+	CreatedAt string `json:"createdAt"`
+	// The display name of the image (registry/workspace/repository).
+	DisplayName string `json:"displayName"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEvent `json:"events"`
+	// The date and time when the image was last deployed (most recent across all
+	// tags).
+	LastDeployedAt string `json:"lastDeployedAt"`
+	// The name of the image (repository name).
+	Name string `json:"name"`
+	// The resource type of the image.
+	ResourceType string `json:"resourceType"`
+	// If this image is shared from another workspace, this field contains the name of
+	// the source workspace. Empty for non-shared images.
+	SourceWorkspace string `json:"sourceWorkspace"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
+	Status Status `json:"status"`
+	// The date and time when the image was last updated.
+	UpdatedAt string `json:"updatedAt"`
+	// The workspace of the image.
+	Workspace string `json:"workspace"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CreatedAt       respjson.Field
+		DisplayName     respjson.Field
+		Events          respjson.Field
+		LastDeployedAt  respjson.Field
+		Name            respjson.Field
+		ResourceType    respjson.Field
+		SourceWorkspace respjson.Field
+		Status          respjson.Field
+		UpdatedAt       respjson.Field
+		Workspace       respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageSummaryMetadata) RawJSON() string { return r.JSON.raw }
+func (r *ImageSummaryMetadata) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageSummarySpec struct {
+	Size     int64 `json:"size"`
+	TagCount int64 `json:"tagCount"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Size        respjson.Field
+		TagCount    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageSummarySpec) RawJSON() string { return r.JSON.raw }
+func (r *ImageSummarySpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageTag struct {
 	// The date and time when the tag was created.
 	CreatedAt string `json:"createdAt"`
 	// The name of the tag.
@@ -213,8 +317,8 @@ type ImageSpecTag struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ImageSpecTag) RawJSON() string { return r.JSON.raw }
-func (r *ImageSpecTag) UnmarshalJSON(data []byte) error {
+func (r ImageTag) RawJSON() string { return r.JSON.raw }
+func (r *ImageTag) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -288,7 +392,36 @@ func (r *ImageNewParams) UnmarshalJSON(data []byte) error {
 
 type ImageGetParams struct {
 	ResourceType string `path:"resourceType" api:"required" json:"-"`
+	// Owner workspace for an account-shared image.
+	SourceWorkspace param.Opt[string] `query:"sourceWorkspace,omitzero" json:"-"`
 	paramObj
+}
+
+// URLQuery serializes [ImageGetParams]'s query parameters as `url.Values`.
+func (r ImageGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type ImageListParams struct {
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	Limit  param.Opt[int64]  `query:"limit,omitzero" json:"-"`
+	// Case-sensitive name prefix. Selects name order.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Comma-separated resource types.
+	ResourceType param.Opt[string] `query:"resourceType,omitzero" json:"-"`
+	Sort         param.Opt[string] `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [ImageListParams]'s query parameters as `url.Values`.
+func (r ImageListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type ImageDeleteParams struct {
