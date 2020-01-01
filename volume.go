@@ -329,19 +329,25 @@ func (r *VolumeListResponse) UnmarshalJSON(data []byte) error {
 
 // Compact metadata for a Volume, returned in listing responses.
 type VolumeListResponseMetadata struct {
-	CreatedAt   string `json:"createdAt"`
+	CreatedAt string `json:"createdAt"`
+	// User or service account that created the volume.
+	CreatedBy   string `json:"createdBy"`
 	DisplayName string `json:"displayName"`
 	// Caller-owned identifier for external lookups.
 	ExternalID string `json:"externalId"`
 	Name       string `json:"name"`
 	UpdatedAt  string `json:"updatedAt"`
+	// User or service account that last updated the volume.
+	UpdatedBy string `json:"updatedBy"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CreatedAt   respjson.Field
+		CreatedBy   respjson.Field
 		DisplayName respjson.Field
 		ExternalID  respjson.Field
 		Name        respjson.Field
 		UpdatedAt   respjson.Field
+		UpdatedBy   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
