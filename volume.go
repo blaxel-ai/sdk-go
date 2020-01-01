@@ -119,6 +119,19 @@ func (r *VolumeService) Delete(ctx context.Context, volumeName string, opts ...o
 	return res, err
 }
 
+// Returns an active volume matching the given external ID. If no active volume is
+// found, returns 404.
+func (r *VolumeService) GetByExternalID(ctx context.Context, externalID string, opts ...option.RequestOption) (res *Volume, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if externalID == "" {
+		err = errors.New("missing required externalId parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("volumes/by-external-id/%s", externalID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // Persistent storage volume that can be attached to sandboxes for durable file
 // storage across sessions. Volumes survive sandbox deletion and can be reattached
 // to new sandboxes.
@@ -321,12 +334,15 @@ func (r *VolumeListResponse) UnmarshalJSON(data []byte) error {
 type VolumeListResponseMetadata struct {
 	CreatedAt   string `json:"createdAt"`
 	DisplayName string `json:"displayName"`
-	Name        string `json:"name"`
-	UpdatedAt   string `json:"updatedAt"`
+	// Caller-owned identifier for external lookups.
+	ExternalID string `json:"externalId"`
+	Name       string `json:"name"`
+	UpdatedAt  string `json:"updatedAt"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CreatedAt   respjson.Field
 		DisplayName respjson.Field
+		ExternalID  respjson.Field
 		Name        respjson.Field
 		UpdatedAt   respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -415,6 +431,9 @@ type VolumeListParams struct {
 	// the same query (workspace + filters); the server rejects cursors bound to a
 	// different query or older than 24h. Omit on the first page.
 	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Filter volumes by external ID. When set, only volumes matching this caller-owned
+	// identifier are returned.
+	ExternalID param.Opt[string] `query:"externalId,omitzero" json:"-"`
 	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
 	// Substring search across `metadata.name`, `metadata.displayName` and labels
@@ -423,9 +442,9 @@ type VolumeListParams struct {
 	// fingerprint so a cursor opened with one query cannot be reused with another.
 	// Only honoured starting on Blaxel-Version 2026-04-28.
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
-	// Start from a known pagination boundary. `end` is only supported for
-	// `createdAt:desc` listings and returns the oldest page directly without walking
-	// every cursor from the first page.
+	// Start from a known pagination boundary. `end` is only supported for `createdAt`
+	// listings (asc or desc) and returns the tail page directly without walking every
+	// cursor from the first page.
 	//
 	// Any of "end".
 	Anchor VolumeListParamsAnchor `query:"anchor,omitzero" json:"-"`
@@ -447,9 +466,9 @@ func (r VolumeListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Start from a known pagination boundary. `end` is only supported for
-// `createdAt:desc` listings and returns the oldest page directly without walking
-// every cursor from the first page.
+// Start from a known pagination boundary. `end` is only supported for `createdAt`
+// listings (asc or desc) and returns the tail page directly without walking every
+// cursor from the first page.
 type VolumeListParamsAnchor string
 
 const (
