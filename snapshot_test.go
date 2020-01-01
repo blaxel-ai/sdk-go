@@ -146,6 +146,14 @@ func TestSnapshotForkWithOptionalParams(t *testing.T) {
 					Secret: blaxel.Bool(true),
 					Value:  blaxel.String("my-value"),
 				}},
+				Lifecycle: blaxel.SandboxLifecycleParam{
+					ExpirationPolicies: []blaxel.ExpirationPolicyParam{{
+						Action: blaxel.ExpirationPolicyActionDelete,
+						Type:   blaxel.ExpirationPolicyTypeTtlIdle,
+						Value:  blaxel.String("24h"),
+					}},
+					TerminatedRetention: blaxel.String("24h"),
+				},
 				Port:       blaxel.Int(8080),
 				Prefix:     blaxel.String("prefix"),
 				SnapshotID: blaxel.String("snapshotId"),
