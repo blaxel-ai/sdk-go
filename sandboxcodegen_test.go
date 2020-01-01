@@ -32,7 +32,7 @@ func TestSandboxCodegenFastapplyWithOptionalParams(t *testing.T) {
 		blaxel.SandboxCodegenFastapplyParams{
 			ApplyEditRequest: blaxel.ApplyEditRequestParam{
 				CodeEdit: "// Add world parameter\nfunction hello(world) {\n  console.log('Hello', world);\n}",
-				Model:    blaxel.String("auto"),
+				Model:    blaxel.String("relace-apply-3"),
 			},
 		},
 	)

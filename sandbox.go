@@ -1176,6 +1176,10 @@ type SandboxListParams struct {
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
 	// If true, include terminated sandboxes in the response. Defaults to false.
 	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
+	// Comma-separated list of statuses to filter on (e.g. `DEPLOYED,FAILED`). When set
+	// it takes precedence over `showTerminated`. Unknown values are rejected with
+	// a 400. Bound into the cursor fingerprint.
+	Status param.Opt[string] `query:"status,omitzero" json:"-"`
 	// Start from a known pagination boundary. `end` is only supported for `createdAt`
 	// listings (asc or desc) and returns the tail page directly without walking every
 	// cursor from the first page.

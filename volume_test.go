@@ -138,6 +138,7 @@ func TestVolumeListWithOptionalParams(t *testing.T) {
 		Limit:      blaxel.Int(1),
 		Q:          blaxel.String("q"),
 		Sort:       blaxel.VolumeListParamsSortCreatedAtDesc,
+		Status:     blaxel.String("status"),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
