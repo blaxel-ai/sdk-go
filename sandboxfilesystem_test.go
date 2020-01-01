@@ -167,7 +167,7 @@ func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxFilesystemGetTree(t *testing.T) {
+func TestSandboxFilesystemGetTreeWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -180,7 +180,19 @@ func TestSandboxFilesystemGetTree(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Sandboxes.Filesystem.GetTree(context.TODO(), "filePath")
+	_, err := client.Sandboxes.Filesystem.GetTree(
+		context.TODO(),
+		"filePath",
+		blaxel.SandboxFilesystemGetTreeParams{
+			Content:       blaxel.Bool(true),
+			ExcludeDirs:   blaxel.String("excludeDirs"),
+			ExcludeHidden: blaxel.Bool(true),
+			MaxBytes:      blaxel.Int(0),
+			MaxFiles:      blaxel.Int(0),
+			Patterns:      blaxel.String("patterns"),
+			Recursive:     blaxel.Bool(true),
+		},
+	)
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
