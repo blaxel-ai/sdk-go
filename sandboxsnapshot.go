@@ -61,7 +61,8 @@ func (r *SandboxSnapshotService) List(ctx context.Context, sandboxName string, o
 	return res, err
 }
 
-// Deletes a snapshot of a sandbox by its ID.
+// Deletes a snapshot of a sandbox, addressed by its name among that sandbox's
+// snapshots (or by its ID).
 func (r *SandboxSnapshotService) Delete(ctx context.Context, snapshotID string, body SandboxSnapshotDeleteParams, opts ...option.RequestOption) (err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
