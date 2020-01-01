@@ -797,6 +797,9 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
+	// Disk-backed root storage capacity in megabytes. When omitted, the sandbox uses
+	// the default tmpfs overlay sizing based on its memory allocation.
+	StorageMB int64 `json:"storageMb"`
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
@@ -813,6 +816,7 @@ type SandboxRuntime struct {
 		Image                         respjson.Field
 		Memory                        respjson.Field
 		Ports                         respjson.Field
+		StorageMB                     respjson.Field
 		TerminationGracePeriodSeconds respjson.Field
 		Ttl                           respjson.Field
 		ExtraFields                   map[string]respjson.Field
@@ -847,6 +851,9 @@ type SandboxRuntimeParam struct {
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
 	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
+	// Disk-backed root storage capacity in megabytes. When omitted, the sandbox uses
+	// the default tmpfs overlay sizing based on its memory allocation.
+	StorageMB param.Opt[int64] `json:"storageMb,omitzero"`
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
