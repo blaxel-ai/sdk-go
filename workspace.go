@@ -136,9 +136,9 @@ func (r *Workspace) UnmarshalJSON(data []byte) error {
 type WorkspaceGroupMapping struct {
 	// Name of the IdP group (e.g. "Engineering", "Platform")
 	GroupName string `json:"groupName"`
-	// Role to assign in this workspace (admin or member)
+	// Role to assign in this workspace (admin, member or viewer)
 	//
-	// Any of "admin", "member".
+	// Any of "admin", "member", "viewer".
 	Role string `json:"role"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
