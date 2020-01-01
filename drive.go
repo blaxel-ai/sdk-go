@@ -120,9 +120,10 @@ func (r *DriveService) Delete(ctx context.Context, driveName string, opts ...opt
 	return res, err
 }
 
-// Issues a short-lived JWT access token scoped to a specific drive. The token can
-// be used as Bearer authentication for direct S3 operations against the drive's
-// bucket.
+// Issues a short-lived JWT access token for direct S3 operations, requested for a
+// specific drive. Use it as Bearer authentication against the drive's bucket.
+// Access is checked at the workspace level, so the token can also list other
+// drives' buckets in the same workspace; share it only where that is acceptable.
 func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opts ...option.RequestOption) (res *DriveNewAccessTokenResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
