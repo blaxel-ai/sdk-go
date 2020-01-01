@@ -66,7 +66,8 @@ func (r *SandboxProcessService) List(ctx context.Context, opts ...option.Request
 	return res, err
 }
 
-// Forcefully kill a running process
+// Request forceful termination. Poll GET /process/{identifier} until terminal
+// status confirms the managed process has exited.
 func (r *SandboxProcessService) Kill(ctx context.Context, identifier string, opts ...option.RequestOption) (res *SandboxProcessKillResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if identifier == "" {
@@ -90,7 +91,8 @@ func (r *SandboxProcessService) GetLogs(ctx context.Context, identifier string, 
 	return res, err
 }
 
-// Gracefully stop a running process
+// Request graceful termination. Poll GET /process/{identifier} until terminal
+// status confirms the managed process has exited.
 func (r *SandboxProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (res *SandboxProcessStopResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if identifier == "" {
