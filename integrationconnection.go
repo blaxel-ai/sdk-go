@@ -8,9 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
@@ -76,10 +78,10 @@ func (r *IntegrationConnectionService) Update(ctx context.Context, connectionNam
 // Returns all configured integration connections in the workspace. Each connection
 // stores credentials and settings for an external service (LLM provider, API,
 // database).
-func (r *IntegrationConnectionService) List(ctx context.Context, opts ...option.RequestOption) (res *[]IntegrationConnection, err error) {
+func (r *IntegrationConnectionService) List(ctx context.Context, query IntegrationConnectionListParams, opts ...option.RequestOption) (res *[]IntegrationConnection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "integrations/connections"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -239,4 +241,20 @@ func (r IntegrationConnectionUpdateParams) MarshalJSON() (data []byte, err error
 }
 func (r *IntegrationConnectionUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type IntegrationConnectionListParams struct {
+	// Filter resources by metadata.externalId. When set, only resources matching this
+	// caller-owned external ID are returned.
+	ExternalID param.Opt[string] `query:"externalId,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [IntegrationConnectionListParams]'s query parameters as
+// `url.Values`.
+func (r IntegrationConnectionListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
