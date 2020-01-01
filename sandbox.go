@@ -976,8 +976,10 @@ type SandboxRuntime struct {
 	// deleted
 	Expires string `json:"expires"`
 	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
-	// 'tun' (mk3.1). Values: 'enabled' or 'disabled'. Determines which kernel variant
-	// the workload runs on. Immutable after creation.
+	// 'tun' and 'android' (mk3.1). The android variant includes tun and iptables and
+	// cannot be combined with nfs. Android requests are rejected if routing selects
+	// mk3.0. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -1049,8 +1051,10 @@ type SandboxRuntimeParam struct {
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
-	// 'tun' (mk3.1). Values: 'enabled' or 'disabled'. Determines which kernel variant
-	// the workload runs on. Immutable after creation.
+	// 'tun' and 'android' (mk3.1). The android variant includes tun and iptables and
+	// cannot be combined with nfs. Android requests are rejected if routing selects
+	// mk3.0. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
@@ -1239,6 +1243,9 @@ type SandboxGetHubResponse struct {
 	Categories []map[string]any `json:"categories"`
 	// If the definition is coming soon
 	ComingSoon bool `json:"coming_soon"`
+	// Optional Hub template settings applied by the console without additional sandbox
+	// creation lookups.
+	CreationOptions SandboxGetHubResponseCreationOptions `json:"creationOptions"`
 	// Description of the definition
 	Description string `json:"description"`
 	// Display name of the definition
@@ -1267,6 +1274,7 @@ type SandboxGetHubResponse struct {
 	JSON struct {
 		Categories      respjson.Field
 		ComingSoon      respjson.Field
+		CreationOptions respjson.Field
 		Description     respjson.Field
 		DisplayName     respjson.Field
 		Enterprise      respjson.Field
@@ -1287,6 +1295,29 @@ type SandboxGetHubResponse struct {
 // Returns the unmodified JSON received from the API
 func (r SandboxGetHubResponse) RawJSON() string { return r.JSON.raw }
 func (r *SandboxGetHubResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Optional Hub template settings applied by the console without additional sandbox
+// creation lookups.
+type SandboxGetHubResponseCreationOptions struct {
+	// Kernel selection arguments copied into runtime.extraArgs. At most 8 entries.
+	ExtraArgs map[string]string `json:"extraArgs"`
+	// Volume attachments included in the creation request. At most 5 attachments per
+	// template.
+	Volumes []VolumeAttachment `json:"volumes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraArgs   respjson.Field
+		Volumes     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxGetHubResponseCreationOptions) RawJSON() string { return r.JSON.raw }
+func (r *SandboxGetHubResponseCreationOptions) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
