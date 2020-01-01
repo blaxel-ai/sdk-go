@@ -132,11 +132,12 @@ func TestVolumeListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.List(context.TODO(), blaxel.VolumeListParams{
-		Anchor: blaxel.VolumeListParamsAnchorEnd,
-		Cursor: blaxel.String("cursor"),
-		Limit:  blaxel.Int(1),
-		Q:      blaxel.String("q"),
-		Sort:   blaxel.VolumeListParamsSortCreatedAtDesc,
+		Anchor:     blaxel.VolumeListParamsAnchorEnd,
+		Cursor:     blaxel.String("cursor"),
+		ExternalID: blaxel.String("externalId"),
+		Limit:      blaxel.Int(1),
+		Q:          blaxel.String("q"),
+		Sort:       blaxel.VolumeListParamsSortCreatedAtDesc,
 	})
 	if err != nil {
 		var apierr *blaxel.Error
@@ -161,6 +162,29 @@ func TestVolumeDelete(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.Delete(context.TODO(), "volumeName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestVolumeGetByExternalID(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Volumes.GetByExternalID(context.TODO(), "externalId")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
