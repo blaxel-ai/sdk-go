@@ -307,6 +307,29 @@ Methods:
 - <code title="delete /volumes/{volumeName}">client.Volumes.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, volumeName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Volume">Volume</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /volumes/by-external-id/{externalId}">client.Volumes.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeService.GetByExternalID">GetByExternalID</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, externalID <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Volume">Volume</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+# Snapshots
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxForkRequestParam">SandboxForkRequestParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotRequestParam">SandboxSnapshotRequestParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotSourceParam">SandboxSnapshotSourceParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxForkResponse">SandboxForkResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotSource">SandboxSnapshotSource</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotSpec">SandboxSnapshotSpec</a>
+
+Methods:
+
+- <code title="post /snapshots">client.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotNewParams">SnapshotNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /snapshots/{snapshotName}">client.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, snapshotName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /snapshots">client.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotListParams">SnapshotListParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/packages/pagination">pagination</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/packages/pagination#CursorPage">CursorPage</a>[<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>], <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /snapshots/{snapshotName}">client.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, snapshotName <a href="https://pkg.go.dev/builtin#string">string</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
+- <code title="post /snapshots/{snapshotName}/fork">client.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotService.Fork">Fork</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, snapshotName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SnapshotForkParams">SnapshotForkParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxForkResponse">SandboxForkResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 # Templates
 
 Response Types:
@@ -513,14 +536,9 @@ Methods:
 
 ## Snapshots
 
-Params Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotRequestParam">SandboxSnapshotRequestParam</a>
-
 Response Types:
 
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxRestoreResponse">SandboxRestoreResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>
 
 Methods:
 
