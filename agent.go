@@ -150,7 +150,8 @@ type Agent struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -688,6 +689,9 @@ const (
 	StatusDeploying    Status = "DEPLOYING"
 	StatusDeployed     Status = "DEPLOYED"
 	StatusBuilt        Status = "BUILT"
+	StatusArchiving    Status = "ARCHIVING"
+	StatusArchived     Status = "ARCHIVED"
+	StatusUnarchiving  Status = "UNARCHIVING"
 )
 
 // Trigger configuration

@@ -180,6 +180,8 @@ type SandboxScheduleEntry struct {
 	// Maximum number of execution records kept for this schedule. Once reached,
 	// recording a new execution deletes the oldest. Defaults to 100.
 	MaxExecutions int64 `json:"maxExecutions"`
+	// Name of the sandbox this schedule belongs to.
+	Sandbox string `json:"sandbox"`
 	// Type of schedule timing. 'cron' for recurring (5-field expression), 'at' for a
 	// specific RFC 3339 datetime, 'sleep' for a duration from now (resolved to 'at' on
 	// creation).
@@ -196,6 +198,7 @@ type SandboxScheduleEntry struct {
 		CreatedAt     respjson.Field
 		Input         respjson.Field
 		MaxExecutions respjson.Field
+		Sandbox       respjson.Field
 		Type          respjson.Field
 		Value         respjson.Field
 		ExtraFields   map[string]respjson.Field
@@ -262,9 +265,10 @@ func (r *SandboxScheduleEntryParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// One recorded execution of a sandbox schedule. statusCode is the HTTP status from
-// submitting the command to the sandbox (the scheduler does not wait for the
-// command to finish). Stored in the dedicated scheduleexecutions table.
+// One recorded execution of a sandbox schedule. status and statusCode describe
+// whether the scheduler's process submission was accepted; the scheduler does not
+// wait for the process to finish. Stored in the dedicated scheduleexecutions
+// table.
 type SandboxScheduleExecution struct {
 	// Unique id of this execution within the schedule.
 	ID string `json:"id"`
@@ -278,8 +282,15 @@ type SandboxScheduleExecution struct {
 	// Name of the process started in the sandbox for this execution, used to look up
 	// its logs.
 	ProcessName string `json:"processName"`
+	// Name of the sandbox this execution belongs to.
+	Sandbox string `json:"sandbox"`
 	// Id of the schedule this execution belongs to.
 	ScheduleID string `json:"scheduleId"`
+	// Whether submitting the process request was accepted. This is not the process
+	// completion status.
+	//
+	// Any of "succeeded", "failed".
+	Status SandboxScheduleExecutionStatus `json:"status"`
 	// HTTP status code returned when the scheduled command was submitted to the
 	// sandbox (0 if the sandbox could not be reached). 2xx/3xx means the command was
 	// accepted.
@@ -294,7 +305,9 @@ type SandboxScheduleExecution struct {
 		Error       respjson.Field
 		ExecutedAt  respjson.Field
 		ProcessName respjson.Field
+		Sandbox     respjson.Field
 		ScheduleID  respjson.Field
+		Status      respjson.Field
 		StatusCode  respjson.Field
 		Timeout     respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -307,6 +320,15 @@ func (r SandboxScheduleExecution) RawJSON() string { return r.JSON.raw }
 func (r *SandboxScheduleExecution) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// Whether submitting the process request was accepted. This is not the process
+// completion status.
+type SandboxScheduleExecutionStatus string
+
+const (
+	SandboxScheduleExecutionStatusSucceeded SandboxScheduleExecutionStatus = "succeeded"
+	SandboxScheduleExecutionStatusFailed    SandboxScheduleExecutionStatus = "failed"
+)
 
 // Process execution configuration for a scheduled sandbox task
 type SandboxScheduleInput struct {
@@ -432,12 +454,9 @@ type SandboxScheduleListParams struct {
 	// fingerprint so a cursor opened with one query cannot be reused with another.
 	// Only honoured starting on Blaxel-Version 2026-04-28.
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
-	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
-	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
-	// bound to the sort, so a cursor opened with one value cannot be reused with
-	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	// Sort by creation time. Defaults to newest first.
 	//
-	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	// Any of "createdAt:desc", "createdAt:asc".
 	Sort SandboxScheduleListParamsSort `query:"sort,omitzero" json:"-"`
 	// Filter schedules by timing type. Only cron and at are stored (sleep resolves to
 	// at on creation); any other value is ignored.
@@ -456,17 +475,12 @@ func (r SandboxScheduleListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
-// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
-// bound to the sort, so a cursor opened with one value cannot be reused with
-// another. Only honoured starting on Blaxel-Version 2026-04-28.
+// Sort by creation time. Defaults to newest first.
 type SandboxScheduleListParamsSort string
 
 const (
 	SandboxScheduleListParamsSortCreatedAtDesc SandboxScheduleListParamsSort = "createdAt:desc"
 	SandboxScheduleListParamsSortCreatedAtAsc  SandboxScheduleListParamsSort = "createdAt:asc"
-	SandboxScheduleListParamsSortNameAsc       SandboxScheduleListParamsSort = "name:asc"
-	SandboxScheduleListParamsSortNameDesc      SandboxScheduleListParamsSort = "name:desc"
 )
 
 // Filter schedules by timing type. Only cron and at are stored (sleep resolves to
@@ -496,12 +510,9 @@ type SandboxScheduleListExecutionsParams struct {
 	// fingerprint so a cursor opened with one query cannot be reused with another.
 	// Only honoured starting on Blaxel-Version 2026-04-28.
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
-	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
-	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
-	// bound to the sort, so a cursor opened with one value cannot be reused with
-	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	// Sort by creation time. Defaults to newest first.
 	//
-	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	// Any of "createdAt:desc", "createdAt:asc".
 	Sort SandboxScheduleListExecutionsParamsSort `query:"sort,omitzero" json:"-"`
 	paramObj
 }
@@ -515,15 +526,10 @@ func (r SandboxScheduleListExecutionsParams) URLQuery() (v url.Values, err error
 	})
 }
 
-// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
-// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
-// bound to the sort, so a cursor opened with one value cannot be reused with
-// another. Only honoured starting on Blaxel-Version 2026-04-28.
+// Sort by creation time. Defaults to newest first.
 type SandboxScheduleListExecutionsParamsSort string
 
 const (
 	SandboxScheduleListExecutionsParamsSortCreatedAtDesc SandboxScheduleListExecutionsParamsSort = "createdAt:desc"
 	SandboxScheduleListExecutionsParamsSortCreatedAtAsc  SandboxScheduleListExecutionsParamsSort = "createdAt:asc"
-	SandboxScheduleListExecutionsParamsSortNameAsc       SandboxScheduleListExecutionsParamsSort = "name:asc"
-	SandboxScheduleListExecutionsParamsSortNameDesc      SandboxScheduleListExecutionsParamsSort = "name:desc"
 )
