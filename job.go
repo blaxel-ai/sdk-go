@@ -997,8 +997,8 @@ func (r *ModelParam) UnmarshalJSON(data []byte) error {
 type ModelRuntime struct {
 	// Provider-specific endpoint name (e.g., HuggingFace Inference Endpoints name)
 	EndpointName string `json:"endpointName"`
-	// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
-	// deploys through the model-gateway on microVM clusters.
+	// Infrastructure generation. Omitted (default) uses the classic deployment path.
+	// mk3 deploys through the model-gateway on microVM clusters.
 	//
 	// Any of "mk3", "mk2".
 	Generation ModelRuntimeGeneration `json:"generation"`
@@ -1042,8 +1042,8 @@ func (r ModelRuntime) ToParam() ModelRuntimeParam {
 	return param.Override[ModelRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
-// deploys through the model-gateway on microVM clusters.
+// Infrastructure generation. Omitted (default) uses the classic deployment path.
+// mk3 deploys through the model-gateway on microVM clusters.
 type ModelRuntimeGeneration string
 
 const (
@@ -1086,8 +1086,8 @@ type ModelRuntimeParam struct {
 	// Organization or account identifier at the provider (required for some providers
 	// like OpenAI)
 	Organization param.Opt[string] `json:"organization,omitzero"`
-	// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
-	// deploys through the model-gateway on microVM clusters.
+	// Infrastructure generation. Omitted (default) uses the classic deployment path.
+	// mk3 deploys through the model-gateway on microVM clusters.
 	//
 	// Any of "mk3", "mk2".
 	Generation ModelRuntimeGeneration `json:"generation,omitzero"`
