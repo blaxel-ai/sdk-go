@@ -1,0 +1,71 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+package blaxel_test
+
+import (
+	"context"
+	"errors"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go/internal/testutil"
+	"github.com/blaxel-ai/sdk-go/option"
+)
+
+func TestScheduleListWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Schedules.List(context.TODO(), blaxel.ScheduleListParams{
+		Cursor:  blaxel.String("cursor"),
+		Limit:   blaxel.Int(1),
+		Q:       blaxel.String("q"),
+		Sandbox: blaxel.String("sandbox"),
+		Sort:    blaxel.ScheduleListParamsSortCreatedAtDesc,
+		Type:    blaxel.ScheduleListParamsTypeCron,
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestScheduleMetricsWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Schedules.Metrics(context.TODO(), blaxel.ScheduleMetricsParams{
+		Since: blaxel.Time(time.Now()),
+		Until: blaxel.Time(time.Now()),
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
