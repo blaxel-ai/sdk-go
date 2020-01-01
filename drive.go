@@ -166,15 +166,11 @@ type DriveSpec struct {
 	// Deployment region for the drive (e.g., us-pdx-1, eu-lon-1). Must match the
 	// region of resources it attaches to.
 	Region string `json:"region"`
-	// Optional size limit for the drive in GB. If not specified, drive has no size
-	// limit.
-	Size int64 `json:"size"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		InfrastructureID respjson.Field
 		Permissions      respjson.Field
 		Region           respjson.Field
-		Size             respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
 	} `json:"-"`
@@ -229,9 +225,6 @@ type DriveSpecParam struct {
 	// Deployment region for the drive (e.g., us-pdx-1, eu-lon-1). Must match the
 	// region of resources it attaches to.
 	Region param.Opt[string] `json:"region,omitzero"`
-	// Optional size limit for the drive in GB. If not specified, drive has no size
-	// limit.
-	Size param.Opt[int64] `json:"size,omitzero"`
 	// Permissions controlling which workloads can access this drive. Empty means all
 	// workloads in the workspace can access the drive. Maximum 3 permissions.
 	Permissions []DriveSpecPermissionParam `json:"permissions,omitzero"`
