@@ -993,6 +993,11 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
+	// Seconds the sandbox gets after a SIGUSR2 to prepare before it goes to standby
+	// (scale to zero). The workload can say it is ready earlier by writing +1 to
+	// $BLAXEL_SCALE_FILE when it starts preparing and -1 when it is done. Defaults to
+	// 0: no signal, immediate standby.
+	StandbyGracePeriodSeconds int64 `json:"standbyGracePeriodSeconds"`
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
@@ -1009,6 +1014,7 @@ type SandboxRuntime struct {
 		Image                         respjson.Field
 		Memory                        respjson.Field
 		Ports                         respjson.Field
+		StandbyGracePeriodSeconds     respjson.Field
 		TerminationGracePeriodSeconds respjson.Field
 		Ttl                           respjson.Field
 		ExtraFields                   map[string]respjson.Field
@@ -1043,6 +1049,11 @@ type SandboxRuntimeParam struct {
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
 	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
+	// Seconds the sandbox gets after a SIGUSR2 to prepare before it goes to standby
+	// (scale to zero). The workload can say it is ready earlier by writing +1 to
+	// $BLAXEL_SCALE_FILE when it starts preparing and -1 when it is done. Defaults to
+	// 0: no signal, immediate standby.
+	StandbyGracePeriodSeconds param.Opt[int64] `json:"standbyGracePeriodSeconds,omitzero"`
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
