@@ -308,6 +308,13 @@ type Sandbox struct {
 	// Time in seconds until the sandbox is automatically deleted based on TTL and
 	// lifecycle policies. Only present for sandboxes with lifecycle configured.
 	ExpiresIn int64 `json:"expiresIn"`
+	// Last time the sandbox crashed and was automatically restarted in place
+	// (read-only, managed by the system)
+	LastCrashAt string `json:"lastCrashAt"`
+	// Reason of the last sandbox crash (read-only, managed by the system)
+	//
+	// Any of "process_terminated", "platform_error", "unknown".
+	LastCrashReason SandboxLastCrashReason `json:"lastCrashReason"`
 	// Last time the sandbox was used (read-only, managed by the system)
 	LastUsedAt string `json:"lastUsedAt"`
 	// Infrastructure generation this sandbox is deployed on (mk3.0 or mk3.1).
@@ -323,16 +330,18 @@ type Sandbox struct {
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Metadata       respjson.Field
-		Spec           respjson.Field
-		Events         respjson.Field
-		ExpiresIn      respjson.Field
-		LastUsedAt     respjson.Field
-		NodeGeneration respjson.Field
-		State          respjson.Field
-		Status         respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
+		Metadata        respjson.Field
+		Spec            respjson.Field
+		Events          respjson.Field
+		ExpiresIn       respjson.Field
+		LastCrashAt     respjson.Field
+		LastCrashReason respjson.Field
+		LastUsedAt      respjson.Field
+		NodeGeneration  respjson.Field
+		State           respjson.Field
+		Status          respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
 	} `json:"-"`
 }
 
@@ -350,6 +359,15 @@ func (r *Sandbox) UnmarshalJSON(data []byte) error {
 func (r Sandbox) ToParam() SandboxParam {
 	return param.Override[SandboxParam](json.RawMessage(r.RawJSON()))
 }
+
+// Reason of the last sandbox crash (read-only, managed by the system)
+type SandboxLastCrashReason string
+
+const (
+	SandboxLastCrashReasonProcessTerminated SandboxLastCrashReason = "process_terminated"
+	SandboxLastCrashReasonPlatformError     SandboxLastCrashReason = "platform_error"
+	SandboxLastCrashReasonUnknown           SandboxLastCrashReason = "unknown"
+)
 
 // Current state of the sandbox (read-only, managed by the system)
 type SandboxState string
