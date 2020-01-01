@@ -134,6 +134,22 @@ func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opt
 	return res, err
 }
 
+// Deletes a folder and all its contents directly in drive storage. This is
+// synchronous and non-atomic. If it times out or fails, some contents may have
+// been deleted; retry the same path to finish cleanup. An absent folder succeeds.
+// The drive root and internal metadata cannot be deleted.
+func (r *DriveService) DeleteFolder(ctx context.Context, driveName string, body DriveDeleteFolderParams, opts ...option.RequestOption) (err error) {
+	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
+	if driveName == "" {
+		err = errors.New("missing required driveName parameter")
+		return err
+	}
+	path := fmt.Sprintf("drives/%s/folders", driveName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, nil, opts...)
+	return err
+}
+
 // Returns a drive matching the given external ID. If no drive is found,
 // returns 404.
 func (r *DriveService) GetByExternalID(ctx context.Context, externalID string, opts ...option.RequestOption) (res *DriveGetByExternalIDResponse, err error) {
@@ -676,3 +692,18 @@ const (
 	DriveListParamsSortNameAsc       DriveListParamsSort = "name:asc"
 	DriveListParamsSortNameDesc      DriveListParamsSort = "name:desc"
 )
+
+type DriveDeleteFolderParams struct {
+	// Relative folder path ending in a slash, for example documents/reports/.
+	Path string `query:"path" api:"required" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [DriveDeleteFolderParams]'s query parameters as
+// `url.Values`.
+func (r DriveDeleteFolderParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
