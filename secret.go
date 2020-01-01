@@ -68,24 +68,38 @@ func (r *SecretService) Delete(ctx context.Context, secretName string, opts ...o
 
 // Workspace secret, referenced from proxy routing as {{SECRET:name}}. Values are
 // write-only and can never be read back. Every upsert stores a new immutable
-// version and the latest one is resolved at runtime.
+// version and the latest one is resolved at runtime, only for requests to its
+// destinations.
 type Secret struct {
+	// Destinations the secret resolves for, same syntax as routing destinations: a
+	// host, optionally followed by a path glob. The secret is never substituted toward
+	// any other destination.
+	Destinations []string `json:"destinations" api:"required"`
 	// Case-sensitive secret name
 	Name string `json:"name" api:"required"`
 	// The date and time when the secret was first created
 	CreatedAt string `json:"createdAt"`
+	// Delivery of the latest change to every region. Absent once every region applied
+	// it; PENDING while a region has not yet; DEGRADED when a region has been behind
+	// for more than 15 minutes; DELETING for a deleted secret not yet removed from
+	// every region.
+	//
+	// Any of "PENDING", "DEGRADED", "DELETING".
+	Status SecretStatus `json:"status"`
 	// The date and time of the latest version
 	UpdatedAt string `json:"updatedAt"`
 	// Secret value. Write-only, never returned by the API
 	Value string `json:"value"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Name        respjson.Field
-		CreatedAt   respjson.Field
-		UpdatedAt   respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Destinations respjson.Field
+		Name         respjson.Field
+		CreatedAt    respjson.Field
+		Status       respjson.Field
+		UpdatedAt    respjson.Field
+		Value        respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
 	} `json:"-"`
 }
 
@@ -104,12 +118,29 @@ func (r Secret) ToParam() SecretParam {
 	return param.Override[SecretParam](json.RawMessage(r.RawJSON()))
 }
 
+// Delivery of the latest change to every region. Absent once every region applied
+// it; PENDING while a region has not yet; DEGRADED when a region has been behind
+// for more than 15 minutes; DELETING for a deleted secret not yet removed from
+// every region.
+type SecretStatus string
+
+const (
+	SecretStatusPending  SecretStatus = "PENDING"
+	SecretStatusDegraded SecretStatus = "DEGRADED"
+	SecretStatusDeleting SecretStatus = "DELETING"
+)
+
 // Workspace secret, referenced from proxy routing as {{SECRET:name}}. Values are
 // write-only and can never be read back. Every upsert stores a new immutable
-// version and the latest one is resolved at runtime.
+// version and the latest one is resolved at runtime, only for requests to its
+// destinations.
 //
-// The property Name is required.
+// The properties Destinations, Name are required.
 type SecretParam struct {
+	// Destinations the secret resolves for, same syntax as routing destinations: a
+	// host, optionally followed by a path glob. The secret is never substituted toward
+	// any other destination.
+	Destinations []string `json:"destinations,omitzero" api:"required"`
 	// Case-sensitive secret name
 	Name string `json:"name" api:"required"`
 	// Secret value. Write-only, never returned by the API
@@ -128,7 +159,8 @@ func (r *SecretParam) UnmarshalJSON(data []byte) error {
 type SecretNewParams struct {
 	// Workspace secret, referenced from proxy routing as {{SECRET:name}}. Values are
 	// write-only and can never be read back. Every upsert stores a new immutable
-	// version and the latest one is resolved at runtime.
+	// version and the latest one is resolved at runtime, only for requests to its
+	// destinations.
 	Secret SecretParam
 	paramObj
 }
