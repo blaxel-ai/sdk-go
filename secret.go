@@ -68,8 +68,13 @@ func (r *SecretService) Delete(ctx context.Context, secretName string, opts ...o
 
 // Workspace secret, referenced from proxy routing as {{SECRET:name}}. Values are
 // write-only and can never be read back. Every upsert stores a new immutable
-// version and the latest one is resolved at runtime.
+// version and the latest one is resolved at runtime, only for requests to its
+// destinations.
 type Secret struct {
+	// Destinations the secret resolves for, same syntax as routing destinations: a
+	// host, optionally followed by a path glob. The secret is never substituted toward
+	// any other destination.
+	Destinations []string `json:"destinations" api:"required"`
 	// Case-sensitive secret name
 	Name string `json:"name" api:"required"`
 	// The date and time when the secret was first created
@@ -80,12 +85,13 @@ type Secret struct {
 	Value string `json:"value"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Name        respjson.Field
-		CreatedAt   respjson.Field
-		UpdatedAt   respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Destinations respjson.Field
+		Name         respjson.Field
+		CreatedAt    respjson.Field
+		UpdatedAt    respjson.Field
+		Value        respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
 	} `json:"-"`
 }
 
@@ -106,10 +112,15 @@ func (r Secret) ToParam() SecretParam {
 
 // Workspace secret, referenced from proxy routing as {{SECRET:name}}. Values are
 // write-only and can never be read back. Every upsert stores a new immutable
-// version and the latest one is resolved at runtime.
+// version and the latest one is resolved at runtime, only for requests to its
+// destinations.
 //
-// The property Name is required.
+// The properties Destinations, Name are required.
 type SecretParam struct {
+	// Destinations the secret resolves for, same syntax as routing destinations: a
+	// host, optionally followed by a path glob. The secret is never substituted toward
+	// any other destination.
+	Destinations []string `json:"destinations,omitzero" api:"required"`
 	// Case-sensitive secret name
 	Name string `json:"name" api:"required"`
 	// Secret value. Write-only, never returned by the API
@@ -128,7 +139,8 @@ func (r *SecretParam) UnmarshalJSON(data []byte) error {
 type SecretNewParams struct {
 	// Workspace secret, referenced from proxy routing as {{SECRET:name}}. Values are
 	// write-only and can never be read back. Every upsert stores a new immutable
-	// version and the latest one is resolved at runtime.
+	// version and the latest one is resolved at runtime, only for requests to its
+	// destinations.
 	Secret SecretParam
 	paramObj
 }
