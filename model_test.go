@@ -157,12 +157,13 @@ func TestModelListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.List(context.TODO(), blaxel.ModelListParams{
-		Anchor: blaxel.ModelListParamsAnchorEnd,
-		Cursor: blaxel.String("cursor"),
-		Limit:  blaxel.Int(1),
-		Q:      blaxel.String("q"),
-		Sort:   blaxel.ModelListParamsSortCreatedAtDesc,
-		Status: blaxel.String("status"),
+		Anchor:     blaxel.ModelListParamsAnchorEnd,
+		Cursor:     blaxel.String("cursor"),
+		ExternalID: blaxel.String("externalId"),
+		Limit:      blaxel.Int(1),
+		Q:          blaxel.String("q"),
+		Sort:       blaxel.ModelListParamsSortCreatedAtDesc,
+		Status:     blaxel.String("status"),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
