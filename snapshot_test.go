@@ -151,6 +151,7 @@ func TestSnapshotForkWithOptionalParams(t *testing.T) {
 				SnapshotID: blaxel.String("snapshotId"),
 				Traffic:    blaxel.Int(10),
 			},
+			Count: blaxel.Int(1),
 		},
 	)
 	if err != nil {

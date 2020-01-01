@@ -232,6 +232,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 				Restore: blaxel.SandboxArchiveRestoreParam{},
 			},
 		},
+		Count:            blaxel.Int(1),
 		CreateIfNotExist: blaxel.Bool(true),
 	})
 	if err != nil {
