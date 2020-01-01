@@ -303,6 +303,11 @@ type Sandbox struct {
 	// Configuration for a sandbox including its image, memory, ports, region, and
 	// lifecycle policies
 	Spec SandboxSpec `json:"spec" api:"required"`
+	// State of the filesystem archive of a sandbox. An archive holds the writable
+	// filesystem changes and the process configurations of the sandbox, not its
+	// memory, so restoring it produces a sandbox with the same disk state and freshly
+	// started processes.
+	Archive SandboxArchive `json:"archive"`
 	// Infrastructure failures recorded on the sandbox, oldest first (read-only,
 	// managed by the system)
 	Errors []SandboxError `json:"errors"`
@@ -322,12 +327,14 @@ type Sandbox struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
+	// "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata       respjson.Field
 		Spec           respjson.Field
+		Archive        respjson.Field
 		Errors         respjson.Field
 		Events         respjson.Field
 		ExpiresIn      respjson.Field
@@ -353,6 +360,83 @@ func (r *Sandbox) UnmarshalJSON(data []byte) error {
 // SandboxParam.Overrides()
 func (r Sandbox) ToParam() SandboxParam {
 	return param.Override[SandboxParam](json.RawMessage(r.RawJSON()))
+}
+
+// State of the filesystem archive of a sandbox. An archive holds the writable
+// filesystem changes and the process configurations of the sandbox, not its
+// memory, so restoring it produces a sandbox with the same disk state and freshly
+// started processes.
+type SandboxArchive struct {
+	// When the archive was created (read-only)
+	CreatedAt string `json:"createdAt"`
+	// Infrastructure generation the archive was taken from (read-only)
+	Generation string `json:"generation"`
+	// Storage key of the archive (read-only)
+	Key string `json:"key"`
+	// Progress of the restore of a sandbox archive. A restore writes the archived
+	// filesystem over the image the sandbox booted from, which takes as long as the
+	// archive is big; the sandbox answers and its terminal is reachable throughout,
+	// but nothing may write to its filesystem until the restore is done.
+	Restore SandboxArchiveRestore `json:"restore"`
+	// When the restore of the archive started, while the sandbox is being unarchived
+	// (read-only)
+	RestoreStartedAt string `json:"restoreStartedAt"`
+	// Size of the archive in bytes (read-only)
+	Size int64 `json:"size"`
+	// When the archive was started, while the filesystem of the sandbox is still being
+	// uploaded (read-only)
+	StartedAt string `json:"startedAt"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CreatedAt        respjson.Field
+		Generation       respjson.Field
+		Key              respjson.Field
+		Restore          respjson.Field
+		RestoreStartedAt respjson.Field
+		Size             respjson.Field
+		StartedAt        respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxArchive) RawJSON() string { return r.JSON.raw }
+func (r *SandboxArchive) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Progress of the restore of a sandbox archive. A restore writes the archived
+// filesystem over the image the sandbox booted from, which takes as long as the
+// archive is big; the sandbox answers and its terminal is reachable throughout,
+// but nothing may write to its filesystem until the restore is done.
+type SandboxArchiveRestore struct {
+	// Number of files restored so far (read-only)
+	Files int64 `json:"files"`
+	// Bytes of the archive restored so far (read-only)
+	RestoredBytes int64 `json:"restoredBytes"`
+	// Phase of the restore (read-only)
+	//
+	// Any of "downloading", "extracting", "relaunching", "succeeded", "failed".
+	State string `json:"state"`
+	// Total size of the archive being restored in bytes, absent when the store did not
+	// announce it (read-only)
+	TotalBytes int64 `json:"totalBytes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Files         respjson.Field
+		RestoredBytes respjson.Field
+		State         respjson.Field
+		TotalBytes    respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxArchiveRestore) RawJSON() string { return r.JSON.raw }
+func (r *SandboxArchiveRestore) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Infrastructure failure the compute plane reported for a sandbox
@@ -406,6 +490,11 @@ type SandboxParam struct {
 	// Configuration for a sandbox including its image, memory, ports, region, and
 	// lifecycle policies
 	Spec SandboxSpecParam `json:"spec,omitzero" api:"required"`
+	// State of the filesystem archive of a sandbox. An archive holds the writable
+	// filesystem changes and the process configurations of the sandbox, not its
+	// memory, so restoring it produces a sandbox with the same disk state and freshly
+	// started processes.
+	Archive SandboxArchiveParam `json:"archive,omitzero"`
 	paramObj
 }
 
@@ -414,6 +503,43 @@ func (r SandboxParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// State of the filesystem archive of a sandbox. An archive holds the writable
+// filesystem changes and the process configurations of the sandbox, not its
+// memory, so restoring it produces a sandbox with the same disk state and freshly
+// started processes.
+type SandboxArchiveParam struct {
+	// Progress of the restore of a sandbox archive. A restore writes the archived
+	// filesystem over the image the sandbox booted from, which takes as long as the
+	// archive is big; the sandbox answers and its terminal is reachable throughout,
+	// but nothing may write to its filesystem until the restore is done.
+	Restore SandboxArchiveRestoreParam `json:"restore,omitzero"`
+	paramObj
+}
+
+func (r SandboxArchiveParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxArchiveParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxArchiveParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Progress of the restore of a sandbox archive. A restore writes the archived
+// filesystem over the image the sandbox booted from, which takes as long as the
+// archive is big; the sandbox answers and its terminal is reachable throughout,
+// but nothing may write to its filesystem until the restore is done.
+type SandboxArchiveRestoreParam struct {
+	paramObj
+}
+
+func (r SandboxArchiveRestoreParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxArchiveRestoreParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxArchiveRestoreParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
