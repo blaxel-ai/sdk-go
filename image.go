@@ -115,7 +115,8 @@ func (r *ImageService) Delete(ctx context.Context, imageName string, body ImageD
 
 // Cleans up unused container images in the workspace registry. Only removes images
 // that are not currently referenced by any active agent, function, sandbox, or job
-// deployment.
+// deployment. One call runs for a limited time; when hasMore is true, only part of
+// the unused images were deleted and the call should be repeated.
 func (r *ImageService) Cleanup(ctx context.Context, opts ...option.RequestOption) (res *ImageCleanupResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
@@ -352,12 +353,19 @@ func (r *ImageNewResponse) UnmarshalJSON(data []byte) error {
 type ImageCleanupResponse struct {
 	// Number of images deleted
 	Deleted int64 `json:"deleted"`
+	// True when the cleanup stopped on its time limit before every unused image was
+	// deleted. Call it again to continue.
+	HasMore bool `json:"hasMore"`
 	// Result message
 	Message string `json:"message"`
+	// Number of unused images left for a next call
+	Remaining int64 `json:"remaining"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Deleted     respjson.Field
+		HasMore     respjson.Field
 		Message     respjson.Field
+		Remaining   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
