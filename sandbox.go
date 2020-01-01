@@ -136,6 +136,21 @@ func (r *SandboxService) Delete(ctx context.Context, sandboxName string, opts ..
 	return res, err
 }
 
+// Counts the workspace's sandboxes per creator, largest first, so you can see who
+// owns them without paging through the list. Each entry's `createdBy` is the value
+// stored in `metadata.createdBy`; resolve `user:<sub>` through GET /users and
+// `service_account:<client_id>` through GET /service_accounts, and pass it back as
+// `createdBy` on GET /sandboxes to list that creator's sandboxes. Takes the same
+// `status`, `showTerminated` and `q` selection as GET /sandboxes (terminated
+// sandboxes are not counted by default). On a very large workspace the counts are
+// lower bounds, flagged by `totalIsPartial`.
+func (r *SandboxService) ListCreators(ctx context.Context, query SandboxListCreatorsParams, opts ...option.RequestOption) (res *SandboxListCreatorsResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "sandboxes/by-creator"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return res, err
+}
+
 // Returns all pre-built sandbox templates available in the Blaxel Hub. These
 // include popular development environments with pre-installed tools and
 // frameworks.
@@ -1274,6 +1289,55 @@ func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Sandboxes in the workspace counted per creator, largest count first.
+type SandboxListCreatorsResponse struct {
+	// One entry per creator, sorted by count (descending), then by creator.
+	Data []SandboxListCreatorsResponseData `json:"data"`
+	// Total number of sandboxes counted (the sum of all counts).
+	Total int64 `json:"total"`
+	// True when the workspace was too large to count in full: every count, and
+	// `total`, is then a lower bound.
+	TotalIsPartial bool `json:"totalIsPartial"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data           respjson.Field
+		Total          respjson.Field
+		TotalIsPartial respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxListCreatorsResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxListCreatorsResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Number of sandboxes one creator owns in the workspace.
+type SandboxListCreatorsResponseData struct {
+	// Number of sandboxes this creator owns among those counted.
+	Count int64 `json:"count"`
+	// The creator as stored in `metadata.createdBy`: `user:<sub>` for a member
+	// (resolve `sub` through GET /users) or `service_account:<client_id>` for a
+	// service account (resolve `client_id` through GET /service_accounts). Empty for
+	// sandboxes with no recorded creator.
+	CreatedBy string `json:"createdBy"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Count       respjson.Field
+		CreatedBy   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxListCreatorsResponseData) RawJSON() string { return r.JSON.raw }
+func (r *SandboxListCreatorsResponseData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Pre-configured sandbox template available in the Sandbox Hub for quick
 // deployment with predefined tools and configurations
 type SandboxGetHubResponse struct {
@@ -1425,6 +1489,12 @@ func (r *SandboxUpdateParams) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxListParams struct {
+	// Only return sandboxes created by this creator, matched exactly against
+	// `metadata.createdBy` (`user:<sub>` or `service_account:<client_id>`). Combines
+	// with `status`, `showTerminated` and `q`; `meta.total` counts the matches. GET
+	// /sandboxes/by-creator lists the creators with their counts. Not supported
+	// together with `externalId`. Bound into the cursor fingerprint.
+	CreatedBy param.Opt[string] `query:"createdBy,omitzero" json:"-"`
 	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
 	// the same query (workspace + filters); the server rejects cursors bound to a
 	// different query or older than 24h. Omit on the first page.
@@ -1491,3 +1561,27 @@ const (
 	SandboxListParamsSortNameAsc       SandboxListParamsSort = "name:asc"
 	SandboxListParamsSortNameDesc      SandboxListParamsSort = "name:desc"
 )
+
+type SandboxListCreatorsParams struct {
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// If true, also count terminated sandboxes. Defaults to false.
+	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
+	// Comma-separated list of statuses to count (e.g. `DEPLOYED,FAILED`). When set it
+	// takes precedence over `showTerminated`. Unknown values are rejected with a 400.
+	Status param.Opt[string] `query:"status,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxListCreatorsParams]'s query parameters as
+// `url.Values`.
+func (r SandboxListCreatorsParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
