@@ -133,6 +133,19 @@ func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opt
 	return res, err
 }
 
+// Returns a drive matching the given external ID. If no drive is found,
+// returns 404.
+func (r *DriveService) GetByExternalID(ctx context.Context, externalID string, opts ...option.RequestOption) (res *DriveGetByExternalIDResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if externalID == "" {
+		err = errors.New("missing required externalId parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("drives/by-external-id/%s", externalID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // Returns the JSON Web Key Set containing the Ed25519 public key used to verify
 // drive access tokens. Other S3-compatible storage can use this endpoint to
 // validate Bearer tokens.
@@ -501,6 +514,56 @@ func (r *DriveNewAccessTokenResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Drive providing persistent storage that can be attached to agents, functions,
+// and sandboxes. Drives can be mounted at runtime via the sbx API.
+type DriveGetByExternalIDResponse struct {
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
+	Metadata Metadata `json:"metadata" api:"required"`
+	// Immutable drive configuration set at creation time
+	Spec DriveSpec `json:"spec" api:"required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEvent `json:"events"`
+	// Current runtime state of the drive
+	State DriveGetByExternalIDResponseState `json:"state"`
+	// Drive status computed from events
+	Status string `json:"status"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metadata    respjson.Field
+		Spec        respjson.Field
+		Events      respjson.Field
+		State       respjson.Field
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveGetByExternalIDResponse) RawJSON() string { return r.JSON.raw }
+func (r *DriveGetByExternalIDResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Current runtime state of the drive
+type DriveGetByExternalIDResponseState struct {
+	// S3-compatible endpoint URL for accessing drive contents
+	S3URL string `json:"s3Url"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		S3URL       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveGetByExternalIDResponseState) RawJSON() string { return r.JSON.raw }
+func (r *DriveGetByExternalIDResponseState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type DriveGetJwksResponse struct {
 	Keys []any `json:"keys"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -556,6 +619,9 @@ type DriveListParams struct {
 	// the same query (workspace + filters); the server rejects cursors bound to a
 	// different query or older than 24h. Omit on the first page.
 	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Filter drives by external ID. When set, only drives matching this caller-owned
+	// identifier are returned.
+	ExternalID param.Opt[string] `query:"externalId,omitzero" json:"-"`
 	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
 	// Substring search across `metadata.name`, `metadata.displayName` and labels
