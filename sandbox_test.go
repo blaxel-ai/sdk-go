@@ -200,6 +200,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 				},
 				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
+					DiskPercent: blaxel.Int(80),
 					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
@@ -462,6 +463,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 					},
 					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{
+						DiskPercent: blaxel.Int(80),
 						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),

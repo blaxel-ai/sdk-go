@@ -105,15 +105,26 @@ func (r *SandboxFilesystemService) Get(ctx context.Context, filePath string, que
 	return res, err
 }
 
-// Get a recursive directory tree structure starting from the specified path
-func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string, opts ...option.RequestOption) (res *Directory, err error) {
+// List a directory. Without query parameters, `files` and `subdirectories` hold
+// its direct children.
+//
+// With `recursive=true`, they hold every file and directory below the path (flat,
+// with full paths). With `content=true`, each regular file (or symlink to one)
+// also carries its `content` as UTF-8 text, like a JSON file read; other entries
+// have no `content`. `patterns`, `excludeDirs` and `excludeHidden` select entries
+// the same way as find, but nothing is excluded by default.
+//
+// The response is all or nothing: when more than `maxFiles` files match, or
+// `content=true` and they hold more than `maxBytes` bytes, the request fails with
+// 422 before any content is read.
+func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string, query SandboxFilesystemGetTreeParams, opts ...option.RequestOption) (res *Directory, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/tree/%s", filePath)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -219,12 +230,17 @@ type Directory struct {
 	Path  string           `json:"path" api:"required"`
 	// @name Subdirectories
 	Subdirectories []Subdirectory `json:"subdirectories" api:"required"`
+	// Recursive is true when files and subdirectories hold every level below path
+	// (tree read with recursive=true). Older APIs ignore that parameter and omit this
+	// field, so clients can tell a one-level listing apart.
+	Recursive bool `json:"recursive"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Files          respjson.Field
 		Name           respjson.Field
 		Path           respjson.Field
 		Subdirectories respjson.Field
+		Recursive      respjson.Field
 		ExtraFields    map[string]respjson.Field
 		raw            string
 	} `json:"-"`
@@ -244,6 +260,8 @@ type FilesystemRead struct {
 	Path         string `json:"path" api:"required"`
 	Permissions  string `json:"permissions" api:"required"`
 	Size         int64  `json:"size" api:"required"`
+	// Content is set only by a tree read with content=true, for regular files.
+	Content string `json:"content"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Group        respjson.Field
@@ -253,6 +271,7 @@ type FilesystemRead struct {
 		Path         respjson.Field
 		Permissions  respjson.Field
 		Size         respjson.Field
+		Content      respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
@@ -463,6 +482,8 @@ type SandboxFilesystemGetResponseUnion struct {
 	Path  string           `json:"path"`
 	// This field is from variant [Directory].
 	Subdirectories []Subdirectory `json:"subdirectories"`
+	// This field is from variant [Directory].
+	Recursive bool `json:"recursive"`
 	// This field is from variant [FilesystemReadWithContent].
 	Content string `json:"content"`
 	// This field is from variant [FilesystemReadWithContent].
@@ -480,6 +501,7 @@ type SandboxFilesystemGetResponseUnion struct {
 		Name           respjson.Field
 		Path           respjson.Field
 		Subdirectories respjson.Field
+		Recursive      respjson.Field
 		Content        respjson.Field
 		Group          respjson.Field
 		LastModified   respjson.Field
@@ -617,6 +639,38 @@ type SandboxFilesystemGetParams struct {
 // URLQuery serializes [SandboxFilesystemGetParams]'s query parameters as
 // `url.Values`.
 func (r SandboxFilesystemGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SandboxFilesystemGetTreeParams struct {
+	// Include the content of each regular file, as UTF-8 text (default: false)
+	Content param.Opt[bool] `query:"content,omitzero" json:"-"`
+	// Comma-separated directory names to skip with everything below them (default:
+	// none)
+	ExcludeDirs param.Opt[string] `query:"excludeDirs,omitzero" json:"-"`
+	// Skip files and directories whose name starts with a dot (default: false)
+	ExcludeHidden param.Opt[bool] `query:"excludeHidden,omitzero" json:"-"`
+	// With content=true, fail with 422 when the matching files hold more bytes
+	// (default: 33554432, 32 MiB; at most 268435456, 256 MiB)
+	MaxBytes param.Opt[int64] `query:"maxBytes,omitzero" json:"-"`
+	// Fail with 422 when more files match (default: 10000 with recursive or content,
+	// otherwise unlimited; at most 100000)
+	MaxFiles param.Opt[int64] `query:"maxFiles,omitzero" json:"-"`
+	// Comma-separated glob patterns matched against file names (e.g., _.json,_.md).
+	// Directories are not filtered.
+	Patterns param.Opt[string] `query:"patterns,omitzero" json:"-"`
+	// List every file and directory below the path, not only its direct children
+	// (default: false)
+	Recursive param.Opt[bool] `query:"recursive,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxFilesystemGetTreeParams]'s query parameters as
+// `url.Values`.
+func (r SandboxFilesystemGetTreeParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
