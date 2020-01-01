@@ -36,9 +36,17 @@ func NewSandboxProcessService(opts ...option.RequestOption) (r SandboxProcessSer
 	return
 }
 
-// Execute a command and return process information. If Accept header is
-// text/event-stream, streams logs in SSE format and returns the process response
-// as a final event.
+// Execute a command and return process information.
+//
+// Streaming: with `Accept: application/x-ndjson` (or `Accept: text/event-stream`,
+// kept for compatibility) the response is NDJSON
+// (`Content-Type: application/x-ndjson`), not SSE: one JSON object per line,
+// `{"type": "...", "data": "..."}`. `type` is `stdout` or `stderr` (`data` is a
+// raw output chunk, sent as soon as the process writes it, newlines included; if
+// the process finished before any chunk was streamed, its output is sent instead
+// as one event per line, without the newline), `keepalive` (every 5 seconds, no
+// data), `error` (`data` is the message, ends the stream) or `result` (last event,
+// `data` is the ProcessResponse as a JSON string).
 func (r *SandboxProcessService) New(ctx context.Context, body SandboxProcessNewParams, opts ...option.RequestOption) (res *ProcessResponse, err error) {
 	// A lost response may follow execution. Replaying this POST could start the command twice.
 	opts = slices.Concat(r.Options, opts, []option.RequestOption{option.WithMaxRetries(0)})
@@ -106,6 +114,8 @@ func (r *SandboxProcessService) Stop(ctx context.Context, identifier string, opt
 }
 
 type ProcessLogs struct {
+	// Concatenation of the returned stdout followed by the returned stderr. Output
+	// from the two streams is not interleaved.
 	Logs   string `json:"logs" api:"required"`
 	Stderr string `json:"stderr" api:"required"`
 	Stdout string `json:"stdout" api:"required"`
