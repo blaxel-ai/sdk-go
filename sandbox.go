@@ -34,6 +34,7 @@ type SandboxService struct {
 	Process    SandboxProcessService
 	Filesystem SandboxFilesystemService
 	Codegen    SandboxCodegenService
+	Snapshots  SandboxSnapshotService
 	Previews   SandboxPreviewService
 }
 
@@ -47,6 +48,7 @@ func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 	r.Process = NewSandboxProcessService(opts...)
 	r.Filesystem = NewSandboxFilesystemService(opts...)
 	r.Codegen = NewSandboxCodegenService(opts...)
+	r.Snapshots = NewSandboxSnapshotService(opts...)
 	r.Previews = NewSandboxPreviewService(opts...)
 	return
 }

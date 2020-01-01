@@ -330,6 +330,23 @@ Methods:
 - <code title="get /workspaces/{workspaceName}">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceGetParams">WorkspaceGetParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /workspaces">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+# Schedules
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleMetricsResponse">ScheduleMetricsResponse</a>
+
+Methods:
+
+- <code title="get /schedules">client.Schedules.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleListParams">ScheduleListParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/packages/pagination">pagination</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/packages/pagination#CursorPage">CursorPage</a>[<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxScheduleEntry">SandboxScheduleEntry</a>], <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /schedules/metrics">client.Schedules.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleService.Metrics">Metrics</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleMetricsParams">ScheduleMetricsParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleMetricsResponse">ScheduleMetricsResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# ScheduleExecutions
+
+Methods:
+
+- <code title="get /schedule-executions">client.ScheduleExecutions.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleExecutionService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ScheduleExecutionListParams">ScheduleExecutionListParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/packages/pagination">pagination</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/packages/pagination#CursorPage">CursorPage</a>[<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxScheduleExecution">SandboxScheduleExecution</a>], <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 # Sandboxes
 
 Params Types:
@@ -493,6 +510,24 @@ Methods:
 
 - <code title="put /codegen/fastapply/{filePath}">client.Sandboxes.Codegen.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxCodegenService.Fastapply">Fastapply</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, filePath <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxCodegenFastapplyParams">SandboxCodegenFastapplyParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ApplyEditResponse">ApplyEditResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /codegen/reranking/{filePath}">client.Sandboxes.Codegen.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxCodegenService.Reranking">Reranking</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, filePath <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxCodegenRerankingParams">SandboxCodegenRerankingParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#RerankingResponse">RerankingResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+## Snapshots
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotRequestParam">SandboxSnapshotRequestParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxRestoreResponse">SandboxRestoreResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>
+
+Methods:
+
+- <code title="post /sandboxes/{sandboxName}/snapshots">client.Sandboxes.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, sandboxName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotNewParams">SandboxSnapshotNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /sandboxes/{sandboxName}/snapshots">client.Sandboxes.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, sandboxName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshot">SandboxSnapshot</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /sandboxes/{sandboxName}/snapshots/{snapshotId}">client.Sandboxes.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, snapshotID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotDeleteParams">SandboxSnapshotDeleteParams</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
+- <code title="post /sandboxes/{sandboxName}/snapshots/{snapshotId}/restore">client.Sandboxes.Snapshots.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotService.Restore">Restore</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, snapshotID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSnapshotRestoreParams">SandboxSnapshotRestoreParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxRestoreResponse">SandboxRestoreResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 ## Previews
 
