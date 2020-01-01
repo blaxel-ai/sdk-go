@@ -521,6 +521,9 @@ type PolicyListParams struct {
 	// the same query (workspace + filters); the server rejects cursors bound to a
 	// different query or older than 24h. Omit on the first page.
 	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Filter resources by metadata.externalId. When set, only resources matching this
+	// caller-owned external ID are returned.
+	ExternalID param.Opt[string] `query:"externalId,omitzero" json:"-"`
 	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
 	// Substring search across `metadata.name`, `metadata.displayName` and labels
