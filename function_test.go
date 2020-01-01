@@ -95,7 +95,7 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestFunctionGetWithOptionalParams(t *testing.T) {
+func TestFunctionGet(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -108,13 +108,7 @@ func TestFunctionGetWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Functions.Get(
-		context.TODO(),
-		"functionName",
-		blaxel.FunctionGetParams{
-			ShowSecrets: blaxel.Bool(true),
-		},
-	)
+	_, err := client.Functions.Get(context.TODO(), "functionName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
