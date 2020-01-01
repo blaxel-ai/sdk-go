@@ -26,8 +26,7 @@ import (
 
 func getDefaultHeaders() map[string]string {
 	return map[string]string{
-		"User-Agent":     fmt.Sprintf("Blaxel/Go %s", internal.PackageVersion),
-		"Blaxel-Version": "2026-04-28",
+		"User-Agent": fmt.Sprintf("Blaxel/Go %s", internal.PackageVersion),
 	}
 }
 
@@ -208,11 +207,6 @@ type HTTPDoer interface {
 // Editing the variables inside RequestConfig directly is unstable api. Prefer
 // composing the RequestOption instead if possible.
 type RequestConfig struct {
-	Workspace      string
-	AccessToken    string
-	RefreshToken   string
-	DeviceCode     string
-	ExpiresIn      int
 	MaxRetries     int
 	RequestTimeout time.Duration
 	Context        context.Context
@@ -229,8 +223,6 @@ type RequestConfig struct {
 	ClientSecret   string
 	// OAuth2State holds the OAuth2 provider configuration and cached token information
 	OAuth2State *OAuth2State
-	// OAuth2RefreshState holds the OAuth2 refresh token state for automatic refresh
-	OAuth2RefreshState *OAuth2RefreshState
 	// If ResponseBodyInto not nil, then we will attempt to deserialize into
 	// ResponseBodyInto. If Destination is a []byte, then it will return the body as
 	// is.
@@ -426,23 +418,13 @@ func (cfg *RequestConfig) Execute() (err error) {
 		}
 	}
 
-	// Handle OAuth2 refresh token flow (access token + refresh token)
-	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
-		token, err := cfg.OAuth2RefreshState.GetToken(cfg)
-		if err != nil {
-			return err
-		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
-		// Handle OAuth2 client credentials flow
+	if cfg.OAuth2State != nil && cfg.Request.Header.Get("Authorization") == "" {
 		token, err := cfg.OAuth2State.GetToken(cfg)
 		if err != nil {
 			return err
 		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
-		// Handle direct access token usage (without OAuth2 state machinery)
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
+
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	}
 
 	handler := cfg.HTTPClient.Do
@@ -541,15 +523,6 @@ func (cfg *RequestConfig) Execute() (err error) {
 		if err != nil {
 			return err
 		}
-
-		// The X-Blaxel-Source header is the canonical signal that the response
-		// was synthesized by the Blaxel gateway proxy. Use the X-Blaxel-Error-Code
-		// header as a fallback when the body envelope did not provide a code.
-		aerr.BlaxelSource = res.Header.Get("X-Blaxel-Source")
-		if aerr.ErrorCode == "" {
-			aerr.ErrorCode = res.Header.Get("X-Blaxel-Error-Code")
-		}
-
 		return &aerr
 	}
 
@@ -648,82 +621,6 @@ func (cfg *RequestConfig) Apply(opts ...RequestOption) error {
 		}
 	}
 	return nil
-}
-
-// PrepareRequest resolves the URL and applies authentication headers, returning
-// a ready-to-use *http.Request and *http.Client. This is useful for streaming
-// endpoints where you need to read the response body incrementally rather than
-// having Execute() parse the entire response.
-//
-// Example usage:
-//
-//	cfg, _ := requestconfig.NewRequestConfig(ctx, "GET", "path", nil, nil, opts...)
-//	req, client, err := cfg.PrepareRequest()
-//	if err != nil {
-//	    return err
-//	}
-//	resp, err := client.Do(req)
-//	// ... handle streaming response ...
-func (cfg *RequestConfig) PrepareRequest() (*http.Request, *http.Client, error) {
-	// Resolve base URL
-	if cfg.BaseURL == nil {
-		if cfg.DefaultBaseURL != nil {
-			cfg.BaseURL = cfg.DefaultBaseURL
-		} else {
-			return nil, nil, fmt.Errorf("requestconfig: base url is not set")
-		}
-	}
-
-	var err error
-	cfg.Request.URL, err = cfg.BaseURL.Parse(strings.TrimLeft(cfg.Request.URL.String(), "/"))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Handle body if present
-	if cfg.Body != nil && cfg.Request.Body == nil {
-		switch body := cfg.Body.(type) {
-		case *bytes.Buffer:
-			b := body.Bytes()
-			cfg.Request.ContentLength = int64(body.Len())
-			cfg.Request.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(b)), nil }
-			cfg.Request.Body, _ = cfg.Request.GetBody()
-		case *bytes.Reader:
-			cfg.Request.ContentLength = int64(body.Len())
-			cfg.Request.GetBody = func() (io.ReadCloser, error) {
-				_, err := body.Seek(0, 0)
-				return io.NopCloser(body), err
-			}
-			cfg.Request.Body, _ = cfg.Request.GetBody()
-		default:
-			if rc, ok := body.(io.ReadCloser); ok {
-				cfg.Request.Body = rc
-			} else {
-				cfg.Request.Body = io.NopCloser(body)
-			}
-		}
-	}
-
-	// Handle OAuth2 refresh token flow (access token + refresh token)
-	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
-		token, err := cfg.OAuth2RefreshState.GetToken(cfg)
-		if err != nil {
-			return nil, nil, err
-		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
-		// Handle OAuth2 client credentials flow
-		token, err := cfg.OAuth2State.GetToken(cfg)
-		if err != nil {
-			return nil, nil, err
-		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
-		// Handle direct access token usage (without OAuth2 state machinery)
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
-	}
-
-	return cfg.Request, cfg.HTTPClient, nil
 }
 
 // PreRequestOptions is used to collect all the options which need to be known before

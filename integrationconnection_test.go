@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	blaxel "github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
 )

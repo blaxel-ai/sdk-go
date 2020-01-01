@@ -7,4 +7,4 @@ cd "$(dirname "$0")/.."
 
 
 echo "==> Running tests"
-go test $(go list ./... | grep -v /integration_tests) "$@"
+go test ./... "$@"
