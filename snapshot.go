@@ -112,14 +112,14 @@ func (r *SnapshotService) Delete(ctx context.Context, snapshotName string, opts 
 
 // Creates a new sandbox or application from a snapshot. The snapshot is enough on
 // its own, so this works after the object it was captured from has been deleted.
-func (r *SnapshotService) Fork(ctx context.Context, snapshotName string, body SnapshotForkParams, opts ...option.RequestOption) (res *SandboxForkResponse, err error) {
+func (r *SnapshotService) Fork(ctx context.Context, snapshotName string, params SnapshotForkParams, opts ...option.RequestOption) (res *SnapshotForkResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if snapshotName == "" {
 		err = errors.New("missing required snapshotName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("snapshots/%s/fork", snapshotName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -379,6 +379,49 @@ const (
 	SandboxSnapshotSpecGenerationMk3 SandboxSnapshotSpecGeneration = "mk3"
 )
 
+// SnapshotForkResponseUnion contains all possible properties and values from
+// [SandboxForkResponse], [[]SandboxForkResponse].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfSandboxForkResponseArray]
+type SnapshotForkResponseUnion struct {
+	// This field will be present if the value is a [[]SandboxForkResponse] instead of
+	// an object.
+	OfSandboxForkResponseArray []SandboxForkResponse `json:",inline"`
+	// This field is from variant [SandboxForkResponse].
+	Name string `json:"name"`
+	// This field is from variant [SandboxForkResponse].
+	SnapshotID string `json:"snapshotId"`
+	// This field is from variant [SandboxForkResponse].
+	Type SandboxForkResponseType `json:"type"`
+	JSON struct {
+		OfSandboxForkResponseArray respjson.Field
+		Name                       respjson.Field
+		SnapshotID                 respjson.Field
+		Type                       respjson.Field
+		raw                        string
+	} `json:"-"`
+}
+
+func (u SnapshotForkResponseUnion) AsSandboxForkResponse() (v SandboxForkResponse) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u SnapshotForkResponseUnion) AsSandboxForkResponseArray() (v []SandboxForkResponse) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u SnapshotForkResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *SnapshotForkResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type SnapshotNewParams struct {
 	// Request body for creating a snapshot. The source object is required at the root
 	// endpoint and implied by the path on the nested one.
@@ -456,6 +499,12 @@ type SnapshotForkParams struct {
 	// Request body for forking a sandbox into an application. Creates a new
 	// application or adds a canary revision to an existing one.
 	SandboxForkRequest SandboxForkRequestParam
+	// Bulk fork. When set, `count` sandboxes are created from the snapshot with
+	// server-generated names and the response is an array of fork results (even for
+	// `count=1`). The quota is validated for the whole batch before anything is
+	// created and the request never returns a partial batch. Only supported for the
+	// sandbox target type; cannot be combined with `targetName`.
+	Count param.Opt[int64] `query:"count,omitzero" json:"-"`
 	paramObj
 }
 
@@ -464,4 +513,12 @@ func (r SnapshotForkParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *SnapshotForkParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// URLQuery serializes [SnapshotForkParams]'s query parameters as `url.Values`.
+func (r SnapshotForkParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }

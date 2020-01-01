@@ -93,7 +93,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("%+v\n", sandbox.Metadata)
+	fmt.Printf("%+v\n", sandbox)
 }
 
 ```
