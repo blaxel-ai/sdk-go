@@ -303,6 +303,9 @@ type Sandbox struct {
 	// Configuration for a sandbox including its image, memory, ports, region, and
 	// lifecycle policies
 	Spec SandboxSpec `json:"spec" api:"required"`
+	// Infrastructure failures recorded on the sandbox, oldest first (read-only,
+	// managed by the system)
+	Errors []SandboxError `json:"errors"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Time in seconds until the sandbox is automatically deleted based on TTL and
@@ -325,6 +328,7 @@ type Sandbox struct {
 	JSON struct {
 		Metadata       respjson.Field
 		Spec           respjson.Field
+		Errors         respjson.Field
 		Events         respjson.Field
 		ExpiresIn      respjson.Field
 		LastUsedAt     respjson.Field
@@ -349,6 +353,37 @@ func (r *Sandbox) UnmarshalJSON(data []byte) error {
 // SandboxParam.Overrides()
 func (r Sandbox) ToParam() SandboxParam {
 	return param.Override[SandboxParam](json.RawMessage(r.RawJSON()))
+}
+
+// Infrastructure failure the compute plane reported for a sandbox
+type SandboxError struct {
+	// Stable code of the failure pattern
+	Code string `json:"code"`
+	// Whether the failure was terminal, putting the sandbox in FAILED, as opposed to
+	// being cleared by a restart
+	Fatal bool `json:"fatal"`
+	// Instance the failure was reported for
+	Instance string `json:"instance"`
+	// Reason reported with the failure
+	Message string `json:"message"`
+	// Time at which the failure was recorded
+	Time string `json:"time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Code        respjson.Field
+		Fatal       respjson.Field
+		Instance    respjson.Field
+		Message     respjson.Field
+		Time        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxError) RawJSON() string { return r.JSON.raw }
+func (r *SandboxError) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current state of the sandbox (read-only, managed by the system)
@@ -379,6 +414,30 @@ func (r SandboxParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Infrastructure failure the compute plane reported for a sandbox
+type SandboxErrorParam struct {
+	// Stable code of the failure pattern
+	Code param.Opt[string] `json:"code,omitzero"`
+	// Whether the failure was terminal, putting the sandbox in FAILED, as opposed to
+	// being cleared by a restart
+	Fatal param.Opt[bool] `json:"fatal,omitzero"`
+	// Instance the failure was reported for
+	Instance param.Opt[string] `json:"instance,omitzero"`
+	// Reason reported with the failure
+	Message param.Opt[string] `json:"message,omitzero"`
+	// Time at which the failure was recorded
+	Time param.Opt[string] `json:"time,omitzero"`
+	paramObj
+}
+
+func (r SandboxErrorParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxErrorParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxErrorParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
