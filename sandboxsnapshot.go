@@ -13,7 +13,6 @@ import (
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
-	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
@@ -119,62 +118,9 @@ func (r *SandboxRestoreResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// A point-in-time snapshot of a sandbox that can be used for forking into a new
-// sandbox or application.
-type SandboxSnapshot struct {
-	// Unique snapshot identifier
-	ID string `json:"id" api:"required"`
-	// When the snapshot was created
-	CreatedAt string `json:"createdAt" api:"required"`
-	// Name of the source sandbox
-	SandboxName string `json:"sandboxName" api:"required"`
-	// Status of the snapshot (pending, ready, failed)
-	Status string `json:"status" api:"required"`
-	// Workspace of the source sandbox
-	Workspace string `json:"workspace" api:"required"`
-	// Who created the snapshot
-	CreatedBy string `json:"createdBy"`
-	// Optional human-readable name for the snapshot
-	Name string `json:"name"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID          respjson.Field
-		CreatedAt   respjson.Field
-		SandboxName respjson.Field
-		Status      respjson.Field
-		Workspace   respjson.Field
-		CreatedBy   respjson.Field
-		Name        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxSnapshot) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSnapshot) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Request body for creating a snapshot of a sandbox. Captures the current sandbox
-// state.
-type SandboxSnapshotRequestParam struct {
-	// Optional human-readable name for the snapshot
-	Name param.Opt[string] `json:"name,omitzero"`
-	paramObj
-}
-
-func (r SandboxSnapshotRequestParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSnapshotRequestParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxSnapshotRequestParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 type SandboxSnapshotNewParams struct {
-	// Request body for creating a snapshot of a sandbox. Captures the current sandbox
-	// state.
+	// Request body for creating a snapshot. The source object is required at the root
+	// endpoint and implied by the path on the nested one.
 	SandboxSnapshotRequest SandboxSnapshotRequestParam
 	paramObj
 }
