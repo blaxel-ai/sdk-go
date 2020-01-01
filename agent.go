@@ -749,6 +749,8 @@ type TriggerConfiguration struct {
 	Schedule string `json:"schedule"`
 	// The tasks configuration of the cronjob
 	Tasks []any `json:"tasks"`
+	// Where this trigger's task list is stored (server-managed)
+	TasksRef string `json:"tasksRef"`
 	// The timeout in seconds for async triggers (max 900s, MK3 only)
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -760,6 +762,7 @@ type TriggerConfiguration struct {
 		Retry              respjson.Field
 		Schedule           respjson.Field
 		Tasks              respjson.Field
+		TasksRef           respjson.Field
 		Timeout            respjson.Field
 		ExtraFields        map[string]respjson.Field
 		raw                string
