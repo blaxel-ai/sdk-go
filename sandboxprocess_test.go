@@ -28,7 +28,9 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Sandboxes.Process.New(context.TODO(), blaxel.SandboxProcessNewParams{
 		ProcessRequest: blaxel.ProcessRequestParam{
-			Command: "ls -la",
+			Command:        "ls -la",
+			CallbackSecret: blaxel.String("a-random-secret-of-at-least-32-chars"),
+			CallbackURL:    blaxel.String("https://example.com/hooks/process"),
 			Env: map[string]string{
 				`{"PORT"`: ` "3000"}`,
 			},

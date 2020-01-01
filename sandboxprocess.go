@@ -138,6 +138,12 @@ func (r *ProcessLogs) UnmarshalJSON(data []byte) error {
 // The property Command is required.
 type ProcessRequestParam struct {
 	Command string `json:"command" api:"required"`
+	// Key the webhook is signed with (HMAC-SHA256, X-Blaxel-Signature header). At
+	// least 32 characters; required with callbackUrl. Never returned by the API.
+	CallbackSecret param.Opt[string] `json:"callbackSecret,omitzero"`
+	// URL that receives a signed process.exited webhook when the process ends for good
+	// (not on auto-restart). Requires callbackSecret.
+	CallbackURL param.Opt[string] `json:"callbackUrl,omitzero"`
 	// Disable scale-to-zero while process runs. Default timeout is 600s (10 minutes).
 	// Set timeout to 0 for infinite.
 	KeepAlive param.Opt[bool] `json:"keepAlive,omitzero"`
