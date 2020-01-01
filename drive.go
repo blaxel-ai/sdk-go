@@ -158,8 +158,6 @@ func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption
 
 // Immutable drive configuration set at creation time
 type DriveSpec struct {
-	// The internal infrastructure resource identifier for this drive (bucket name)
-	InfrastructureID string `json:"infrastructureId"`
 	// Permissions controlling which workloads can access this drive. Empty means all
 	// workloads in the workspace can access the drive. Maximum 3 permissions.
 	Permissions []DriveSpecPermission `json:"permissions"`
@@ -168,11 +166,10 @@ type DriveSpec struct {
 	Region string `json:"region"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		InfrastructureID respjson.Field
-		Permissions      respjson.Field
-		Region           respjson.Field
-		ExtraFields      map[string]respjson.Field
-		raw              string
+		Permissions respjson.Field
+		Region      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
 	} `json:"-"`
 }
 
