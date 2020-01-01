@@ -310,6 +310,8 @@ type Sandbox struct {
 	ExpiresIn int64 `json:"expiresIn"`
 	// Last time the sandbox was used (read-only, managed by the system)
 	LastUsedAt string `json:"lastUsedAt"`
+	// Infrastructure generation this sandbox is deployed on (mk3.0 or mk3.1).
+	NodeGeneration string `json:"nodeGeneration"`
 	// Current state of the sandbox (read-only, managed by the system)
 	//
 	// Any of "RUNNING", "STANDBY".
@@ -321,15 +323,16 @@ type Sandbox struct {
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		ExpiresIn   respjson.Field
-		LastUsedAt  respjson.Field
-		State       respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Metadata       respjson.Field
+		Spec           respjson.Field
+		Events         respjson.Field
+		ExpiresIn      respjson.Field
+		LastUsedAt     respjson.Field
+		NodeGeneration respjson.Field
+		State          respjson.Field
+		Status         respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 
