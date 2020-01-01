@@ -64,6 +64,8 @@ type Workspace struct {
 	ID string `json:"id"`
 	// Workspace account id
 	AccountID string `json:"accountId"`
+	// Baseten team this workspace was provisioned for; absent on native workspaces
+	BasetenTeamID string `json:"basetenTeamId"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -107,6 +109,7 @@ type Workspace struct {
 	JSON struct {
 		ID             respjson.Field
 		AccountID      respjson.Field
+		BasetenTeamID  respjson.Field
 		CreatedAt      respjson.Field
 		CreatedBy      respjson.Field
 		DisplayName    respjson.Field
