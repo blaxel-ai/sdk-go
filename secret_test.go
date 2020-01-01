@@ -28,8 +28,9 @@ func TestSecretNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Secrets.New(context.TODO(), blaxel.SecretNewParams{
 		Secret: blaxel.SecretParam{
-			Name:  "name",
-			Value: blaxel.String("value"),
+			Destinations: []string{"string"},
+			Name:         "name",
+			Value:        blaxel.String("value"),
 		},
 	})
 	if err != nil {
