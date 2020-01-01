@@ -31,6 +31,8 @@ type Client struct {
 	Volumes            VolumeService
 	Templates          TemplateService
 	Workspaces         WorkspaceService
+	Schedules          ScheduleService
+	ScheduleExecutions ScheduleExecutionService
 	Sandboxes          SandboxService
 	Health             HealthService
 	Upgrade            UpgradeService
@@ -92,6 +94,8 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Volumes = NewVolumeService(opts...)
 	r.Templates = NewTemplateService(opts...)
 	r.Workspaces = NewWorkspaceService(opts...)
+	r.Schedules = NewScheduleService(opts...)
+	r.ScheduleExecutions = NewScheduleExecutionService(opts...)
 	r.Sandboxes = NewSandboxService(opts...)
 	r.Health = NewHealthService(opts...)
 	r.Upgrade = NewUpgradeService(opts...)
