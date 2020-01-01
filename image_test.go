@@ -33,6 +33,7 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 		Generation:   blaxel.String("generation"),
 		Image:        blaxel.String("image"),
 		MemoryMB:     blaxel.Int(16384),
+		Tag:          blaxel.String("v1.2.0"),
 		VolumeMB:     blaxel.Int(32768),
 	})
 	if err != nil {
