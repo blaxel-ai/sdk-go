@@ -132,6 +132,21 @@ func (r *VolumeService) GetByExternalID(ctx context.Context, externalID string, 
 	return res, err
 }
 
+// Measures how much of the volume is actually written, on the host that holds it,
+// at request time. `used` is absent when the volume cannot be measured (never
+// attached, host unreachable); absent is not empty. For the last known value
+// without a host round trip, read `state.used` on the volume.
+func (r *VolumeService) GetDiskUsage(ctx context.Context, volumeName string, opts ...option.RequestOption) (res *VolumeGetDiskUsageResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if volumeName == "" {
+		err = errors.New("missing required volumeName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("volumes/%s/disk_usage", volumeName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // Persistent storage volume that can be attached to sandboxes for durable file
 // storage across sessions. Volumes survive sandbox deletion and can be reattached
 // to new sandboxes.
@@ -183,9 +198,17 @@ type VolumeState struct {
 	// Resource currently using this volume in format "type:name" (e.g.,
 	// "sandbox:my-sandbox"). Empty if not attached.
 	AttachedTo string `json:"attachedTo"`
+	// Last known disk usage in MB, from the hourly volume heartbeat. Absent when no
+	// measurement is known (never attached, or not reported yet); absent is not empty.
+	// Use GET /volumes/{volumeName}/disk_usage for a fresh measurement.
+	Used int64 `json:"used"`
+	// When the last known disk usage was measured.
+	UsedAt string `json:"usedAt"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AttachedTo  respjson.Field
+		Used        respjson.Field
+		UsedAt      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -329,19 +352,25 @@ func (r *VolumeListResponse) UnmarshalJSON(data []byte) error {
 
 // Compact metadata for a Volume, returned in listing responses.
 type VolumeListResponseMetadata struct {
-	CreatedAt   string `json:"createdAt"`
+	CreatedAt string `json:"createdAt"`
+	// User or service account that created the volume.
+	CreatedBy   string `json:"createdBy"`
 	DisplayName string `json:"displayName"`
 	// Caller-owned identifier for external lookups.
 	ExternalID string `json:"externalId"`
 	Name       string `json:"name"`
 	UpdatedAt  string `json:"updatedAt"`
+	// User or service account that last updated the volume.
+	UpdatedBy string `json:"updatedBy"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CreatedAt   respjson.Field
+		CreatedBy   respjson.Field
 		DisplayName respjson.Field
 		ExternalID  respjson.Field
 		Name        respjson.Field
 		UpdatedAt   respjson.Field
+		UpdatedBy   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -379,9 +408,17 @@ type VolumeListResponseState struct {
 	// Resource currently using this volume in format "type:name" (e.g.,
 	// "sandbox:my-sandbox"). Empty if not attached.
 	AttachedTo string `json:"attachedTo"`
+	// Last known disk usage in MB, from the hourly volume heartbeat. Absent when no
+	// measurement is known (never attached, or not reported yet); absent is not empty.
+	// Use GET /volumes/{volumeName}/disk_usage for a fresh measurement.
+	Used int64 `json:"used"`
+	// When the last known disk usage was measured.
+	UsedAt string `json:"usedAt"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AttachedTo  respjson.Field
+		Used        respjson.Field
+		UsedAt      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -390,6 +427,38 @@ type VolumeListResponseState struct {
 // Returns the unmodified JSON received from the API
 func (r VolumeListResponseState) RawJSON() string { return r.JSON.raw }
 func (r *VolumeListResponseState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// A volume's disk usage, measured on the host that holds it at request time.
+type VolumeGetDiskUsageResponse struct {
+	// When the host measured the volume. Absent when used is absent.
+	MeasuredAt string `json:"measuredAt"`
+	// Volume name
+	Name string `json:"name"`
+	// Region the volume lives in
+	Region string `json:"region"`
+	// Provisioned size in MB
+	Size int64 `json:"size"`
+	// Disk usage in MB. Absent when the volume could not be measured (never attached,
+	// host unreachable, or an infrastructure generation without measurement); absent
+	// is not empty.
+	Used int64 `json:"used"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MeasuredAt  respjson.Field
+		Name        respjson.Field
+		Region      respjson.Field
+		Size        respjson.Field
+		Used        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeGetDiskUsageResponse) RawJSON() string { return r.JSON.raw }
+func (r *VolumeGetDiskUsageResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
