@@ -978,10 +978,10 @@ type SandboxRuntime struct {
 	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
 	// 'tun', 'android' and 'landlock' (mk3.1). The android variant includes tun and
 	// iptables and cannot be combined with nfs. The landlock variant enables the
-	// Landlock LSM and cannot be combined with android, tun or nfs. Android and
-	// landlock requests are rejected if routing selects mk3.0. Values: 'enabled' or
-	// 'disabled'. Determines which kernel variant the workload runs on. Immutable
-	// after creation.
+	// Landlock LSM, includes tun and iptables, and cannot be combined with android or
+	// nfs. Android and landlock requests are rejected if routing selects mk3.0.
+	// Values: 'enabled' or 'disabled'. Determines which kernel variant the workload
+	// runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -1055,10 +1055,10 @@ type SandboxRuntimeParam struct {
 	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
 	// 'tun', 'android' and 'landlock' (mk3.1). The android variant includes tun and
 	// iptables and cannot be combined with nfs. The landlock variant enables the
-	// Landlock LSM and cannot be combined with android, tun or nfs. Android and
-	// landlock requests are rejected if routing selects mk3.0. Values: 'enabled' or
-	// 'disabled'. Determines which kernel variant the workload runs on. Immutable
-	// after creation.
+	// Landlock LSM, includes tun and iptables, and cannot be combined with android or
+	// nfs. Android and landlock requests are rejected if routing selects mk3.0.
+	// Values: 'enabled' or 'disabled'. Determines which kernel variant the workload
+	// runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`

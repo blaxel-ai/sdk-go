@@ -337,6 +337,11 @@ func (r *PreviewSpecParam) UnmarshalJSON(data []byte) error {
 type SandboxPreviewNewParams struct {
 	// Preview of a Resource
 	Preview PreviewParam
+	// If true, return the existing preview instead of a 409 error when a preview with
+	// this name already exists. Concurrent requests for the same name all receive the
+	// same preview. A preview that failed, has expired or belongs to an earlier
+	// sandbox with the same name is recreated.
+	CreateIfNotExist param.Opt[bool] `query:"createIfNotExist,omitzero" json:"-"`
 	// Force creation by replacing conflicting previews that use the same custom domain
 	// prefix URL
 	Force param.Opt[bool] `query:"force,omitzero" json:"-"`
