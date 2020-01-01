@@ -13,6 +13,41 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
+func TestImageTagListWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Images.Tags.List(
+		context.TODO(),
+		"imageName",
+		blaxel.ImageTagListParams{
+			ResourceType:    "resourceType",
+			Cursor:          blaxel.String("cursor"),
+			Limit:           blaxel.Int(100),
+			Name:            blaxel.String("name"),
+			Q:               blaxel.String("q"),
+			Sort:            blaxel.ImageTagListParamsSortNameAsc,
+			SourceWorkspace: blaxel.String("sourceWorkspace"),
+		},
+	)
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
 func TestImageTagDelete(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
