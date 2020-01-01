@@ -798,12 +798,16 @@ type SandboxNetworkProxyRouting struct {
 	// {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API
 	// responses.
 	Secrets map[string]string `json:"secrets"`
+	// Standby behavior applied by the platform proxy while a matching request waits on
+	// its upstream response headers
+	Standby SandboxNetworkProxyRoutingStandby `json:"standby"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Body         respjson.Field
 		Destinations respjson.Field
 		Headers      respjson.Field
 		Secrets      respjson.Field
+		Standby      respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
@@ -812,6 +816,30 @@ type SandboxNetworkProxyRouting struct {
 // Returns the unmodified JSON received from the API
 func (r SandboxNetworkProxyRouting) RawJSON() string { return r.JSON.raw }
 func (r *SandboxNetworkProxyRouting) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Standby behavior applied by the platform proxy while a matching request waits on
+// its upstream response headers
+type SandboxNetworkProxyRoutingStandby struct {
+	// Seconds a matching request must wait on its upstream response before the sandbox
+	// is put in standby. Defaults to 1.
+	AfterSeconds int64 `json:"afterSeconds"`
+	// Whether to put the sandbox in standby while a matching request waits on its
+	// upstream response
+	Enabled bool `json:"enabled"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AfterSeconds respjson.Field
+		Enabled      respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkProxyRoutingStandby) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkProxyRoutingStandby) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -955,6 +983,9 @@ type SandboxNetworkProxyRoutingParam struct {
 	// {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API
 	// responses.
 	Secrets map[string]string `json:"secrets,omitzero"`
+	// Standby behavior applied by the platform proxy while a matching request waits on
+	// its upstream response headers
+	Standby SandboxNetworkProxyRoutingStandbyParam `json:"standby,omitzero"`
 	paramObj
 }
 
@@ -963,6 +994,26 @@ func (r SandboxNetworkProxyRoutingParam) MarshalJSON() (data []byte, err error) 
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxNetworkProxyRoutingParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Standby behavior applied by the platform proxy while a matching request waits on
+// its upstream response headers
+type SandboxNetworkProxyRoutingStandbyParam struct {
+	// Seconds a matching request must wait on its upstream response before the sandbox
+	// is put in standby. Defaults to 1.
+	AfterSeconds param.Opt[int64] `json:"afterSeconds,omitzero"`
+	// Whether to put the sandbox in standby while a matching request waits on its
+	// upstream response
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkProxyRoutingStandbyParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkProxyRoutingStandbyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkProxyRoutingStandbyParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
