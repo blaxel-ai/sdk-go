@@ -159,13 +159,15 @@ func (r *ProcessRequestParam) UnmarshalJSON(data []byte) error {
 }
 
 type ProcessResponse struct {
-	Command     string `json:"command" api:"required"`
+	Command string `json:"command" api:"required"`
+	// Completion time, same format as startedAt. Empty string while the process runs
 	CompletedAt string `json:"completedAt" api:"required"`
 	ExitCode    int64  `json:"exitCode" api:"required"`
 	Logs        string `json:"logs" api:"required"`
 	Name        string `json:"name" api:"required"`
 	Pid         string `json:"pid" api:"required"`
-	StartedAt   string `json:"startedAt" api:"required"`
+	// Start time as an HTTP date (RFC 1123, e.g. Wed, 01 Jan 2023 12:00:00 GMT)
+	StartedAt string `json:"startedAt" api:"required"`
 	// Any of "failed", "killed", "stopped", "running", "completed".
 	Status     ProcessResponseStatus `json:"status" api:"required"`
 	Stderr     string                `json:"stderr" api:"required"`
