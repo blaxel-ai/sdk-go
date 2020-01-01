@@ -28,7 +28,7 @@ Or to pin the version:
 <!-- x-release-please-start-version -->
 
 ```sh
-go get -u 'github.com/blaxel-ai/sdk-go@v0.27.0'
+go get -u 'github.com/blaxel-ai/sdk-go@v0.27.1'
 ```
 
 <!-- x-release-please-end -->
@@ -67,7 +67,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("%+v\n", sandbox.Metadata)
+	fmt.Printf("%+v\n", sandbox)
 }
 
 ```
