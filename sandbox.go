@@ -1003,6 +1003,9 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
+	// Callback the sandbox posts to when one of its processes exits. On update,
+	// leaving it out keeps the stored callback; sending an empty url removes it.
+	ProcessCallback SandboxRuntimeProcessCallback `json:"processCallback"`
 	// Seconds the sandbox gets after a SIGUSR2 to prepare before it goes to standby
 	// (scale to zero). The workload can say it is done earlier by writing to
 	// $BLAXEL_STANDBY_READY_FILE. Defaults to 0: no signal, immediate standby.
@@ -1024,6 +1027,7 @@ type SandboxRuntime struct {
 		Image                         respjson.Field
 		Memory                        respjson.Field
 		Ports                         respjson.Field
+		ProcessCallback               respjson.Field
 		StandbyGracePeriodSeconds     respjson.Field
 		TerminationGracePeriodSeconds respjson.Field
 		Ttl                           respjson.Field
@@ -1045,6 +1049,31 @@ func (r *SandboxRuntime) UnmarshalJSON(data []byte) error {
 // SandboxRuntimeParam.Overrides()
 func (r SandboxRuntime) ToParam() SandboxRuntimeParam {
 	return param.Override[SandboxRuntimeParam](json.RawMessage(r.RawJSON()))
+}
+
+// Callback the sandbox posts to when one of its processes exits. On update,
+// leaving it out keeps the stored callback; sending an empty url removes it.
+type SandboxRuntimeProcessCallback struct {
+	// Secret the sandbox signs each webhook with. Generated when the url is first set
+	// and kept when the url changes. Returned in full only by the create or update
+	// that generated it, masked afterwards.
+	Secret string `json:"secret"`
+	// Absolute http or https URL that receives a POST when a process in the sandbox
+	// exits
+	URL string `json:"url"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Secret      respjson.Field
+		URL         respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxRuntimeProcessCallback) RawJSON() string { return r.JSON.raw }
+func (r *SandboxRuntimeProcessCallback) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Runtime configuration defining how the sandbox VM is provisioned and its
@@ -1096,6 +1125,9 @@ type SandboxRuntimeParam struct {
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
+	// Callback the sandbox posts to when one of its processes exits. On update,
+	// leaving it out keeps the stored callback; sending an empty url removes it.
+	ProcessCallback SandboxRuntimeProcessCallbackParam `json:"processCallback,omitzero"`
 	paramObj
 }
 
@@ -1104,6 +1136,23 @@ func (r SandboxRuntimeParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Callback the sandbox posts to when one of its processes exits. On update,
+// leaving it out keeps the stored callback; sending an empty url removes it.
+type SandboxRuntimeProcessCallbackParam struct {
+	// Absolute http or https URL that receives a POST when a process in the sandbox
+	// exits
+	URL param.Opt[string] `json:"url,omitzero"`
+	paramObj
+}
+
+func (r SandboxRuntimeProcessCallbackParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxRuntimeProcessCallbackParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxRuntimeProcessCallbackParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

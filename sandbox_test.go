@@ -217,6 +217,9 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Name:     blaxel.String("http"),
 						Protocol: blaxel.PortProtocolHTTP,
 					}},
+					ProcessCallback: blaxel.SandboxRuntimeProcessCallbackParam{
+						URL: blaxel.String("https://myapp.com/webhooks/process-exited"),
+					},
 					StandbyGracePeriodSeconds:     blaxel.Int(10),
 					TerminationGracePeriodSeconds: blaxel.Int(30),
 					Ttl:                           blaxel.String("24h"),
@@ -480,6 +483,9 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Name:     blaxel.String("http"),
 							Protocol: blaxel.PortProtocolHTTP,
 						}},
+						ProcessCallback: blaxel.SandboxRuntimeProcessCallbackParam{
+							URL: blaxel.String("https://myapp.com/webhooks/process-exited"),
+						},
 						StandbyGracePeriodSeconds:     blaxel.Int(10),
 						TerminationGracePeriodSeconds: blaxel.Int(30),
 						Ttl:                           blaxel.String("24h"),
