@@ -29,8 +29,11 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 	_, err := client.Images.New(context.TODO(), blaxel.ImageNewParams{
 		Name:         "name",
 		ResourceType: "resourceType",
+		DockerConfig: blaxel.String("dockerConfig"),
 		Generation:   blaxel.String("generation"),
 		Image:        blaxel.String("image"),
+		MemoryMB:     blaxel.Int(16384),
+		VolumeMB:     blaxel.Int(32768),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
