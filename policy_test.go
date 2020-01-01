@@ -15,6 +15,7 @@ import (
 )
 
 func TestPolicyNewWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -76,6 +77,7 @@ func TestPolicyNewWithOptionalParams(t *testing.T) {
 }
 
 func TestPolicyGet(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -98,6 +100,7 @@ func TestPolicyGet(t *testing.T) {
 }
 
 func TestPolicyUpdateWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -163,6 +166,7 @@ func TestPolicyUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestPolicyListWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -191,6 +195,7 @@ func TestPolicyListWithOptionalParams(t *testing.T) {
 }
 
 func TestPolicyDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -213,6 +218,7 @@ func TestPolicyDelete(t *testing.T) {
 }
 
 func TestPolicyListUsages(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

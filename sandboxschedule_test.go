@@ -14,6 +14,7 @@ import (
 )
 
 func TestSandboxScheduleNewWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -57,6 +58,7 @@ func TestSandboxScheduleNewWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxScheduleGet(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -85,6 +87,7 @@ func TestSandboxScheduleGet(t *testing.T) {
 }
 
 func TestSandboxScheduleUpdateWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -129,6 +132,7 @@ func TestSandboxScheduleUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxScheduleListWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -161,6 +165,7 @@ func TestSandboxScheduleListWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxScheduleDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -189,6 +194,7 @@ func TestSandboxScheduleDelete(t *testing.T) {
 }
 
 func TestSandboxScheduleListExecutionsWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

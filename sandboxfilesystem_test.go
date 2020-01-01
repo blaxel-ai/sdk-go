@@ -14,6 +14,7 @@ import (
 )
 
 func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -42,6 +43,7 @@ func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -74,6 +76,7 @@ func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemDeleteTreeWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -102,6 +105,7 @@ func TestSandboxFilesystemDeleteTreeWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -134,6 +138,7 @@ func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -162,6 +167,7 @@ func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemGetTree(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -184,6 +190,7 @@ func TestSandboxFilesystemGetTree(t *testing.T) {
 }
 
 func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -215,6 +222,7 @@ func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemWriteWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -247,6 +255,7 @@ func TestSandboxFilesystemWriteWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemWriteTreeWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

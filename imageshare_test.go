@@ -14,6 +14,7 @@ import (
 )
 
 func TestImageShareNewWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -44,6 +45,7 @@ func TestImageShareNewWithOptionalParams(t *testing.T) {
 }
 
 func TestImageShareList(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -72,6 +74,7 @@ func TestImageShareList(t *testing.T) {
 }
 
 func TestImageShareDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
