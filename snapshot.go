@@ -151,6 +151,9 @@ type SandboxForkRequestParam struct {
 	// variable the source already carries takes this value in the fork, one it does
 	// not is added, and every other variable of the source is kept.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
+	// Lifecycle configuration controlling automatic sandbox deletion based on idle
+	// time, max age, or specific dates
+	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
 	paramObj
 }
 
