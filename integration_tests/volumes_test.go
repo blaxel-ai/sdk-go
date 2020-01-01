@@ -35,7 +35,7 @@ func TestVolumes(t *testing.T) {
 		// Clean up sandboxes first
 		for _, name := range createdSandboxes {
 			_, _ = client.Sandboxes.Delete(ctx, name)
-			waitForSandboxDeletion(ctx, client, name, 60)
+			waitForSandboxDeletion(ctx, client, name, 15)
 		}
 		// Then volumes
 		for _, name := range createdVolumes {
@@ -350,7 +350,7 @@ func TestVolumes(t *testing.T) {
 
 			// Delete first sandbox
 			_, _ = client.Sandboxes.Delete(ctx, sandbox1Name)
-			waitForSandboxDeletion(ctx, client, sandbox1Name, 60)
+			waitForSandboxDeletion(ctx, client, sandbox1Name, 15)
 
 			// Resize volume to 1GB
 			updatedVolume, err := client.Volumes.UpdateInstance(ctx, volumeName, blaxel.VolumeUpdateParams{
@@ -590,7 +590,7 @@ func TestVolumes(t *testing.T) {
 
 			// Delete first sandbox and wait for full deletion
 			_, _ = client.Sandboxes.Delete(ctx, sandbox1Name)
-			waitForSandboxDeletion(ctx, client, sandbox1Name, 60)
+			waitForSandboxDeletion(ctx, client, sandbox1Name, 15)
 
 			// Second sandbox - read data
 			sandbox2Name := uniqueName("persist-2")
