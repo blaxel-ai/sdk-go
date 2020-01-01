@@ -449,7 +449,13 @@ type Metadata struct {
 	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
-	// The user or service account who created the resource
+	// The user or service account who created the resource. Format: `user:<sub>` or
+	// `service_account:<client_id>`. Resolve a user by matching `sub` in GET /users
+	// (any workspace member); resolve a service account by matching `client_id` in GET
+	// /service_accounts (workspace admins only). Partner identities do not resolve
+	// there: a resource created with a partner token (for example a sandbox created
+	// with a Baseten JWT) carries the partner's subject, which GET /users and GET
+	// /service_accounts do not list, and partner tokens cannot call those endpoints.
 	CreatedBy string `json:"createdBy"`
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
@@ -463,7 +469,13 @@ type Metadata struct {
 	Plan string `json:"plan"`
 	// The date and time when the resource was updated
 	UpdatedAt string `json:"updatedAt"`
-	// The user or service account who updated the resource
+	// The user or service account who updated the resource. Format: `user:<sub>` or
+	// `service_account:<client_id>`. Resolve a user by matching `sub` in GET /users
+	// (any workspace member); resolve a service account by matching `client_id` in GET
+	// /service_accounts (workspace admins only). Partner identities do not resolve
+	// there: a resource created with a partner token (for example a sandbox created
+	// with a Baseten JWT) carries the partner's subject, which GET /users and GET
+	// /service_accounts do not list, and partner tokens cannot call those endpoints.
 	UpdatedBy string `json:"updatedBy"`
 	// Auto-generated endpoint URL for accessing this resource (for agents, functions,
 	// models, sandboxes)
