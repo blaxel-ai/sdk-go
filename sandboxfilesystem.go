@@ -55,8 +55,8 @@ func (r *SandboxFilesystemService) Delete(ctx context.Context, filePath string, 
 	return res, err
 }
 
-// Searches for text content inside files using ripgrep. Returns matching lines
-// with context.
+// Searches for text content inside files. Returns each matching line, with the
+// lines around it when contextLines is set.
 func (r *SandboxFilesystemService) ContentSearch(ctx context.Context, filePath string, query SandboxFilesystemContentSearchParams, opts ...option.RequestOption) (res *ContentSearchResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
@@ -106,7 +106,7 @@ func (r *SandboxFilesystemService) Get(ctx context.Context, filePath string, que
 }
 
 // Get a recursive directory tree structure starting from the specified path
-func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string, opts ...option.RequestOption) (res *SandboxFilesystemGetTreeResponseUnion, err error) {
+func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string, opts ...option.RequestOption) (res *Directory, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
@@ -117,8 +117,11 @@ func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string,
 	return res, err
 }
 
-// Performs fuzzy search on filesystem paths using fuzzy matching algorithm.
-// Optimized alternative to find and grep commands.
+// Ranks the files and directories under a path by how well their relative path
+// fuzzy-matches `query` (fzf algorithm: the query's characters must appear in
+// order, not necessarily next to each other), best match first. Fuzzy search is
+// for "jump to file" lookups from a partial name. The `patterns` parameter is
+// currently ignored by this endpoint; use find for exact glob filtering.
 func (r *SandboxFilesystemService) Search(ctx context.Context, filePath string, query SandboxFilesystemSearchParams, opts ...option.RequestOption) (res *FuzzySearchResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
@@ -130,7 +133,16 @@ func (r *SandboxFilesystemService) Search(ctx context.Context, filePath string, 
 	return res, err
 }
 
-// Create or update a file or directory
+// Create or update a file or directory.
+//
+// Idempotent: an existing file is overwritten (truncated, not appended to) and an
+// existing directory is kept, so retrying the same request is safe.
+//
+// Send either a JSON body (FileRequest) or `multipart/form-data` for binary files.
+// Multipart fields, in any order: `file` (required, the file content),
+// `permissions` (optional octal mode such as `0755`, applied when the file is
+// created, default `0644`; an existing file keeps its mode), `path` (optional,
+// ignored: the target is always the URL path).
 func (r *SandboxFilesystemService) Write(ctx context.Context, filePath string, body SandboxFilesystemWriteParams, opts ...option.RequestOption) (res *SandboxFilesystemWriteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
@@ -142,8 +154,9 @@ func (r *SandboxFilesystemService) Write(ctx context.Context, filePath string, b
 	return res, err
 }
 
-// Create or update multiple files within a directory tree structure
-func (r *SandboxFilesystemService) WriteTree(ctx context.Context, filePath string, body SandboxFilesystemWriteTreeParams, opts ...option.RequestOption) (res *SandboxFilesystemWriteTreeResponseUnion, err error) {
+// Create or update multiple files within a directory tree structure. Idempotent:
+// existing files are overwritten, so retrying the same request is safe.
+func (r *SandboxFilesystemService) WriteTree(ctx context.Context, filePath string, body SandboxFilesystemWriteTreeParams, opts ...option.RequestOption) (res *Directory, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
@@ -155,10 +168,12 @@ func (r *SandboxFilesystemService) WriteTree(ctx context.Context, filePath strin
 }
 
 type ContentSearchMatch struct {
-	Column  int64  `json:"column" api:"required"`
-	Line    int64  `json:"line" api:"required"`
-	Path    string `json:"path" api:"required"`
-	Text    string `json:"text" api:"required"`
+	Column int64  `json:"column" api:"required"`
+	Line   int64  `json:"line" api:"required"`
+	Path   string `json:"path" api:"required"`
+	Text   string `json:"text" api:"required"`
+	// The matching line with up to contextLines lines before and after it,
+	// newline-separated; omitted when contextLines is 0
 	Context string `json:"context"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -492,61 +507,6 @@ func (r *SandboxFilesystemGetResponseUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// SandboxFilesystemGetTreeResponseUnion contains all possible properties and
-// values from [Directory], [FilesystemReadWithContent].
-//
-// Use the methods beginning with 'As' to cast the union to one of its variants.
-type SandboxFilesystemGetTreeResponseUnion struct {
-	// This field is from variant [Directory].
-	Files []FilesystemRead `json:"files"`
-	Name  string           `json:"name"`
-	Path  string           `json:"path"`
-	// This field is from variant [Directory].
-	Subdirectories []Subdirectory `json:"subdirectories"`
-	// This field is from variant [FilesystemReadWithContent].
-	Content string `json:"content"`
-	// This field is from variant [FilesystemReadWithContent].
-	Group string `json:"group"`
-	// This field is from variant [FilesystemReadWithContent].
-	LastModified string `json:"lastModified"`
-	// This field is from variant [FilesystemReadWithContent].
-	Owner string `json:"owner"`
-	// This field is from variant [FilesystemReadWithContent].
-	Permissions string `json:"permissions"`
-	// This field is from variant [FilesystemReadWithContent].
-	Size int64 `json:"size"`
-	JSON struct {
-		Files          respjson.Field
-		Name           respjson.Field
-		Path           respjson.Field
-		Subdirectories respjson.Field
-		Content        respjson.Field
-		Group          respjson.Field
-		LastModified   respjson.Field
-		Owner          respjson.Field
-		Permissions    respjson.Field
-		Size           respjson.Field
-		raw            string
-	} `json:"-"`
-}
-
-func (u SandboxFilesystemGetTreeResponseUnion) AsDirectory() (v Directory) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u SandboxFilesystemGetTreeResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-// Returns the unmodified JSON received from the API
-func (u SandboxFilesystemGetTreeResponseUnion) RawJSON() string { return u.JSON.raw }
-
-func (r *SandboxFilesystemGetTreeResponseUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 type SandboxFilesystemWriteResponse struct {
 	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
@@ -562,61 +522,6 @@ type SandboxFilesystemWriteResponse struct {
 // Returns the unmodified JSON received from the API
 func (r SandboxFilesystemWriteResponse) RawJSON() string { return r.JSON.raw }
 func (r *SandboxFilesystemWriteResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// SandboxFilesystemWriteTreeResponseUnion contains all possible properties and
-// values from [Directory], [FilesystemReadWithContent].
-//
-// Use the methods beginning with 'As' to cast the union to one of its variants.
-type SandboxFilesystemWriteTreeResponseUnion struct {
-	// This field is from variant [Directory].
-	Files []FilesystemRead `json:"files"`
-	Name  string           `json:"name"`
-	Path  string           `json:"path"`
-	// This field is from variant [Directory].
-	Subdirectories []Subdirectory `json:"subdirectories"`
-	// This field is from variant [FilesystemReadWithContent].
-	Content string `json:"content"`
-	// This field is from variant [FilesystemReadWithContent].
-	Group string `json:"group"`
-	// This field is from variant [FilesystemReadWithContent].
-	LastModified string `json:"lastModified"`
-	// This field is from variant [FilesystemReadWithContent].
-	Owner string `json:"owner"`
-	// This field is from variant [FilesystemReadWithContent].
-	Permissions string `json:"permissions"`
-	// This field is from variant [FilesystemReadWithContent].
-	Size int64 `json:"size"`
-	JSON struct {
-		Files          respjson.Field
-		Name           respjson.Field
-		Path           respjson.Field
-		Subdirectories respjson.Field
-		Content        respjson.Field
-		Group          respjson.Field
-		LastModified   respjson.Field
-		Owner          respjson.Field
-		Permissions    respjson.Field
-		Size           respjson.Field
-		raw            string
-	} `json:"-"`
-}
-
-func (u SandboxFilesystemWriteTreeResponseUnion) AsDirectory() (v Directory) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u SandboxFilesystemWriteTreeResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-// Returns the unmodified JSON received from the API
-func (u SandboxFilesystemWriteTreeResponseUnion) RawJSON() string { return u.JSON.raw }
-
-func (r *SandboxFilesystemWriteTreeResponseUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -640,6 +545,9 @@ type SandboxFilesystemContentSearchParams struct {
 	Query string `query:"query" api:"required" json:"-"`
 	// Case sensitive search (default: false)
 	CaseSensitive param.Opt[bool] `query:"caseSensitive,omitzero" json:"-"`
+	// Lines to include before and after each match in its context field (default: 0,
+	// max: 20; invalid values count as 0)
+	ContextLines param.Opt[int64] `query:"contextLines,omitzero" json:"-"`
 	// Comma-separated directory names to skip (default:
 	// node_modules,vendor,.git,dist,build,target,**pycache**,.venv,.next,coverage)
 	ExcludeDirs param.Opt[string] `query:"excludeDirs,omitzero" json:"-"`
@@ -724,8 +632,12 @@ type SandboxFilesystemSearchParams struct {
 	ExcludeHidden param.Opt[bool] `query:"excludeHidden,omitzero" json:"-"`
 	// Maximum number of results to return (default: 20)
 	MaxResults param.Opt[int64] `query:"maxResults,omitzero" json:"-"`
-	// Comma-separated file patterns to include (e.g., _.go,_.js)
+	// Accepted for compatibility but currently ignored; use filesystem-find for glob
+	// filtering
 	Patterns param.Opt[string] `query:"patterns,omitzero" json:"-"`
+	// Fuzzy pattern matched against each relative path (e.g., mngo for src/main.go).
+	// When omitted, the search path itself is used as the pattern.
+	Query param.Opt[string] `query:"query,omitzero" json:"-"`
 	paramObj
 }
 
