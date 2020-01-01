@@ -14,7 +14,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/shared"
 )
 
-func TestAgentNewWithOptionalParams(t *testing.T) {
+func TestApplicationNewWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -27,8 +27,8 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.New(context.TODO(), blaxel.AgentNewParams{
-		Agent: blaxel.AgentParam{
+	_, err := client.Applications.New(context.TODO(), blaxel.ApplicationNewParams{
+		Application: blaxel.ApplicationParam{
 			Metadata: blaxel.MetadataParam{
 				Name:        "my-resource",
 				DisplayName: blaxel.String("My Resource"),
@@ -37,52 +37,47 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 					"foo": "string",
 				},
 			},
-			Spec: blaxel.AgentSpecParam{
-				Enabled:  blaxel.Bool(true),
-				Policies: []string{"string"},
-				Public:   blaxel.Bool(false),
-				Region:   blaxel.String("us-pdx-1"),
-				Repository: blaxel.RepositoryParam{
-					Type: blaxel.String("github"),
-					URL:  blaxel.String("https://github.com/my-org/my-agent"),
+			Spec: blaxel.ApplicationSpecParam{
+				Enabled: blaxel.Bool(true),
+				Envs: []shared.EnvParam{{
+					Name:   blaxel.String("MY_ENV_VAR"),
+					Secret: blaxel.Bool(true),
+					Value:  blaxel.String("my-value"),
+				}},
+				Extensions: map[string]blaxel.ApplicationSpecExtensionParam{
+					"foo": {
+						Sandbox: blaxel.String("my-sandbox"),
+					},
 				},
-				Revision: blaxel.RevisionConfigurationParam{
-					Active:           blaxel.String("rev-abc123"),
+				Image:  blaxel.String("my-registry/my-app:latest"),
+				Memory: blaxel.Int(2048),
+				Port:   blaxel.Int(8080),
+				Proxy:  blaxel.Bool(false),
+				Region: blaxel.String("us-pdx-1"),
+				Revision: blaxel.AppRevisionConfigurationParam{
+					Active:           blaxel.String("active"),
 					Canary:           blaxel.String("canary"),
 					CanaryPercent:    blaxel.Int(10),
 					StickySessionTtl: blaxel.Int(0),
 					Traffic:          blaxel.Int(100),
 				},
-				Runtime: blaxel.AgentRuntimeParam{
+				Revisions: []blaxel.AppRevisionParam{{
+					Image:     "image",
+					ID:        blaxel.String("id"),
+					CreatedAt: blaxel.String("createdAt"),
+					CreatedBy: blaxel.String("createdBy"),
 					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
 						Value:  blaxel.String("my-value"),
 					}},
-					Generation: blaxel.AgentRuntimeGenerationMk3,
-					Image:      blaxel.String("image"),
-					MaxScale:   blaxel.Int(10),
-					Memory:     blaxel.Int(2048),
-					MinScale:   blaxel.Int(0),
-				},
-				Triggers: []blaxel.TriggerParam{{
-					ID: blaxel.String("trigger-1"),
-					Configuration: blaxel.TriggerConfigurationParam{
-						AuthenticationType: blaxel.String("blaxel"),
-						CallbackURL:        blaxel.String("https://myapp.com/webhook"),
-						Path:               blaxel.String("/invoke"),
-						Retry:              blaxel.Int(3),
-						Schedule:           blaxel.String("0 * * * *"),
-						Tasks:              []any{map[string]any{}},
-						Timeout:            blaxel.Int(300),
-					},
-					Enabled: blaxel.Bool(true),
-					Type:    blaxel.TriggerTypeHTTP,
+					Memory:   blaxel.Int(2048),
+					Port:     blaxel.Int(8080),
+					Snapshot: blaxel.String("snapshot"),
 				}},
-				Volumes: []blaxel.VolumeAttachmentParam{{
-					MountPath: blaxel.String("/mnt/data"),
-					Name:      blaxel.String("my-volume"),
-					ReadOnly:  blaxel.Bool(false),
+				URLs: []blaxel.AppURLParam{{
+					Domain:    "app.example.com",
+					Subdomain: blaxel.String("www"),
 				}},
 			},
 		},
@@ -96,7 +91,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestAgentGetWithOptionalParams(t *testing.T) {
+func TestApplicationGet(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -109,13 +104,7 @@ func TestAgentGetWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.Get(
-		context.TODO(),
-		"agentName",
-		blaxel.AgentGetParams{
-			ShowSecrets: blaxel.Bool(true),
-		},
-	)
+	_, err := client.Applications.Get(context.TODO(), "applicationName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -125,7 +114,7 @@ func TestAgentGetWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestAgentUpdateWithOptionalParams(t *testing.T) {
+func TestApplicationUpdateWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -138,11 +127,11 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.Update(
+	_, err := client.Applications.Update(
 		context.TODO(),
-		"agentName",
-		blaxel.AgentUpdateParams{
-			Agent: blaxel.AgentParam{
+		"applicationName",
+		blaxel.ApplicationUpdateParams{
+			Application: blaxel.ApplicationParam{
 				Metadata: blaxel.MetadataParam{
 					Name:        "my-resource",
 					DisplayName: blaxel.String("My Resource"),
@@ -151,52 +140,47 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 						"foo": "string",
 					},
 				},
-				Spec: blaxel.AgentSpecParam{
-					Enabled:  blaxel.Bool(true),
-					Policies: []string{"string"},
-					Public:   blaxel.Bool(false),
-					Region:   blaxel.String("us-pdx-1"),
-					Repository: blaxel.RepositoryParam{
-						Type: blaxel.String("github"),
-						URL:  blaxel.String("https://github.com/my-org/my-agent"),
+				Spec: blaxel.ApplicationSpecParam{
+					Enabled: blaxel.Bool(true),
+					Envs: []shared.EnvParam{{
+						Name:   blaxel.String("MY_ENV_VAR"),
+						Secret: blaxel.Bool(true),
+						Value:  blaxel.String("my-value"),
+					}},
+					Extensions: map[string]blaxel.ApplicationSpecExtensionParam{
+						"foo": {
+							Sandbox: blaxel.String("my-sandbox"),
+						},
 					},
-					Revision: blaxel.RevisionConfigurationParam{
-						Active:           blaxel.String("rev-abc123"),
+					Image:  blaxel.String("my-registry/my-app:latest"),
+					Memory: blaxel.Int(2048),
+					Port:   blaxel.Int(8080),
+					Proxy:  blaxel.Bool(false),
+					Region: blaxel.String("us-pdx-1"),
+					Revision: blaxel.AppRevisionConfigurationParam{
+						Active:           blaxel.String("active"),
 						Canary:           blaxel.String("canary"),
 						CanaryPercent:    blaxel.Int(10),
 						StickySessionTtl: blaxel.Int(0),
 						Traffic:          blaxel.Int(100),
 					},
-					Runtime: blaxel.AgentRuntimeParam{
+					Revisions: []blaxel.AppRevisionParam{{
+						Image:     "image",
+						ID:        blaxel.String("id"),
+						CreatedAt: blaxel.String("createdAt"),
+						CreatedBy: blaxel.String("createdBy"),
 						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),
 							Value:  blaxel.String("my-value"),
 						}},
-						Generation: blaxel.AgentRuntimeGenerationMk3,
-						Image:      blaxel.String("image"),
-						MaxScale:   blaxel.Int(10),
-						Memory:     blaxel.Int(2048),
-						MinScale:   blaxel.Int(0),
-					},
-					Triggers: []blaxel.TriggerParam{{
-						ID: blaxel.String("trigger-1"),
-						Configuration: blaxel.TriggerConfigurationParam{
-							AuthenticationType: blaxel.String("blaxel"),
-							CallbackURL:        blaxel.String("https://myapp.com/webhook"),
-							Path:               blaxel.String("/invoke"),
-							Retry:              blaxel.Int(3),
-							Schedule:           blaxel.String("0 * * * *"),
-							Tasks:              []any{map[string]any{}},
-							Timeout:            blaxel.Int(300),
-						},
-						Enabled: blaxel.Bool(true),
-						Type:    blaxel.TriggerTypeHTTP,
+						Memory:   blaxel.Int(2048),
+						Port:     blaxel.Int(8080),
+						Snapshot: blaxel.String("snapshot"),
 					}},
-					Volumes: []blaxel.VolumeAttachmentParam{{
-						MountPath: blaxel.String("/mnt/data"),
-						Name:      blaxel.String("my-volume"),
-						ReadOnly:  blaxel.Bool(false),
+					URLs: []blaxel.AppURLParam{{
+						Domain:    "app.example.com",
+						Subdomain: blaxel.String("www"),
 					}},
 				},
 			},
@@ -211,7 +195,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestAgentListWithOptionalParams(t *testing.T) {
+func TestApplicationListWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -224,13 +208,12 @@ func TestAgentListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.List(context.TODO(), blaxel.AgentListParams{
-		Anchor:     blaxel.AgentListParamsAnchorEnd,
-		Cursor:     blaxel.String("cursor"),
-		ExternalID: blaxel.String("externalId"),
-		Limit:      blaxel.Int(1),
-		Q:          blaxel.String("q"),
-		Sort:       blaxel.AgentListParamsSortCreatedAtDesc,
+	_, err := client.Applications.List(context.TODO(), blaxel.ApplicationListParams{
+		Anchor: blaxel.ApplicationListParamsAnchorEnd,
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.ApplicationListParamsSortCreatedAtDesc,
 	})
 	if err != nil {
 		var apierr *blaxel.Error
@@ -241,7 +224,7 @@ func TestAgentListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestAgentDelete(t *testing.T) {
+func TestApplicationDelete(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -254,7 +237,7 @@ func TestAgentDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.Delete(context.TODO(), "agentName")
+	_, err := client.Applications.Delete(context.TODO(), "applicationName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -264,7 +247,7 @@ func TestAgentDelete(t *testing.T) {
 	}
 }
 
-func TestAgentListRevisions(t *testing.T) {
+func TestApplicationListRevisions(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -277,7 +260,7 @@ func TestAgentListRevisions(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.ListRevisions(context.TODO(), "agentName")
+	_, err := client.Applications.ListRevisions(context.TODO(), "applicationName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
