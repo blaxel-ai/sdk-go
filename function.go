@@ -53,14 +53,14 @@ func (r *FunctionService) New(ctx context.Context, body FunctionNewParams, opts 
 
 // Returns detailed information about an MCP server function including its
 // deployment status, available tools, transport configuration, and endpoint URL.
-func (r *FunctionService) Get(ctx context.Context, functionName string, query FunctionGetParams, opts ...option.RequestOption) (res *Function, err error) {
+func (r *FunctionService) Get(ctx context.Context, functionName string, opts ...option.RequestOption) (res *Function, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
 
@@ -418,20 +418,6 @@ func (r FunctionNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *FunctionNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-type FunctionGetParams struct {
-	// Show secret values (requires workspace admin role)
-	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [FunctionGetParams]'s query parameters as `url.Values`.
-func (r FunctionGetParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
 }
 
 type FunctionUpdateParams struct {
