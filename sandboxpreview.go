@@ -260,7 +260,8 @@ type PreviewSpec struct {
 	// Region where the preview is deployed, this is readonly
 	Region string `json:"region"`
 	// Those headers will be set in all requests to your preview. This is especially
-	// useful to set the Authorization header.
+	// useful to set the Authorization header. At most 20 headers and 8 KiB in total;
+	// X-Blaxel-\* headers are reserved.
 	RequestHeaders map[string]string `json:"requestHeaders"`
 	// Those headers will be set in all responses of your preview. This is especially
 	// useful to set the CORS headers.
@@ -318,7 +319,8 @@ type PreviewSpecParam struct {
 	// preview will be automatically deleted.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Those headers will be set in all requests to your preview. This is especially
-	// useful to set the Authorization header.
+	// useful to set the Authorization header. At most 20 headers and 8 KiB in total;
+	// X-Blaxel-\* headers are reserved.
 	RequestHeaders map[string]string `json:"requestHeaders,omitzero"`
 	// Those headers will be set in all responses of your preview. This is especially
 	// useful to set the CORS headers.
