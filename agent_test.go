@@ -225,11 +225,12 @@ func TestAgentListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.List(context.TODO(), blaxel.AgentListParams{
-		Anchor: blaxel.AgentListParamsAnchorEnd,
-		Cursor: blaxel.String("cursor"),
-		Limit:  blaxel.Int(1),
-		Q:      blaxel.String("q"),
-		Sort:   blaxel.AgentListParamsSortCreatedAtDesc,
+		Anchor:     blaxel.AgentListParamsAnchorEnd,
+		Cursor:     blaxel.String("cursor"),
+		ExternalID: blaxel.String("externalId"),
+		Limit:      blaxel.Int(1),
+		Q:          blaxel.String("q"),
+		Sort:       blaxel.AgentListParamsSortCreatedAtDesc,
 	})
 	if err != nil {
 		var apierr *blaxel.Error

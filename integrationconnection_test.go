@@ -128,7 +128,7 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 	}
 }
 
-func TestIntegrationConnectionList(t *testing.T) {
+func TestIntegrationConnectionListWithOptionalParams(t *testing.T) {
 	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -141,7 +141,9 @@ func TestIntegrationConnectionList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Integrations.Connections.List(context.TODO())
+	_, err := client.Integrations.Connections.List(context.TODO(), blaxel.IntegrationConnectionListParams{
+		ExternalID: blaxel.String("externalId"),
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
