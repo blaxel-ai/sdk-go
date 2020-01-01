@@ -270,6 +270,9 @@ type SandboxScheduleExecution struct {
 	ID string `json:"id"`
 	// Creation timestamp (read-only).
 	CreatedAt string `json:"createdAt"`
+	// Reason the execution failed, naming the resource that could not be reached.
+	// Empty when the command was accepted by the sandbox.
+	Error string `json:"error"`
 	// RFC 3339 time at which the command was submitted.
 	ExecutedAt string `json:"executedAt"`
 	// Name of the process started in the sandbox for this execution, used to look up
@@ -288,6 +291,7 @@ type SandboxScheduleExecution struct {
 	JSON struct {
 		ID          respjson.Field
 		CreatedAt   respjson.Field
+		Error       respjson.Field
 		ExecutedAt  respjson.Field
 		ProcessName respjson.Field
 		ScheduleID  respjson.Field
