@@ -90,8 +90,8 @@ type VpcNewResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
-	// "ARCHIVED", "UNARCHIVING".
+	// "QUEUED", "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT",
+	// "ARCHIVING", "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -123,8 +123,8 @@ type VpcGetResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
-	// "ARCHIVED", "UNARCHIVING".
+	// "QUEUED", "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT",
+	// "ARCHIVING", "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -156,8 +156,8 @@ type VpcListResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
-	// "ARCHIVED", "UNARCHIVING".
+	// "QUEUED", "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT",
+	// "ARCHIVING", "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -189,8 +189,8 @@ type VpcDeleteResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT", "ARCHIVING",
-	// "ARCHIVED", "UNARCHIVING".
+	// "QUEUED", "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT",
+	// "ARCHIVING", "ARCHIVED", "UNARCHIVING".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
