@@ -1,0 +1,245 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+package blaxel
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"slices"
+
+	"github.com/stainless-sdks/blaxel-go/internal/apijson"
+	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
+	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/stainless-sdks/blaxel-go/packages/respjson"
+)
+
+// ImageService contains methods and other services that help with interacting with
+// the blaxel API.
+//
+// Note, unlike clients, this service does not read variables from the environment
+// automatically. You should not instantiate this service directly, and instead use
+// the [NewImageService] method instead.
+type ImageService struct {
+	Options []option.RequestOption
+}
+
+// NewImageService generates a new service that applies the given options to each
+// request. These options are applied after the parent client's options (if there
+// is one), and before any request-specific options.
+func NewImageService(opts ...option.RequestOption) (r ImageService) {
+	r = ImageService{}
+	r.Options = opts
+	return
+}
+
+// Returns a list of all images in the workspace grouped by repository with tags.
+func (r *ImageService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Image, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "images"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Deletes all unused images in the workspace. Only removes images that are not
+// currently being used by any agents, functions, sandboxes, or jobs.
+func (r *ImageService) CleanupUnused(ctx context.Context, opts ...option.RequestOption) (res *ImageCleanupUnusedResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "images"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return
+}
+
+// Deletes an image by name.
+func (r *ImageService) DeleteByName(ctx context.Context, imageName string, body ImageDeleteByNameParams, opts ...option.RequestOption) (res *Image, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if body.ResourceType == "" {
+		err = errors.New("missing required resourceType parameter")
+		return
+	}
+	if imageName == "" {
+		err = errors.New("missing required imageName parameter")
+		return
+	}
+	path := fmt.Sprintf("images/%s/%s", body.ResourceType, imageName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return
+}
+
+// Deletes a specific tag from an image.
+func (r *ImageService) DeleteTag(ctx context.Context, tagName string, body ImageDeleteTagParams, opts ...option.RequestOption) (res *Image, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if body.ResourceType == "" {
+		err = errors.New("missing required resourceType parameter")
+		return
+	}
+	if body.ImageName == "" {
+		err = errors.New("missing required imageName parameter")
+		return
+	}
+	if tagName == "" {
+		err = errors.New("missing required tagName parameter")
+		return
+	}
+	path := fmt.Sprintf("images/%s/%s/tags/%s", body.ResourceType, body.ImageName, tagName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return
+}
+
+// Returns an image by name.
+func (r *ImageService) GetByName(ctx context.Context, imageName string, query ImageGetByNameParams, opts ...option.RequestOption) (res *Image, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if query.ResourceType == "" {
+		err = errors.New("missing required resourceType parameter")
+		return
+	}
+	if imageName == "" {
+		err = errors.New("missing required imageName parameter")
+		return
+	}
+	path := fmt.Sprintf("images/%s/%s", query.ResourceType, imageName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+type Image struct {
+	// Metadata for the image.
+	Metadata ImageMetadata `json:"metadata,required"`
+	// Specification for the image.
+	Spec ImageSpec `json:"spec,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metadata    respjson.Field
+		Spec        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r Image) RawJSON() string { return r.JSON.raw }
+func (r *Image) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Metadata for the image.
+type ImageMetadata struct {
+	// The date and time when the image was created.
+	CreatedAt string `json:"createdAt"`
+	// The display name of the image (registry/workspace/repository).
+	DisplayName string `json:"displayName"`
+	// The date and time when the image was last deployed (most recent across all
+	// tags).
+	LastDeployedAt string `json:"lastDeployedAt"`
+	// The name of the image (repository name).
+	Name string `json:"name"`
+	// The resource type of the image.
+	ResourceType string `json:"resourceType"`
+	// The date and time when the image was last updated.
+	UpdatedAt string `json:"updatedAt"`
+	// The workspace of the image.
+	Workspace string `json:"workspace"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CreatedAt      respjson.Field
+		DisplayName    respjson.Field
+		LastDeployedAt respjson.Field
+		Name           respjson.Field
+		ResourceType   respjson.Field
+		UpdatedAt      respjson.Field
+		Workspace      respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageMetadata) RawJSON() string { return r.JSON.raw }
+func (r *ImageMetadata) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Specification for the image.
+type ImageSpec struct {
+	// The size of the image in bytes.
+	Size int64 `json:"size"`
+	// List of tags available for this image.
+	Tags []ImageSpecTag `json:"tags"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Size        respjson.Field
+		Tags        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageSpec) RawJSON() string { return r.JSON.raw }
+func (r *ImageSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageSpecTag struct {
+	// The date and time when the tag was created.
+	CreatedAt string `json:"createdAt"`
+	// The name of the tag.
+	Name string `json:"name"`
+	// The size of the image in bytes.
+	Size int64 `json:"size"`
+	// The date and time when the tag was last updated.
+	UpdatedAt   string         `json:"updatedAt"`
+	ExtraFields map[string]any `json:",extras"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CreatedAt   respjson.Field
+		Name        respjson.Field
+		Size        respjson.Field
+		UpdatedAt   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageSpecTag) RawJSON() string { return r.JSON.raw }
+func (r *ImageSpecTag) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageCleanupUnusedResponse struct {
+	// Number of images deleted
+	Deleted int64 `json:"deleted"`
+	// Result message
+	Message string `json:"message"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Deleted     respjson.Field
+		Message     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageCleanupUnusedResponse) RawJSON() string { return r.JSON.raw }
+func (r *ImageCleanupUnusedResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageDeleteByNameParams struct {
+	ResourceType string `path:"resourceType,required" json:"-"`
+	paramObj
+}
+
+type ImageDeleteTagParams struct {
+	ResourceType string `path:"resourceType,required" json:"-"`
+	ImageName    string `path:"imageName,required" json:"-"`
+	paramObj
+}
+
+type ImageGetByNameParams struct {
+	ResourceType string `path:"resourceType,required" json:"-"`
+	paramObj
+}

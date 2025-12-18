@@ -1,0 +1,254 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+package blaxel_test
+
+import (
+	"context"
+	"errors"
+	"os"
+	"testing"
+
+	"github.com/stainless-sdks/blaxel-go"
+	"github.com/stainless-sdks/blaxel-go/internal/testutil"
+	"github.com/stainless-sdks/blaxel-go/option"
+)
+
+func TestWorkspaceNewWithOptionalParams(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.New(context.TODO(), blaxel.WorkspaceNewParams{
+		Workspace: blaxel.WorkspaceParam{
+			TimeFieldsParam:  blaxel.TimeFieldsParam{},
+			OwnerFieldsParam: blaxel.OwnerFieldsParam{},
+			ID:               blaxel.String("id"),
+			AccountID:        blaxel.String("accountId"),
+			DisplayName:      blaxel.String("displayName"),
+			Labels: map[string]string{
+				"foo": "string",
+			},
+			Name:   blaxel.String("name"),
+			Region: blaxel.String("region"),
+			Runtime: blaxel.WorkspaceRuntimeParam{
+				Generation: blaxel.String("generation"),
+			},
+			Status:       "created",
+			StatusReason: blaxel.String("statusReason"),
+		},
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceGet(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.Get(context.TODO(), "workspaceName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.Update(
+		context.TODO(),
+		"workspaceName",
+		blaxel.WorkspaceUpdateParams{
+			Workspace: blaxel.WorkspaceParam{
+				TimeFieldsParam:  blaxel.TimeFieldsParam{},
+				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
+				ID:               blaxel.String("id"),
+				AccountID:        blaxel.String("accountId"),
+				DisplayName:      blaxel.String("displayName"),
+				Labels: map[string]string{
+					"foo": "string",
+				},
+				Name:   blaxel.String("name"),
+				Region: blaxel.String("region"),
+				Runtime: blaxel.WorkspaceRuntimeParam{
+					Generation: blaxel.String("generation"),
+				},
+				Status:       "created",
+				StatusReason: blaxel.String("statusReason"),
+			},
+		},
+	)
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceList(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.List(context.TODO())
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceDelete(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.Delete(context.TODO(), "workspaceName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceAcceptInvitation(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.AcceptInvitation(context.TODO(), "workspaceName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceCheckAvailability(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.CheckAvailability(context.TODO(), blaxel.WorkspaceCheckAvailabilityParams{
+		Name: "name",
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceDeclineInvitation(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.DeclineInvitation(context.TODO(), "workspaceName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestWorkspaceLeave(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+	)
+	_, err := client.Workspaces.Leave(context.TODO(), "workspaceName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
