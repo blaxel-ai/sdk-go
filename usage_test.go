@@ -22,6 +22,8 @@ func TestUsage(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	t.Skip("Prism tests are disabled")
 	agents, err := client.Agents.List(context.TODO())

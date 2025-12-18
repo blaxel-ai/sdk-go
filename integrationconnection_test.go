@@ -24,14 +24,14 @@ func TestIntegrationConnectionNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Integrations.Connections.New(context.TODO(), blaxel.IntegrationConnectionNewParams{
 		IntegrationConnection: blaxel.IntegrationConnectionParam{
 			Metadata: blaxel.MetadataParam{
-				TimeFieldsParam:  blaxel.TimeFieldsParam{},
-				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-				Name:             "name",
-				DisplayName:      blaxel.String("displayName"),
+				Name:        "name",
+				DisplayName: blaxel.String("displayName"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -68,6 +68,8 @@ func TestIntegrationConnectionGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Integrations.Connections.Get(context.TODO(), "connectionName")
 	if err != nil {
@@ -90,6 +92,8 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Integrations.Connections.Update(
 		context.TODO(),
@@ -97,10 +101,8 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 		blaxel.IntegrationConnectionUpdateParams{
 			IntegrationConnection: blaxel.IntegrationConnectionParam{
 				Metadata: blaxel.MetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					Name:             "name",
-					DisplayName:      blaxel.String("displayName"),
+					Name:        "name",
+					DisplayName: blaxel.String("displayName"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -138,6 +140,8 @@ func TestIntegrationConnectionList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Integrations.Connections.List(context.TODO())
 	if err != nil {
@@ -160,6 +164,8 @@ func TestIntegrationConnectionDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Integrations.Connections.Delete(context.TODO(), "connectionName")
 	if err != nil {
@@ -182,6 +188,8 @@ func TestIntegrationConnectionListEndpointConfigurations(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	err := client.Integrations.Connections.ListEndpointConfigurations(context.TODO(), "connectionName")
 	if err != nil {

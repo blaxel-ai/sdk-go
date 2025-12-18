@@ -24,14 +24,14 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.New(context.TODO(), blaxel.WorkspaceNewParams{
 		Workspace: blaxel.WorkspaceParam{
-			TimeFieldsParam:  blaxel.TimeFieldsParam{},
-			OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-			ID:               blaxel.String("id"),
-			AccountID:        blaxel.String("accountId"),
-			DisplayName:      blaxel.String("displayName"),
+			ID:          blaxel.String("id"),
+			AccountID:   blaxel.String("accountId"),
+			DisplayName: blaxel.String("displayName"),
 			Labels: map[string]string{
 				"foo": "string",
 			},
@@ -40,7 +40,7 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 			Runtime: blaxel.WorkspaceRuntimeParam{
 				Generation: blaxel.String("generation"),
 			},
-			Status:       "created",
+			Status:       blaxel.WorkspaceStatusCreated,
 			StatusReason: blaxel.String("statusReason"),
 		},
 	})
@@ -64,6 +64,8 @@ func TestWorkspaceGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.Get(context.TODO(), "workspaceName")
 	if err != nil {
@@ -86,17 +88,17 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.Update(
 		context.TODO(),
 		"workspaceName",
 		blaxel.WorkspaceUpdateParams{
 			Workspace: blaxel.WorkspaceParam{
-				TimeFieldsParam:  blaxel.TimeFieldsParam{},
-				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-				ID:               blaxel.String("id"),
-				AccountID:        blaxel.String("accountId"),
-				DisplayName:      blaxel.String("displayName"),
+				ID:          blaxel.String("id"),
+				AccountID:   blaxel.String("accountId"),
+				DisplayName: blaxel.String("displayName"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -105,7 +107,7 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 				Runtime: blaxel.WorkspaceRuntimeParam{
 					Generation: blaxel.String("generation"),
 				},
-				Status:       "created",
+				Status:       blaxel.WorkspaceStatusCreated,
 				StatusReason: blaxel.String("statusReason"),
 			},
 		},
@@ -130,6 +132,8 @@ func TestWorkspaceList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.List(context.TODO())
 	if err != nil {
@@ -152,6 +156,8 @@ func TestWorkspaceDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.Delete(context.TODO(), "workspaceName")
 	if err != nil {
@@ -174,6 +180,8 @@ func TestWorkspaceAcceptInvitation(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.AcceptInvitation(context.TODO(), "workspaceName")
 	if err != nil {
@@ -196,6 +204,8 @@ func TestWorkspaceCheckAvailability(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.CheckAvailability(context.TODO(), blaxel.WorkspaceCheckAvailabilityParams{
 		Name: "name",
@@ -220,6 +230,8 @@ func TestWorkspaceDeclineInvitation(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.DeclineInvitation(context.TODO(), "workspaceName")
 	if err != nil {
@@ -242,6 +254,8 @@ func TestWorkspaceLeave(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.Leave(context.TODO(), "workspaceName")
 	if err != nil {

@@ -24,6 +24,8 @@ func TestSandboxPreviewNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Previews.New(
 		context.TODO(),
@@ -31,13 +33,11 @@ func TestSandboxPreviewNew(t *testing.T) {
 		blaxel.SandboxPreviewNewParams{
 			Preview: blaxel.PreviewParam{
 				Metadata: blaxel.PreviewMetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					Name:             "name",
-					DisplayName:      blaxel.String("displayName"),
-					ResourceName:     blaxel.String("resourceName"),
-					ResourceType:     blaxel.String("resourceType"),
-					Workspace:        blaxel.String("workspace"),
+					Name:         "name",
+					DisplayName:  blaxel.String("displayName"),
+					ResourceName: blaxel.String("resourceName"),
+					ResourceType: blaxel.String("resourceType"),
+					Workspace:    blaxel.String("workspace"),
 				},
 				Spec: blaxel.PreviewSpecParam{
 					CustomDomain: blaxel.String("customDomain"),
@@ -78,6 +78,8 @@ func TestSandboxPreviewGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Previews.Get(
 		context.TODO(),
@@ -106,6 +108,8 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Previews.Update(
 		context.TODO(),
@@ -114,13 +118,11 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 			SandboxName: "sandboxName",
 			Preview: blaxel.PreviewParam{
 				Metadata: blaxel.PreviewMetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					Name:             "name",
-					DisplayName:      blaxel.String("displayName"),
-					ResourceName:     blaxel.String("resourceName"),
-					ResourceType:     blaxel.String("resourceType"),
-					Workspace:        blaxel.String("workspace"),
+					Name:         "name",
+					DisplayName:  blaxel.String("displayName"),
+					ResourceName: blaxel.String("resourceName"),
+					ResourceType: blaxel.String("resourceType"),
+					Workspace:    blaxel.String("workspace"),
 				},
 				Spec: blaxel.PreviewSpecParam{
 					CustomDomain: blaxel.String("customDomain"),
@@ -161,6 +163,8 @@ func TestSandboxPreviewList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Previews.List(context.TODO(), "sandboxName")
 	if err != nil {
@@ -183,6 +187,8 @@ func TestSandboxPreviewDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Previews.Delete(
 		context.TODO(),

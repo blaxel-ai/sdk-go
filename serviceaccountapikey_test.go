@@ -24,6 +24,8 @@ func TestServiceAccountAPIKeyNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.ServiceAccounts.APIKeys.New(
 		context.TODO(),
@@ -53,6 +55,8 @@ func TestServiceAccountAPIKeyList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.ServiceAccounts.APIKeys.List(context.TODO(), "clientId")
 	if err != nil {
@@ -75,6 +79,8 @@ func TestServiceAccountAPIKeyDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	err := client.ServiceAccounts.APIKeys.Delete(
 		context.TODO(),

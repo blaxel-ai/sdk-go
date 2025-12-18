@@ -24,14 +24,14 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Models.New(context.TODO(), blaxel.ModelNewParams{
 		Model: blaxel.ModelParam{
 			Metadata: blaxel.MetadataParam{
-				TimeFieldsParam:  blaxel.TimeFieldsParam{},
-				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-				Name:             "name",
-				DisplayName:      blaxel.String("displayName"),
+				Name:        "name",
+				DisplayName: blaxel.String("displayName"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -74,6 +74,8 @@ func TestModelGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Models.Get(context.TODO(), "modelName")
 	if err != nil {
@@ -96,6 +98,8 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Models.Update(
 		context.TODO(),
@@ -103,10 +107,8 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 		blaxel.ModelUpdateParams{
 			Model: blaxel.ModelParam{
 				Metadata: blaxel.MetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					Name:             "name",
-					DisplayName:      blaxel.String("displayName"),
+					Name:        "name",
+					DisplayName: blaxel.String("displayName"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -150,6 +152,8 @@ func TestModelList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Models.List(context.TODO())
 	if err != nil {
@@ -172,6 +176,8 @@ func TestModelDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Models.Delete(context.TODO(), "modelName")
 	if err != nil {
@@ -194,6 +200,8 @@ func TestModelListRevisions(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Models.ListRevisions(context.TODO(), "modelName")
 	if err != nil {

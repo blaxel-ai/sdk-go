@@ -24,14 +24,14 @@ func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.VolumeTemplates.New(context.TODO(), blaxel.VolumeTemplateNewParams{
 		VolumeTemplate: blaxel.VolumeTemplateParam{
 			Metadata: blaxel.MetadataParam{
-				TimeFieldsParam:  blaxel.TimeFieldsParam{},
-				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-				Name:             "name",
-				DisplayName:      blaxel.String("displayName"),
+				Name:        "name",
+				DisplayName: blaxel.String("displayName"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -80,6 +80,8 @@ func TestVolumeTemplateGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.VolumeTemplates.Get(context.TODO(), "volumeTemplateName")
 	if err != nil {
@@ -102,6 +104,8 @@ func TestVolumeTemplateList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.VolumeTemplates.List(context.TODO())
 	if err != nil {
@@ -124,6 +128,8 @@ func TestVolumeTemplateDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.VolumeTemplates.Delete(context.TODO(), "volumeTemplateName")
 	if err != nil {
@@ -146,6 +152,8 @@ func TestVolumeTemplateDeleteVersion(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.VolumeTemplates.DeleteVersion(
 		context.TODO(),
@@ -174,6 +182,8 @@ func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.VolumeTemplates.Upsert(
 		context.TODO(),
@@ -181,10 +191,8 @@ func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
 		blaxel.VolumeTemplateUpsertParams{
 			VolumeTemplate: blaxel.VolumeTemplateParam{
 				Metadata: blaxel.MetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					Name:             "name",
-					DisplayName:      blaxel.String("displayName"),
+					Name:        "name",
+					DisplayName: blaxel.String("displayName"),
 					Labels: map[string]string{
 						"foo": "string",
 					},

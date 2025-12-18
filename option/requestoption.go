@@ -266,17 +266,30 @@ func WithEnvironmentProduction() RequestOption {
 	return requestconfig.WithDefaultBaseURL("https://api.blaxel.ai/v0/")
 }
 
-// WithEnvironmentEnvironment1 returns a RequestOption that sets the current
-// environment to be the "environment_1" environment. An environment specifies which base URL
-// to use by default.
-func WithEnvironmentEnvironment1() RequestOption {
-	return requestconfig.WithDefaultBaseURL("https://run.blaxel.ai/")
-}
-
 // WithAPIKey returns a RequestOption that sets the client setting "api_key".
 func WithAPIKey(value string) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
 		r.APIKey = value
 		return r.Apply(WithHeader("authorization", fmt.Sprintf("Bearer %s", r.APIKey)))
+	})
+}
+
+// WithClientID returns a RequestOption that sets the client setting "client_id".
+func WithClientID(value string) RequestOption {
+	oauthState := requestconfig.OAuth2Cache["/oauth/token"]
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.ClientID = value
+		r.OAuth2State = oauthState
+		return nil
+	})
+}
+
+// WithClientSecret returns a RequestOption that sets the client setting "client_secret".
+func WithClientSecret(value string) RequestOption {
+	oauthState := requestconfig.OAuth2Cache["/oauth/token"]
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.ClientSecret = value
+		r.OAuth2State = oauthState
+		return nil
 	})
 }

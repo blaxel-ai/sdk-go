@@ -54,7 +54,7 @@ func (r *SandboxPreviewTokenService) New(ctx context.Context, previewName string
 }
 
 // Gets tokens for a Sandbox Preview.
-func (r *SandboxPreviewTokenService) List(ctx context.Context, previewName string, query SandboxPreviewTokenListParams, opts ...option.RequestOption) (res *[]PreviewToken, err error) {
+func (r *SandboxPreviewTokenService) Get(ctx context.Context, previewName string, query SandboxPreviewTokenGetParams, opts ...option.RequestOption) (res *[]PreviewToken, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if query.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
@@ -267,7 +267,7 @@ func (r *SandboxPreviewTokenNewParams) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &r.PreviewToken)
 }
 
-type SandboxPreviewTokenListParams struct {
+type SandboxPreviewTokenGetParams struct {
 	SandboxName string `path:"sandboxName,required" json:"-"`
 	paramObj
 }

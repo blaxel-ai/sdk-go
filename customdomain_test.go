@@ -24,13 +24,13 @@ func TestCustomdomainNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Customdomains.New(context.TODO(), blaxel.CustomdomainNewParams{
 		CustomDomain: blaxel.CustomDomainParam{
 			Metadata: blaxel.CustomDomainMetadataParam{
-				TimeFieldsParam:  blaxel.TimeFieldsParam{},
-				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-				DisplayName:      blaxel.String("displayName"),
+				DisplayName: blaxel.String("displayName"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -69,6 +69,8 @@ func TestCustomdomainGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Customdomains.Get(context.TODO(), "domainName")
 	if err != nil {
@@ -91,6 +93,8 @@ func TestCustomdomainUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Customdomains.Update(
 		context.TODO(),
@@ -98,9 +102,7 @@ func TestCustomdomainUpdate(t *testing.T) {
 		blaxel.CustomdomainUpdateParams{
 			CustomDomain: blaxel.CustomDomainParam{
 				Metadata: blaxel.CustomDomainMetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					DisplayName:      blaxel.String("displayName"),
+					DisplayName: blaxel.String("displayName"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -140,6 +142,8 @@ func TestCustomdomainList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Customdomains.List(context.TODO())
 	if err != nil {
@@ -162,6 +166,8 @@ func TestCustomdomainDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Customdomains.Delete(context.TODO(), "domainName")
 	if err != nil {
@@ -184,6 +190,8 @@ func TestCustomdomainVerify(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Customdomains.Verify(context.TODO(), "domainName")
 	if err != nil {

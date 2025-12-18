@@ -21,7 +21,6 @@ type Client struct {
 	Configuration   ConfigurationService
 	Customdomains   CustomdomainService
 	Functions       FunctionService
-	Images          ImageService
 	Integrations    IntegrationService
 	Jobs            JobService
 	Locations       LocationService
@@ -39,23 +38,30 @@ type Client struct {
 	Sandboxes       SandboxService
 }
 
-// DefaultClientOptions read from the environment (BLAXEL_API_KEY,
-// BLAXEL_BASE_URL). This should be used to initialize new clients.
+// DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_ID,
+// BL_CLIENT_SECRET, BLAXEL_BASE_URL). This should be used to initialize new
+// clients.
 func DefaultClientOptions() []option.RequestOption {
 	defaults := []option.RequestOption{option.WithEnvironmentProduction()}
 	if o, ok := os.LookupEnv("BLAXEL_BASE_URL"); ok {
 		defaults = append(defaults, option.WithBaseURL(o))
 	}
-	if o, ok := os.LookupEnv("BLAXEL_API_KEY"); ok {
+	if o, ok := os.LookupEnv("BL_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
+	}
+	if o, ok := os.LookupEnv("BL_CLIENT_ID"); ok {
+		defaults = append(defaults, option.WithClientID(o))
+	}
+	if o, ok := os.LookupEnv("BL_CLIENT_SECRET"); ok {
+		defaults = append(defaults, option.WithClientSecret(o))
 	}
 	return defaults
 }
 
 // NewClient generates a new client with the default option read from the
-// environment (BLAXEL_API_KEY, BLAXEL_BASE_URL). The option passed in as arguments
-// are applied after these default arguments, and all option will be passed down to
-// the services and requests that this client makes.
+// environment (BL_API_KEY, BL_CLIENT_ID, BL_CLIENT_SECRET, BLAXEL_BASE_URL). The
+// option passed in as arguments are applied after these default arguments, and all
+// option will be passed down to the services and requests that this client makes.
 func NewClient(opts ...option.RequestOption) (r Client) {
 	opts = append(DefaultClientOptions(), opts...)
 
@@ -65,7 +71,6 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Configuration = NewConfigurationService(opts...)
 	r.Customdomains = NewCustomdomainService(opts...)
 	r.Functions = NewFunctionService(opts...)
-	r.Images = NewImageService(opts...)
 	r.Integrations = NewIntegrationService(opts...)
 	r.Jobs = NewJobService(opts...)
 	r.Locations = NewLocationService(opts...)
