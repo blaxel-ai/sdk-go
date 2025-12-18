@@ -136,25 +136,35 @@ func (r CustomDomain) ToParam() CustomDomainParam {
 
 // Custom domain metadata
 type CustomDomainMetadata struct {
+	// The date and time when the resource was created
+	CreatedAt string `json:"createdAt"`
+	// The user or service account who created the resource
+	CreatedBy string `json:"createdBy"`
 	// Display name for the custom domain
 	DisplayName string `json:"displayName"`
 	// Labels
 	Labels map[string]string `json:"labels"`
 	// Domain name (e.g., "example.com")
 	Name string `json:"name"`
+	// The date and time when the resource was updated
+	UpdatedAt string `json:"updatedAt"`
+	// The user or service account who updated the resource
+	UpdatedBy string `json:"updatedBy"`
 	// Workspace name
 	Workspace string `json:"workspace"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		CreatedAt   respjson.Field
+		CreatedBy   respjson.Field
 		DisplayName respjson.Field
 		Labels      respjson.Field
 		Name        respjson.Field
+		UpdatedAt   respjson.Field
+		UpdatedBy   respjson.Field
 		Workspace   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
-	TimeFields
-	OwnerFields
 }
 
 // Returns the unmodified JSON received from the API
@@ -224,20 +234,21 @@ func (r *CustomDomainParam) UnmarshalJSON(data []byte) error {
 type CustomDomainMetadataParam struct {
 	// Display name for the custom domain
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
-	// Labels
-	Labels map[string]string `json:"labels,omitzero"`
 	// Domain name (e.g., "example.com")
 	Name param.Opt[string] `json:"name,omitzero"`
 	// Workspace name
 	Workspace param.Opt[string] `json:"workspace,omitzero"`
-	TimeFieldsParam
-	OwnerFieldsParam
+	// Labels
+	Labels map[string]string `json:"labels,omitzero"`
 	paramObj
 }
 
 func (r CustomDomainMetadataParam) MarshalJSON() (data []byte, err error) {
 	type shadow CustomDomainMetadataParam
 	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *CustomDomainMetadataParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Custom domain specification

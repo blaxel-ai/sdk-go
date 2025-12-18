@@ -145,26 +145,36 @@ func (r Preview) ToParam() PreviewParam {
 type PreviewMetadata struct {
 	// Preview name
 	Name string `json:"name,required"`
+	// The date and time when the resource was created
+	CreatedAt string `json:"createdAt"`
+	// The user or service account who created the resource
+	CreatedBy string `json:"createdBy"`
 	// Model display name
 	DisplayName string `json:"displayName"`
 	// Resource name
 	ResourceName string `json:"resourceName"`
 	// Resource type
 	ResourceType string `json:"resourceType"`
+	// The date and time when the resource was updated
+	UpdatedAt string `json:"updatedAt"`
+	// The user or service account who updated the resource
+	UpdatedBy string `json:"updatedBy"`
 	// Workspace name
 	Workspace string `json:"workspace"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Name         respjson.Field
+		CreatedAt    respjson.Field
+		CreatedBy    respjson.Field
 		DisplayName  respjson.Field
 		ResourceName respjson.Field
 		ResourceType respjson.Field
+		UpdatedAt    respjson.Field
+		UpdatedBy    respjson.Field
 		Workspace    respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
-	TimeFields
-	OwnerFields
 }
 
 // Returns the unmodified JSON received from the API
@@ -241,6 +251,8 @@ func (r *PreviewParam) UnmarshalJSON(data []byte) error {
 }
 
 // PreviewMetadata
+//
+// The property Name is required.
 type PreviewMetadataParam struct {
 	// Preview name
 	Name string `json:"name,required"`
@@ -252,14 +264,15 @@ type PreviewMetadataParam struct {
 	ResourceType param.Opt[string] `json:"resourceType,omitzero"`
 	// Workspace name
 	Workspace param.Opt[string] `json:"workspace,omitzero"`
-	TimeFieldsParam
-	OwnerFieldsParam
 	paramObj
 }
 
 func (r PreviewMetadataParam) MarshalJSON() (data []byte, err error) {
 	type shadow PreviewMetadataParam
 	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PreviewMetadataParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Preview of a Resource

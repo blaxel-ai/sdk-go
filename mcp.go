@@ -33,19 +33,20 @@ func NewMcpService(opts ...option.RequestOption) (r McpService) {
 }
 
 // List MCP hub definitions
-func (r *McpService) ListHubs(ctx context.Context, opts ...option.RequestOption) (res *[]McpListHubsResponse, err error) {
+func (r *McpService) GetHub(ctx context.Context, opts ...option.RequestOption) (res *[]McpGetHubResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "mcp/hub"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
 
-// Definition of an MCP from the MCP Hub
-type McpListHubsResponse struct {
+type McpGetHubResponse struct {
 	// Categories of the artifact
 	Categories []map[string]any `json:"categories"`
 	// If the artifact is coming soon
 	ComingSoon bool `json:"coming_soon"`
+	// The date and time when the resource was created
+	CreatedAt string `json:"createdAt"`
 	// Description of the artifact
 	Description string `json:"description"`
 	// Display name of the artifact
@@ -53,9 +54,9 @@ type McpListHubsResponse struct {
 	// If the artifact is enterprise
 	Enterprise bool `json:"enterprise"`
 	// Entrypoint of the artifact
-	Entrypoint McpListHubsResponseEntrypoint `json:"entrypoint"`
+	Entrypoint McpGetHubResponseEntrypoint `json:"entrypoint"`
 	// Form of the artifact
-	Form McpListHubsResponseForm `json:"form"`
+	Form McpGetHubResponseForm `json:"form"`
 	// If the artifact is hidden
 	Hidden bool `json:"hidden"`
 	// Hidden secrets of the artifact
@@ -72,12 +73,15 @@ type McpListHubsResponse struct {
 	Name string `json:"name"`
 	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
 	Transport string `json:"transport"`
+	// The date and time when the resource was updated
+	UpdatedAt string `json:"updatedAt"`
 	// URL of the artifact
 	URL string `json:"url"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Categories      respjson.Field
 		ComingSoon      respjson.Field
+		CreatedAt       respjson.Field
 		Description     respjson.Field
 		DisplayName     respjson.Field
 		Enterprise      respjson.Field
@@ -91,21 +95,21 @@ type McpListHubsResponse struct {
 		LongDescription respjson.Field
 		Name            respjson.Field
 		Transport       respjson.Field
+		UpdatedAt       respjson.Field
 		URL             respjson.Field
 		ExtraFields     map[string]respjson.Field
 		raw             string
 	} `json:"-"`
-	TimeFields
 }
 
 // Returns the unmodified JSON received from the API
-func (r McpListHubsResponse) RawJSON() string { return r.JSON.raw }
-func (r *McpListHubsResponse) UnmarshalJSON(data []byte) error {
+func (r McpGetHubResponse) RawJSON() string { return r.JSON.raw }
+func (r *McpGetHubResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Entrypoint of the artifact
-type McpListHubsResponseEntrypoint struct {
+type McpGetHubResponseEntrypoint struct {
 	// Args of the entrypoint
 	Args []map[string]any `json:"args"`
 	// Command of the entrypoint
@@ -126,17 +130,17 @@ type McpListHubsResponseEntrypoint struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r McpListHubsResponseEntrypoint) RawJSON() string { return r.JSON.raw }
-func (r *McpListHubsResponseEntrypoint) UnmarshalJSON(data []byte) error {
+func (r McpGetHubResponseEntrypoint) RawJSON() string { return r.JSON.raw }
+func (r *McpGetHubResponseEntrypoint) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Form of the artifact
-type McpListHubsResponseForm struct {
+type McpGetHubResponseForm struct {
 	// Config of the artifact
 	Config map[string]any `json:"config"`
 	// OAuth of the artifact
-	OAuth McpListHubsResponseFormOAuth `json:"oauth"`
+	OAuth McpGetHubResponseFormOAuth `json:"oauth"`
 	// Secrets of the artifact
 	Secrets map[string]any `json:"secrets"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -150,13 +154,13 @@ type McpListHubsResponseForm struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r McpListHubsResponseForm) RawJSON() string { return r.JSON.raw }
-func (r *McpListHubsResponseForm) UnmarshalJSON(data []byte) error {
+func (r McpGetHubResponseForm) RawJSON() string { return r.JSON.raw }
+func (r *McpGetHubResponseForm) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // OAuth of the artifact
-type McpListHubsResponseFormOAuth struct {
+type McpGetHubResponseFormOAuth struct {
 	// Scope of the OAuth
 	Scope []map[string]any `json:"scope"`
 	// Type of the OAuth
@@ -171,7 +175,7 @@ type McpListHubsResponseFormOAuth struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r McpListHubsResponseFormOAuth) RawJSON() string { return r.JSON.raw }
-func (r *McpListHubsResponseFormOAuth) UnmarshalJSON(data []byte) error {
+func (r McpGetHubResponseFormOAuth) RawJSON() string { return r.JSON.raw }
+func (r *McpGetHubResponseFormOAuth) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }

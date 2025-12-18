@@ -77,27 +77,36 @@ func (r *UserService) UpdateRole(ctx context.Context, subOrEmail string, body Us
 	return
 }
 
-// Pending invitation in workspace
 type PendingInvitation struct {
+	// The date and time when the resource was created
+	CreatedAt string `json:"createdAt"`
+	// The user or service account who created the resource
+	CreatedBy string `json:"createdBy"`
 	// User email
 	Email string `json:"email"`
 	// User sub
 	InvitedBy string `json:"invitedBy"`
 	// ACL role
 	Role string `json:"role"`
+	// The date and time when the resource was updated
+	UpdatedAt string `json:"updatedAt"`
+	// The user or service account who updated the resource
+	UpdatedBy string `json:"updatedBy"`
 	// Workspace name
 	Workspace string `json:"workspace"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		CreatedAt   respjson.Field
+		CreatedBy   respjson.Field
 		Email       respjson.Field
 		InvitedBy   respjson.Field
 		Role        respjson.Field
+		UpdatedAt   respjson.Field
+		UpdatedBy   respjson.Field
 		Workspace   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
-	TimeFields
-	OwnerFields
 }
 
 // Returns the unmodified JSON received from the API

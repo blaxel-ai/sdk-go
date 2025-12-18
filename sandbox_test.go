@@ -24,14 +24,14 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
 		Sandbox: blaxel.SandboxParam{
 			Metadata: blaxel.MetadataParam{
-				TimeFieldsParam:  blaxel.TimeFieldsParam{},
-				OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-				Name:             "name",
-				DisplayName:      blaxel.String("displayName"),
+				Name:        "name",
+				DisplayName: blaxel.String("displayName"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -88,6 +88,8 @@ func TestSandboxGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Get(
 		context.TODO(),
@@ -116,6 +118,8 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Update(
 		context.TODO(),
@@ -123,10 +127,8 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 		blaxel.SandboxUpdateParams{
 			Sandbox: blaxel.SandboxParam{
 				Metadata: blaxel.MetadataParam{
-					TimeFieldsParam:  blaxel.TimeFieldsParam{},
-					OwnerFieldsParam: blaxel.OwnerFieldsParam{},
-					Name:             "name",
-					DisplayName:      blaxel.String("displayName"),
+					Name:        "name",
+					DisplayName: blaxel.String("displayName"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -184,6 +186,8 @@ func TestSandboxList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.List(context.TODO())
 	if err != nil {
@@ -206,6 +210,8 @@ func TestSandboxDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Delete(context.TODO(), "sandboxName")
 	if err != nil {
@@ -217,7 +223,7 @@ func TestSandboxDelete(t *testing.T) {
 	}
 }
 
-func TestSandboxListHubs(t *testing.T) {
+func TestSandboxGetHub(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -228,8 +234,10 @@ func TestSandboxListHubs(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
-	_, err := client.Sandboxes.ListHubs(context.TODO())
+	_, err := client.Sandboxes.GetHub(context.TODO())
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {

@@ -24,6 +24,8 @@ func TestUserList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Users.List(context.TODO())
 	if err != nil {
@@ -46,6 +48,8 @@ func TestUserInviteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Users.Invite(context.TODO(), blaxel.UserInviteParams{
 		Email: blaxel.String("dev@stainless.com"),
@@ -70,6 +74,8 @@ func TestUserRemove(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	err := client.Users.Remove(context.TODO(), "subOrEmail")
 	if err != nil {
@@ -92,6 +98,8 @@ func TestUserUpdateRole(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Users.UpdateRole(
 		context.TODO(),

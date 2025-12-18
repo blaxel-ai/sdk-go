@@ -394,16 +394,23 @@ func (r *CoreEventParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Metadata
 type Metadata struct {
 	// Model name
 	Name string `json:"name,required"`
+	// The date and time when the resource was created
+	CreatedAt string `json:"createdAt"`
+	// The user or service account who created the resource
+	CreatedBy string `json:"createdBy"`
 	// Model display name
 	DisplayName string `json:"displayName"`
 	// Labels
 	Labels map[string]string `json:"labels"`
 	// Plan
 	Plan string `json:"plan"`
+	// The date and time when the resource was updated
+	UpdatedAt string `json:"updatedAt"`
+	// The user or service account who updated the resource
+	UpdatedBy string `json:"updatedBy"`
 	// URL
 	URL string `json:"url"`
 	// Workspace name
@@ -411,16 +418,18 @@ type Metadata struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Name        respjson.Field
+		CreatedAt   respjson.Field
+		CreatedBy   respjson.Field
 		DisplayName respjson.Field
 		Labels      respjson.Field
 		Plan        respjson.Field
+		UpdatedAt   respjson.Field
+		UpdatedBy   respjson.Field
 		URL         respjson.Field
 		Workspace   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
-	TimeFields
-	OwnerFields
 }
 
 // Returns the unmodified JSON received from the API
@@ -438,7 +447,7 @@ func (r Metadata) ToParam() MetadataParam {
 	return param.Override[MetadataParam](json.RawMessage(r.RawJSON()))
 }
 
-// Metadata
+// The property Name is required.
 type MetadataParam struct {
 	// Model name
 	Name string `json:"name,required"`
@@ -446,14 +455,15 @@ type MetadataParam struct {
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
 	// Labels
 	Labels map[string]string `json:"labels,omitzero"`
-	TimeFieldsParam
-	OwnerFieldsParam
 	paramObj
 }
 
 func (r MetadataParam) MarshalJSON() (data []byte, err error) {
 	type shadow MetadataParam
 	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *MetadataParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Revision configuration

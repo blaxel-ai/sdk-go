@@ -94,7 +94,7 @@ func (r *SandboxService) Delete(ctx context.Context, sandboxName string, opts ..
 }
 
 // List sandbox hub definitions
-func (r *SandboxService) ListHubs(ctx context.Context, opts ...option.RequestOption) (res *[]SandboxListHubsResponse, err error) {
+func (r *SandboxService) GetHub(ctx context.Context, opts ...option.RequestOption) (res *[]SandboxGetHubResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandbox/hub"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
@@ -479,7 +479,7 @@ func (r *SandboxSpecVolumeParam) UnmarshalJSON(data []byte) error {
 }
 
 // Sandbox definition for admin store operations
-type SandboxListHubsResponse struct {
+type SandboxGetHubResponse struct {
 	// Categories of the defintion
 	Categories []map[string]any `json:"categories"`
 	// If the definition is coming soon
@@ -530,8 +530,8 @@ type SandboxListHubsResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r SandboxListHubsResponse) RawJSON() string { return r.JSON.raw }
-func (r *SandboxListHubsResponse) UnmarshalJSON(data []byte) error {
+func (r SandboxGetHubResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxGetHubResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

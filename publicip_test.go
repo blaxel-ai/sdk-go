@@ -24,6 +24,8 @@ func TestPublicIPListWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.PublicIPs.List(context.TODO(), blaxel.PublicIPListParams{
 		Region: blaxel.String("region"),

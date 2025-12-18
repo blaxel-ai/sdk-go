@@ -24,6 +24,8 @@ func TestServiceAccountNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.ServiceAccounts.New(context.TODO(), blaxel.ServiceAccountNewParams{
 		Name:        "name",
@@ -49,6 +51,8 @@ func TestServiceAccountUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.ServiceAccounts.Update(
 		context.TODO(),
@@ -78,6 +82,8 @@ func TestServiceAccountList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.ServiceAccounts.List(context.TODO())
 	if err != nil {
@@ -100,6 +106,8 @@ func TestServiceAccountDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.ServiceAccounts.Delete(context.TODO(), "clientId")
 	if err != nil {

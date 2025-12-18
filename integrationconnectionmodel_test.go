@@ -24,6 +24,8 @@ func TestIntegrationConnectionModelGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	err := client.Integrations.Connections.Models.Get(
 		context.TODO(),
@@ -52,6 +54,8 @@ func TestIntegrationConnectionModelList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	err := client.Integrations.Connections.Models.List(context.TODO(), "connectionName")
 	if err != nil {

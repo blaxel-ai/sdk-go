@@ -13,7 +13,7 @@ import (
 	"github.com/stainless-sdks/blaxel-go/option"
 )
 
-func TestMcpListHubs(t *testing.T) {
+func TestMcpGetHub(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -24,8 +24,10 @@ func TestMcpListHubs(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
-	_, err := client.Mcp.ListHubs(context.TODO())
+	_, err := client.Mcp.GetHub(context.TODO())
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {

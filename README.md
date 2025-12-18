@@ -6,7 +6,7 @@
 
 <!-- x-release-please-end -->
 
-The Blaxel Go library provides convenient access to the Blaxel REST API
+The Blaxel Go library provides convenient access to the [Blaxel REST API](https://docs.blaxel.ai)
 from applications written in Go.
 
 It is generated with [Stainless](https://www.stainless.com/).
@@ -46,7 +46,8 @@ import (
 
 func main() {
 	client := blaxel.NewClient(
-		option.WithEnvironmentEnvironment1(), // defaults to option.WithEnvironmentProduction()
+		option.WithClientID("My Client ID"),         // defaults to os.LookupEnv("BL_CLIENT_ID")
+		option.WithClientSecret("My Client Secret"), // defaults to os.LookupEnv("BL_CLIENT_SECRET")
 	)
 	agents, err := client.Agents.List(context.TODO())
 	if err != nil {

@@ -24,6 +24,8 @@ func TestLocationList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Locations.List(context.TODO())
 	if err != nil {
