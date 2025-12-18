@@ -1,0 +1,315 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+package blaxel
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"slices"
+
+	"github.com/stainless-sdks/blaxel-go/internal/apijson"
+	shimjson "github.com/stainless-sdks/blaxel-go/internal/encoding/json"
+	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
+	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/stainless-sdks/blaxel-go/packages/respjson"
+)
+
+// WorkspaceService contains methods and other services that help with interacting
+// with the blaxel API.
+//
+// Note, unlike clients, this service does not read variables from the environment
+// automatically. You should not instantiate this service directly, and instead use
+// the [NewWorkspaceService] method instead.
+type WorkspaceService struct {
+	Options []option.RequestOption
+}
+
+// NewWorkspaceService generates a new service that applies the given options to
+// each request. These options are applied after the parent client's options (if
+// there is one), and before any request-specific options.
+func NewWorkspaceService(opts ...option.RequestOption) (r WorkspaceService) {
+	r = WorkspaceService{}
+	r.Options = opts
+	return
+}
+
+// Creates a workspace.
+func (r *WorkspaceService) New(ctx context.Context, body WorkspaceNewParams, opts ...option.RequestOption) (res *Workspace, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "workspaces"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
+// Returns a workspace by name.
+func (r *WorkspaceService) Get(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *Workspace, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if workspaceName == "" {
+		err = errors.New("missing required workspaceName parameter")
+		return
+	}
+	path := fmt.Sprintf("workspaces/%s", workspaceName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Updates a workspace by name.
+func (r *WorkspaceService) Update(ctx context.Context, workspaceName string, body WorkspaceUpdateParams, opts ...option.RequestOption) (res *Workspace, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if workspaceName == "" {
+		err = errors.New("missing required workspaceName parameter")
+		return
+	}
+	path := fmt.Sprintf("workspaces/%s", workspaceName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
+	return
+}
+
+// Returns a list of all workspaces.
+func (r *WorkspaceService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Workspace, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "workspaces"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Deletes a workspace by name.
+func (r *WorkspaceService) Delete(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *Workspace, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if workspaceName == "" {
+		err = errors.New("missing required workspaceName parameter")
+		return
+	}
+	path := fmt.Sprintf("workspaces/%s", workspaceName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return
+}
+
+// Accepts an invitation to a workspace.
+func (r *WorkspaceService) AcceptInvitation(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *WorkspaceAcceptInvitationResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if workspaceName == "" {
+		err = errors.New("missing required workspaceName parameter")
+		return
+	}
+	path := fmt.Sprintf("workspaces/%s/join", workspaceName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
+	return
+}
+
+// Check if a workspace is available.
+func (r *WorkspaceService) CheckAvailability(ctx context.Context, body WorkspaceCheckAvailabilityParams, opts ...option.RequestOption) (res *bool, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "workspaces/availability"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
+// Declines an invitation to a workspace.
+func (r *WorkspaceService) DeclineInvitation(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *PendingInvitation, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if workspaceName == "" {
+		err = errors.New("missing required workspaceName parameter")
+		return
+	}
+	path := fmt.Sprintf("workspaces/%s/decline", workspaceName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
+	return
+}
+
+// Leaves a workspace.
+func (r *WorkspaceService) Leave(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *Workspace, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if workspaceName == "" {
+		err = errors.New("missing required workspaceName parameter")
+		return
+	}
+	path := fmt.Sprintf("workspaces/%s/leave", workspaceName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return
+}
+
+// Workspace
+type Workspace struct {
+	// Autogenerated unique workspace id
+	ID string `json:"id"`
+	// Workspace account id
+	AccountID string `json:"accountId"`
+	// Workspace display name
+	DisplayName string `json:"displayName"`
+	// Workspace labels
+	Labels map[string]string `json:"labels"`
+	// Workspace name
+	Name string `json:"name"`
+	// Workspace write region
+	Region string `json:"region"`
+	// Workspace runtime
+	Runtime WorkspaceRuntime `json:"runtime"`
+	// Workspace status (created, account_binded, account_configured,
+	// workspace_configured, ready, error)
+	//
+	// Any of "created", "account_binded", "account_configured",
+	// "workspace_configured", "ready", "error".
+	Status string `json:"status"`
+	// Reason for current status (only set for error status)
+	StatusReason string `json:"statusReason"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID           respjson.Field
+		AccountID    respjson.Field
+		DisplayName  respjson.Field
+		Labels       respjson.Field
+		Name         respjson.Field
+		Region       respjson.Field
+		Runtime      respjson.Field
+		Status       respjson.Field
+		StatusReason respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+	TimeFields
+	OwnerFields
+}
+
+// Returns the unmodified JSON received from the API
+func (r Workspace) RawJSON() string { return r.JSON.raw }
+func (r *Workspace) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this Workspace to a WorkspaceParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// WorkspaceParam.Overrides()
+func (r Workspace) ToParam() WorkspaceParam {
+	return param.Override[WorkspaceParam](json.RawMessage(r.RawJSON()))
+}
+
+// Workspace runtime
+type WorkspaceRuntime struct {
+	// Workspace generation
+	Generation string `json:"generation"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Generation  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceRuntime) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Workspace
+type WorkspaceParam struct {
+	// Autogenerated unique workspace id
+	ID param.Opt[string] `json:"id,omitzero"`
+	// Workspace account id
+	AccountID param.Opt[string] `json:"accountId,omitzero"`
+	// Workspace display name
+	DisplayName param.Opt[string] `json:"displayName,omitzero"`
+	// Workspace labels
+	Labels map[string]string `json:"labels,omitzero"`
+	// Workspace name
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Workspace write region
+	Region param.Opt[string] `json:"region,omitzero"`
+	// Workspace runtime
+	Runtime WorkspaceRuntimeParam `json:"runtime,omitzero"`
+	// Workspace status (created, account_binded, account_configured,
+	// workspace_configured, ready, error)
+	Status string `json:"status,omitzero"`
+	// Reason for current status (only set for error status)
+	StatusReason param.Opt[string] `json:"statusReason,omitzero"`
+	TimeFieldsParam
+	OwnerFieldsParam
+	paramObj
+}
+
+func (r WorkspaceParam) MarshalJSON() (data []byte, err error) {
+	type shadow WorkspaceParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+
+// Workspace runtime
+type WorkspaceRuntimeParam struct {
+	// Workspace generation
+	Generation param.Opt[string] `json:"generation,omitzero"`
+	paramObj
+}
+
+func (r WorkspaceRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow WorkspaceRuntimeParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *WorkspaceRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pending invitation accept
+type WorkspaceAcceptInvitationResponse struct {
+	// User email
+	Email string `json:"email"`
+	// Workspace
+	Workspace Workspace `json:"workspace"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Email       respjson.Field
+		Workspace   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceAcceptInvitationResponse) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceAcceptInvitationResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type WorkspaceNewParams struct {
+	// Workspace
+	Workspace WorkspaceParam
+	paramObj
+}
+
+func (r WorkspaceNewParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.Workspace)
+}
+func (r *WorkspaceNewParams) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &r.Workspace)
+}
+
+type WorkspaceUpdateParams struct {
+	// Workspace
+	Workspace WorkspaceParam
+	paramObj
+}
+
+func (r WorkspaceUpdateParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.Workspace)
+}
+func (r *WorkspaceUpdateParams) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &r.Workspace)
+}
+
+type WorkspaceCheckAvailabilityParams struct {
+	Name string `json:"name,required"`
+	paramObj
+}
+
+func (r WorkspaceCheckAvailabilityParams) MarshalJSON() (data []byte, err error) {
+	type shadow WorkspaceCheckAvailabilityParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *WorkspaceCheckAvailabilityParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
