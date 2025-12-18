@@ -134,7 +134,28 @@ func (r CustomDomain) ToParam() CustomDomainParam {
 	return param.Override[CustomDomainParam](json.RawMessage(r.RawJSON()))
 }
 
-// Custom domain metadata
+// Custom domain for preview deployments The custom domain represents a base domain
+// (e.g., example.com) that will be used to serve preview deployments. Each preview
+// will be accessible at a subdomain: <preview-id>.preview.<base-domain> (e.g.,
+// abc123.preview.example.com)
+//
+// The properties Metadata, Spec are required.
+type CustomDomainParam struct {
+	// Custom domain metadata
+	Metadata CustomDomainMetadataParam `json:"metadata,omitzero,required"`
+	// Custom domain specification
+	Spec CustomDomainSpecParam `json:"spec,omitzero,required"`
+	paramObj
+}
+
+func (r CustomDomainParam) MarshalJSON() (data []byte, err error) {
+	type shadow CustomDomainParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *CustomDomainParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type CustomDomainMetadata struct {
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
@@ -173,6 +194,35 @@ func (r *CustomDomainMetadata) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// ToParam converts this CustomDomainMetadata to a CustomDomainMetadataParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// CustomDomainMetadataParam.Overrides()
+func (r CustomDomainMetadata) ToParam() CustomDomainMetadataParam {
+	return param.Override[CustomDomainMetadataParam](json.RawMessage(r.RawJSON()))
+}
+
+type CustomDomainMetadataParam struct {
+	// Display name for the custom domain
+	DisplayName param.Opt[string] `json:"displayName,omitzero"`
+	// Domain name (e.g., "example.com")
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Workspace name
+	Workspace param.Opt[string] `json:"workspace,omitzero"`
+	// Labels
+	Labels map[string]string `json:"labels,omitzero"`
+	paramObj
+}
+
+func (r CustomDomainMetadataParam) MarshalJSON() (data []byte, err error) {
+	type shadow CustomDomainMetadataParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *CustomDomainMetadataParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Custom domain specification
 type CustomDomainSpec struct {
 	// CNAME target for the domain
@@ -184,7 +234,7 @@ type CustomDomainSpec struct {
 	// Current status of the domain (pending, verified, failed)
 	//
 	// Any of "pending", "verified", "failed".
-	Status string `json:"status"`
+	Status CustomDomainSpecStatus `json:"status"`
 	// Map of TXT record names to values for domain verification
 	TxtRecords map[string]string `json:"txtRecords"`
 	// Error message if verification failed
@@ -208,48 +258,23 @@ func (r *CustomDomainSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Custom domain for preview deployments The custom domain represents a base domain
-// (e.g., example.com) that will be used to serve preview deployments. Each preview
-// will be accessible at a subdomain: <preview-id>.preview.<base-domain> (e.g.,
-// abc123.preview.example.com)
+// ToParam converts this CustomDomainSpec to a CustomDomainSpecParam.
 //
-// The properties Metadata, Spec are required.
-type CustomDomainParam struct {
-	// Custom domain metadata
-	Metadata CustomDomainMetadataParam `json:"metadata,omitzero,required"`
-	// Custom domain specification
-	Spec CustomDomainSpecParam `json:"spec,omitzero,required"`
-	paramObj
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// CustomDomainSpecParam.Overrides()
+func (r CustomDomainSpec) ToParam() CustomDomainSpecParam {
+	return param.Override[CustomDomainSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-func (r CustomDomainParam) MarshalJSON() (data []byte, err error) {
-	type shadow CustomDomainParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *CustomDomainParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+// Current status of the domain (pending, verified, failed)
+type CustomDomainSpecStatus string
 
-// Custom domain metadata
-type CustomDomainMetadataParam struct {
-	// Display name for the custom domain
-	DisplayName param.Opt[string] `json:"displayName,omitzero"`
-	// Domain name (e.g., "example.com")
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Workspace name
-	Workspace param.Opt[string] `json:"workspace,omitzero"`
-	// Labels
-	Labels map[string]string `json:"labels,omitzero"`
-	paramObj
-}
-
-func (r CustomDomainMetadataParam) MarshalJSON() (data []byte, err error) {
-	type shadow CustomDomainMetadataParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *CustomDomainMetadataParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	CustomDomainSpecStatusPending  CustomDomainSpecStatus = "pending"
+	CustomDomainSpecStatusVerified CustomDomainSpecStatus = "verified"
+	CustomDomainSpecStatusFailed   CustomDomainSpecStatus = "failed"
+)
 
 // Custom domain specification
 type CustomDomainSpecParam struct {
@@ -264,7 +289,7 @@ type CustomDomainSpecParam struct {
 	// Current status of the domain (pending, verified, failed)
 	//
 	// Any of "pending", "verified", "failed".
-	Status string `json:"status,omitzero"`
+	Status CustomDomainSpecStatus `json:"status,omitzero"`
 	// Map of TXT record names to values for domain verification
 	TxtRecords map[string]string `json:"txtRecords,omitzero"`
 	paramObj
@@ -276,12 +301,6 @@ func (r CustomDomainSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *CustomDomainSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[CustomDomainSpecParam](
-		"status", "pending", "verified", "failed",
-	)
 }
 
 type CustomdomainNewParams struct {

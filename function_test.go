@@ -47,17 +47,17 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					StickySessionTtl: blaxel.Int(0),
 					Traffic:          blaxel.Int(0),
 				},
-				Runtime: blaxel.FunctionSpecRuntimeParam{
+				Runtime: blaxel.FunctionRuntimeParam{
 					Envs: []map[string]any{{
 						"foo": "bar",
 					}},
-					Generation: "mk2",
+					Generation: blaxel.FunctionRuntimeGenerationMk2,
 					Image:      blaxel.String("image"),
 					MaxScale:   blaxel.Int(0),
 					Memory:     blaxel.Int(0),
 					MinScale:   blaxel.Int(0),
 				},
-				Transport: "websocket",
+				Transport: blaxel.FunctionSpecTransportWebsocket,
 				Triggers: []blaxel.TriggerParam{{
 					ID: blaxel.String("id"),
 					Configuration: blaxel.TriggerConfigurationParam{
@@ -154,17 +154,17 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						StickySessionTtl: blaxel.Int(0),
 						Traffic:          blaxel.Int(0),
 					},
-					Runtime: blaxel.FunctionSpecRuntimeParam{
+					Runtime: blaxel.FunctionRuntimeParam{
 						Envs: []map[string]any{{
 							"foo": "bar",
 						}},
-						Generation: "mk2",
+						Generation: blaxel.FunctionRuntimeGenerationMk2,
 						Image:      blaxel.String("image"),
 						MaxScale:   blaxel.Int(0),
 						Memory:     blaxel.Int(0),
 						MinScale:   blaxel.Int(0),
 					},
-					Transport: "websocket",
+					Transport: blaxel.FunctionSpecTransportWebsocket,
 					Triggers: []blaxel.TriggerParam{{
 						ID: blaxel.String("id"),
 						Configuration: blaxel.TriggerConfigurationParam{

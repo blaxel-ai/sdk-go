@@ -120,52 +120,34 @@ func (r Policy) ToParam() PolicyParam {
 	return param.Override[PolicyParam](json.RawMessage(r.RawJSON()))
 }
 
-// Policy specification
-type PolicySpec struct {
-	// Flavors allowed by the policy. If not set, all flavors are allowed.
-	Flavors []Flavor `json:"flavors"`
-	// Locations allowed by the policy. If not set, all locations are allowed.
-	Locations []PolicySpecLocation `json:"locations"`
-	// Max token allowed by the policy. If not set, no max token is allowed.
-	MaxTokens PolicySpecMaxTokens `json:"maxTokens"`
-	// ResourceTypes where the policy is applied. If not set, the policy is applied to
-	// all resource types.
-	//
-	// Any of "model", "function", "agent", "sandbox".
-	ResourceTypes []string `json:"resourceTypes"`
-	// Sandbox mode
-	Sandbox bool `json:"sandbox"`
-	// Policy type, can be location or flavor
-	//
-	// Any of "location", "flavor", "maxToken".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Flavors       respjson.Field
-		Locations     respjson.Field
-		MaxTokens     respjson.Field
-		ResourceTypes respjson.Field
-		Sandbox       respjson.Field
-		Type          respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
-	} `json:"-"`
+// Rule that controls how a deployment is made and served (e.g. location
+// restrictions)
+//
+// The properties Metadata, Spec are required.
+type PolicyParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Policy specification
+	Spec PolicySpecParam `json:"spec,omitzero,required"`
+	paramObj
 }
 
-// Returns the unmodified JSON received from the API
-func (r PolicySpec) RawJSON() string { return r.JSON.raw }
-func (r *PolicySpec) UnmarshalJSON(data []byte) error {
+func (r PolicyParam) MarshalJSON() (data []byte, err error) {
+	type shadow PolicyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PolicyParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Policy location
-type PolicySpecLocation struct {
+type PolicyLocation struct {
 	// Policy location name
 	Name string `json:"name"`
 	// Policy location type
 	//
 	// Any of "location", "country", "continent".
-	Type string `json:"type"`
+	Type PolicyLocationType `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Name        respjson.Field
@@ -176,13 +158,50 @@ type PolicySpecLocation struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r PolicySpecLocation) RawJSON() string { return r.JSON.raw }
-func (r *PolicySpecLocation) UnmarshalJSON(data []byte) error {
+func (r PolicyLocation) RawJSON() string { return r.JSON.raw }
+func (r *PolicyLocation) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Max token allowed by the policy. If not set, no max token is allowed.
-type PolicySpecMaxTokens struct {
+// ToParam converts this PolicyLocation to a PolicyLocationParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// PolicyLocationParam.Overrides()
+func (r PolicyLocation) ToParam() PolicyLocationParam {
+	return param.Override[PolicyLocationParam](json.RawMessage(r.RawJSON()))
+}
+
+// Policy location type
+type PolicyLocationType string
+
+const (
+	PolicyLocationTypeLocation  PolicyLocationType = "location"
+	PolicyLocationTypeCountry   PolicyLocationType = "country"
+	PolicyLocationTypeContinent PolicyLocationType = "continent"
+)
+
+// Policy location
+type PolicyLocationParam struct {
+	// Policy location name
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Policy location type
+	//
+	// Any of "location", "country", "continent".
+	Type PolicyLocationType `json:"type,omitzero"`
+	paramObj
+}
+
+func (r PolicyLocationParam) MarshalJSON() (data []byte, err error) {
+	type shadow PolicyLocationParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PolicyLocationParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// PolicyMaxTokens is a local type that wraps a slice of PolicyMaxTokens
+type PolicyMaxTokens struct {
 	// Granularity
 	Granularity string `json:"granularity"`
 	// Input
@@ -209,94 +228,22 @@ type PolicySpecMaxTokens struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r PolicySpecMaxTokens) RawJSON() string { return r.JSON.raw }
-func (r *PolicySpecMaxTokens) UnmarshalJSON(data []byte) error {
+func (r PolicyMaxTokens) RawJSON() string { return r.JSON.raw }
+func (r *PolicyMaxTokens) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Rule that controls how a deployment is made and served (e.g. location
-// restrictions)
+// ToParam converts this PolicyMaxTokens to a PolicyMaxTokensParam.
 //
-// The properties Metadata, Spec are required.
-type PolicyParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Policy specification
-	Spec PolicySpecParam `json:"spec,omitzero,required"`
-	paramObj
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// PolicyMaxTokensParam.Overrides()
+func (r PolicyMaxTokens) ToParam() PolicyMaxTokensParam {
+	return param.Override[PolicyMaxTokensParam](json.RawMessage(r.RawJSON()))
 }
 
-func (r PolicyParam) MarshalJSON() (data []byte, err error) {
-	type shadow PolicyParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *PolicyParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Policy specification
-type PolicySpecParam struct {
-	// Sandbox mode
-	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
-	// Flavors allowed by the policy. If not set, all flavors are allowed.
-	Flavors []FlavorParam `json:"flavors,omitzero"`
-	// Locations allowed by the policy. If not set, all locations are allowed.
-	Locations []PolicySpecLocationParam `json:"locations,omitzero"`
-	// Max token allowed by the policy. If not set, no max token is allowed.
-	MaxTokens PolicySpecMaxTokensParam `json:"maxTokens,omitzero"`
-	// ResourceTypes where the policy is applied. If not set, the policy is applied to
-	// all resource types.
-	//
-	// Any of "model", "function", "agent", "sandbox".
-	ResourceTypes []string `json:"resourceTypes,omitzero"`
-	// Policy type, can be location or flavor
-	//
-	// Any of "location", "flavor", "maxToken".
-	Type string `json:"type,omitzero"`
-	paramObj
-}
-
-func (r PolicySpecParam) MarshalJSON() (data []byte, err error) {
-	type shadow PolicySpecParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *PolicySpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[PolicySpecParam](
-		"type", "location", "flavor", "maxToken",
-	)
-}
-
-// Policy location
-type PolicySpecLocationParam struct {
-	// Policy location name
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Policy location type
-	//
-	// Any of "location", "country", "continent".
-	Type string `json:"type,omitzero"`
-	paramObj
-}
-
-func (r PolicySpecLocationParam) MarshalJSON() (data []byte, err error) {
-	type shadow PolicySpecLocationParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *PolicySpecLocationParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[PolicySpecLocationParam](
-		"type", "location", "country", "continent",
-	)
-}
-
-// Max token allowed by the policy. If not set, no max token is allowed.
-type PolicySpecMaxTokensParam struct {
+// PolicyMaxTokens is a local type that wraps a slice of PolicyMaxTokens
+type PolicyMaxTokensParam struct {
 	// Granularity
 	Granularity param.Opt[string] `json:"granularity,omitzero"`
 	// Input
@@ -312,11 +259,97 @@ type PolicySpecMaxTokensParam struct {
 	paramObj
 }
 
-func (r PolicySpecMaxTokensParam) MarshalJSON() (data []byte, err error) {
-	type shadow PolicySpecMaxTokensParam
+func (r PolicyMaxTokensParam) MarshalJSON() (data []byte, err error) {
+	type shadow PolicyMaxTokensParam
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *PolicySpecMaxTokensParam) UnmarshalJSON(data []byte) error {
+func (r *PolicyMaxTokensParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Policy specification
+type PolicySpec struct {
+	// Flavors allowed by the policy. If not set, all flavors are allowed.
+	Flavors []Flavor `json:"flavors"`
+	// Locations allowed by the policy. If not set, all locations are allowed.
+	Locations []PolicyLocation `json:"locations"`
+	// Max token allowed by the policy. If not set, no max token is allowed.
+	MaxTokens PolicyMaxTokens `json:"maxTokens"`
+	// ResourceTypes where the policy is applied. If not set, the policy is applied to
+	// all resource types.
+	//
+	// Any of "model", "function", "agent", "sandbox".
+	ResourceTypes []string `json:"resourceTypes"`
+	// Sandbox mode
+	Sandbox bool `json:"sandbox"`
+	// Policy type, can be location or flavor
+	//
+	// Any of "location", "flavor", "maxToken".
+	Type PolicySpecType `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Flavors       respjson.Field
+		Locations     respjson.Field
+		MaxTokens     respjson.Field
+		ResourceTypes respjson.Field
+		Sandbox       respjson.Field
+		Type          respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r PolicySpec) RawJSON() string { return r.JSON.raw }
+func (r *PolicySpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this PolicySpec to a PolicySpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// PolicySpecParam.Overrides()
+func (r PolicySpec) ToParam() PolicySpecParam {
+	return param.Override[PolicySpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Policy type, can be location or flavor
+type PolicySpecType string
+
+const (
+	PolicySpecTypeLocation PolicySpecType = "location"
+	PolicySpecTypeFlavor   PolicySpecType = "flavor"
+	PolicySpecTypeMaxToken PolicySpecType = "maxToken"
+)
+
+// Policy specification
+type PolicySpecParam struct {
+	// Sandbox mode
+	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
+	// Flavors allowed by the policy. If not set, all flavors are allowed.
+	Flavors []FlavorParam `json:"flavors,omitzero"`
+	// Locations allowed by the policy. If not set, all locations are allowed.
+	Locations []PolicyLocationParam `json:"locations,omitzero"`
+	// Max token allowed by the policy. If not set, no max token is allowed.
+	MaxTokens PolicyMaxTokensParam `json:"maxTokens,omitzero"`
+	// ResourceTypes where the policy is applied. If not set, the policy is applied to
+	// all resource types.
+	//
+	// Any of "model", "function", "agent", "sandbox".
+	ResourceTypes []string `json:"resourceTypes,omitzero"`
+	// Policy type, can be location or flavor
+	//
+	// Any of "location", "flavor", "maxToken".
+	Type PolicySpecType `json:"type,omitzero"`
+	paramObj
+}
+
+func (r PolicySpecParam) MarshalJSON() (data []byte, err error) {
+	type shadow PolicySpecParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PolicySpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

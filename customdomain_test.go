@@ -41,7 +41,7 @@ func TestCustomdomainNew(t *testing.T) {
 				CnameRecords:   blaxel.String("cnameRecords"),
 				LastVerifiedAt: blaxel.String("lastVerifiedAt"),
 				Region:         blaxel.String("region"),
-				Status:         "pending",
+				Status:         blaxel.CustomDomainSpecStatusPending,
 				TxtRecords: map[string]string{
 					"foo": "string",
 				},
@@ -113,7 +113,7 @@ func TestCustomdomainUpdate(t *testing.T) {
 					CnameRecords:   blaxel.String("cnameRecords"),
 					LastVerifiedAt: blaxel.String("lastVerifiedAt"),
 					Region:         blaxel.String("region"),
-					Status:         "pending",
+					Status:         blaxel.CustomDomainSpecStatusPending,
 					TxtRecords: map[string]string{
 						"foo": "string",
 					},

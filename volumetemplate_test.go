@@ -43,7 +43,7 @@ func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
 			State: blaxel.VolumeTemplateStateParam{
 				LastVersionUploadedAt: blaxel.String("lastVersionUploadedAt"),
 				LatestVersion:         blaxel.String("latestVersion"),
-				Status:                "created",
+				Status:                blaxel.VolumeTemplateStateStatusCreated,
 				VersionCount:          blaxel.Int(0),
 			},
 			Versions: []blaxel.VolumeTemplateVersionParam{{
@@ -51,7 +51,7 @@ func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
 				ContentSize:  blaxel.Int(0),
 				Name:         blaxel.String("name"),
 				Region:       blaxel.String("region"),
-				Status:       "CREATED",
+				Status:       blaxel.VolumeTemplateVersionStatusCreated,
 				TemplateName: blaxel.String("templateName"),
 				VersionID:    blaxel.String("versionId"),
 				Workspace:    blaxel.String("workspace"),
@@ -204,7 +204,7 @@ func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
 				State: blaxel.VolumeTemplateStateParam{
 					LastVersionUploadedAt: blaxel.String("lastVersionUploadedAt"),
 					LatestVersion:         blaxel.String("latestVersion"),
-					Status:                "created",
+					Status:                blaxel.VolumeTemplateStateStatusCreated,
 					VersionCount:          blaxel.Int(0),
 				},
 				Versions: []blaxel.VolumeTemplateVersionParam{{
@@ -212,7 +212,7 @@ func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
 					ContentSize:  blaxel.Int(0),
 					Name:         blaxel.String("name"),
 					Region:       blaxel.String("region"),
-					Status:       "CREATED",
+					Status:       blaxel.VolumeTemplateVersionStatusCreated,
 					TemplateName: blaxel.String("templateName"),
 					VersionID:    blaxel.String("versionId"),
 					Workspace:    blaxel.String("workspace"),

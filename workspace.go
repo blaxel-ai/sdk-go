@@ -199,24 +199,6 @@ func (r Workspace) ToParam() WorkspaceParam {
 	return param.Override[WorkspaceParam](json.RawMessage(r.RawJSON()))
 }
 
-// Workspace runtime
-type WorkspaceRuntime struct {
-	// Workspace generation
-	Generation string `json:"generation"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Generation  respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r WorkspaceRuntime) RawJSON() string { return r.JSON.raw }
-func (r *WorkspaceRuntime) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Workspace status (created, account_binded, account_configured,
 // workspace_configured, ready, error)
 type WorkspaceStatus string
@@ -262,6 +244,33 @@ func (r WorkspaceParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *WorkspaceParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// Workspace runtime
+type WorkspaceRuntime struct {
+	// Workspace generation
+	Generation string `json:"generation"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Generation  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceRuntime) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this WorkspaceRuntime to a WorkspaceRuntimeParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// WorkspaceRuntimeParam.Overrides()
+func (r WorkspaceRuntime) ToParam() WorkspaceRuntimeParam {
+	return param.Override[WorkspaceRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
 // Workspace runtime

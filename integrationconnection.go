@@ -134,6 +134,25 @@ func (r IntegrationConnection) ToParam() IntegrationConnectionParam {
 	return param.Override[IntegrationConnectionParam](json.RawMessage(r.RawJSON()))
 }
 
+// Integration Connection
+//
+// The properties Metadata, Spec are required.
+type IntegrationConnectionParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Integration connection specification
+	Spec IntegrationConnectionSpecParam `json:"spec,omitzero,required"`
+	paramObj
+}
+
+func (r IntegrationConnectionParam) MarshalJSON() (data []byte, err error) {
+	type shadow IntegrationConnectionParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *IntegrationConnectionParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Integration connection specification
 type IntegrationConnectionSpec struct {
 	// Additional configuration for the integration
@@ -161,23 +180,14 @@ func (r *IntegrationConnectionSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Integration Connection
+// ToParam converts this IntegrationConnectionSpec to a
+// IntegrationConnectionSpecParam.
 //
-// The properties Metadata, Spec are required.
-type IntegrationConnectionParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Integration connection specification
-	Spec IntegrationConnectionSpecParam `json:"spec,omitzero,required"`
-	paramObj
-}
-
-func (r IntegrationConnectionParam) MarshalJSON() (data []byte, err error) {
-	type shadow IntegrationConnectionParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *IntegrationConnectionParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// IntegrationConnectionSpecParam.Overrides()
+func (r IntegrationConnectionSpec) ToParam() IntegrationConnectionSpecParam {
+	return param.Override[IntegrationConnectionSpecParam](json.RawMessage(r.RawJSON()))
 }
 
 // Integration connection specification

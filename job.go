@@ -142,46 +142,33 @@ func (r Job) ToParam() JobParam {
 	return param.Override[JobParam](json.RawMessage(r.RawJSON()))
 }
 
-// Job specification for API
-type JobSpec struct {
-	// Enable or disable the resource
-	Enabled  bool     `json:"enabled"`
-	Policies []string `json:"policies"`
-	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
-	Region string `json:"region"`
-	// Revision configuration
-	Revision RevisionConfiguration `json:"revision"`
-	// Runtime configuration for Job
-	Runtime JobSpecRuntime `json:"runtime"`
-	// Triggers to use your agent
-	Triggers []Trigger `json:"triggers"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Enabled     respjson.Field
-		Policies    respjson.Field
-		Region      respjson.Field
-		Revision    respjson.Field
-		Runtime     respjson.Field
-		Triggers    respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
+// Job
+//
+// The properties Metadata, Spec are required.
+type JobParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Job specification for API
+	Spec JobSpecParam `json:"spec,omitzero,required"`
+	paramObj
 }
 
-// Returns the unmodified JSON received from the API
-func (r JobSpec) RawJSON() string { return r.JSON.raw }
-func (r *JobSpec) UnmarshalJSON(data []byte) error {
+func (r JobParam) MarshalJSON() (data []byte, err error) {
+	type shadow JobParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *JobParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Runtime configuration for Job
-type JobSpecRuntime struct {
+type JobRuntime struct {
 	// The env variables to set in the job. Should be a list of Kubernetes EnvVar types
 	Envs []map[string]any `json:"envs"`
 	// The generation of the job
 	//
 	// Any of "mk2", "mk3".
-	Generation string `json:"generation"`
+	Generation JobRuntimeGeneration `json:"generation"`
 	// The Docker image for the job
 	Image string `json:"image"`
 	// The maximum number of concurrent task for an execution
@@ -210,56 +197,30 @@ type JobSpecRuntime struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r JobSpecRuntime) RawJSON() string { return r.JSON.raw }
-func (r *JobSpecRuntime) UnmarshalJSON(data []byte) error {
+func (r JobRuntime) RawJSON() string { return r.JSON.raw }
+func (r *JobRuntime) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Job
+// ToParam converts this JobRuntime to a JobRuntimeParam.
 //
-// The properties Metadata, Spec are required.
-type JobParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Job specification for API
-	Spec JobSpecParam `json:"spec,omitzero,required"`
-	paramObj
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// JobRuntimeParam.Overrides()
+func (r JobRuntime) ToParam() JobRuntimeParam {
+	return param.Override[JobRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-func (r JobParam) MarshalJSON() (data []byte, err error) {
-	type shadow JobParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *JobParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+// The generation of the job
+type JobRuntimeGeneration string
 
-// Job specification for API
-type JobSpecParam struct {
-	// Enable or disable the resource
-	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
-	Region   param.Opt[string] `json:"region,omitzero"`
-	Policies []string          `json:"policies,omitzero"`
-	// Revision configuration
-	Revision RevisionConfigurationParam `json:"revision,omitzero"`
-	// Runtime configuration for Job
-	Runtime JobSpecRuntimeParam `json:"runtime,omitzero"`
-	// Triggers to use your agent
-	Triggers []TriggerParam `json:"triggers,omitzero"`
-	paramObj
-}
-
-func (r JobSpecParam) MarshalJSON() (data []byte, err error) {
-	type shadow JobSpecParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *JobSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	JobRuntimeGenerationMk2 JobRuntimeGeneration = "mk2"
+	JobRuntimeGenerationMk3 JobRuntimeGeneration = "mk3"
+)
 
 // Runtime configuration for Job
-type JobSpecRuntimeParam struct {
+type JobRuntimeParam struct {
 	// The Docker image for the job
 	Image param.Opt[string] `json:"image,omitzero"`
 	// The maximum number of concurrent task for an execution
@@ -275,24 +236,83 @@ type JobSpecRuntimeParam struct {
 	// The generation of the job
 	//
 	// Any of "mk2", "mk3".
-	Generation string `json:"generation,omitzero"`
+	Generation JobRuntimeGeneration `json:"generation,omitzero"`
 	// The exposed ports of the job
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
 }
 
-func (r JobSpecRuntimeParam) MarshalJSON() (data []byte, err error) {
-	type shadow JobSpecRuntimeParam
+func (r JobRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow JobRuntimeParam
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *JobSpecRuntimeParam) UnmarshalJSON(data []byte) error {
+func (r *JobRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func init() {
-	apijson.RegisterFieldValidator[JobSpecRuntimeParam](
-		"generation", "mk2", "mk3",
-	)
+// Job specification for API
+type JobSpec struct {
+	// Enable or disable the resource
+	Enabled  bool     `json:"enabled"`
+	Policies []string `json:"policies"`
+	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
+	Region string `json:"region"`
+	// Revision configuration
+	Revision RevisionConfiguration `json:"revision"`
+	// Runtime configuration for Job
+	Runtime JobRuntime `json:"runtime"`
+	// Triggers to use your agent
+	Triggers []Trigger `json:"triggers"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		Policies    respjson.Field
+		Region      respjson.Field
+		Revision    respjson.Field
+		Runtime     respjson.Field
+		Triggers    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobSpec) RawJSON() string { return r.JSON.raw }
+func (r *JobSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this JobSpec to a JobSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// JobSpecParam.Overrides()
+func (r JobSpec) ToParam() JobSpecParam {
+	return param.Override[JobSpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Job specification for API
+type JobSpecParam struct {
+	// Enable or disable the resource
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
+	Region   param.Opt[string] `json:"region,omitzero"`
+	Policies []string          `json:"policies,omitzero"`
+	// Revision configuration
+	Revision RevisionConfigurationParam `json:"revision,omitzero"`
+	// Runtime configuration for Job
+	Runtime JobRuntimeParam `json:"runtime,omitzero"`
+	// Triggers to use your agent
+	Triggers []TriggerParam `json:"triggers,omitzero"`
+	paramObj
+}
+
+func (r JobSpecParam) MarshalJSON() (data []byte, err error) {
+	type shadow JobSpecParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *JobSpecParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Logical object representing a model
@@ -334,6 +354,118 @@ func (r Model) ToParam() ModelParam {
 	return param.Override[ModelParam](json.RawMessage(r.RawJSON()))
 }
 
+// Logical object representing a model
+//
+// The properties Metadata, Spec are required.
+type ModelParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Model specification for API
+	Spec ModelSpecParam `json:"spec,omitzero,required"`
+	paramObj
+}
+
+func (r ModelParam) MarshalJSON() (data []byte, err error) {
+	type shadow ModelParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ModelParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Runtime configuration for Model
+type ModelRuntime struct {
+	// Endpoint Name of the model. In case of hf_private_endpoint, it is the endpoint
+	// name. In case of hf_public_endpoint, it is not used.
+	EndpointName string `json:"endpointName"`
+	// The slug name of the origin model at HuggingFace.
+	Model string `json:"model"`
+	// The organization of the model
+	Organization string `json:"organization"`
+	// The type of origin for the deployment
+	//
+	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
+	// "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek",
+	// "cohere", "cerebras", "xai", "vertexai", "azure-openai-service",
+	// "azure-ai-inference", "azure-marketplace", "groq".
+	Type ModelRuntimeType `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EndpointName respjson.Field
+		Model        respjson.Field
+		Organization respjson.Field
+		Type         respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ModelRuntime) RawJSON() string { return r.JSON.raw }
+func (r *ModelRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this ModelRuntime to a ModelRuntimeParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ModelRuntimeParam.Overrides()
+func (r ModelRuntime) ToParam() ModelRuntimeParam {
+	return param.Override[ModelRuntimeParam](json.RawMessage(r.RawJSON()))
+}
+
+// The type of origin for the deployment
+type ModelRuntimeType string
+
+const (
+	ModelRuntimeTypeHfPrivateEndpoint  ModelRuntimeType = "hf_private_endpoint"
+	ModelRuntimeTypeHfPublicEndpoint   ModelRuntimeType = "hf_public_endpoint"
+	ModelRuntimeTypeHuggingface        ModelRuntimeType = "huggingface"
+	ModelRuntimeTypePublicModel        ModelRuntimeType = "public_model"
+	ModelRuntimeTypeMcp                ModelRuntimeType = "mcp"
+	ModelRuntimeTypeOpenAI             ModelRuntimeType = "openai"
+	ModelRuntimeTypeAnthropic          ModelRuntimeType = "anthropic"
+	ModelRuntimeTypeGemini             ModelRuntimeType = "gemini"
+	ModelRuntimeTypeMistral            ModelRuntimeType = "mistral"
+	ModelRuntimeTypeDeepseek           ModelRuntimeType = "deepseek"
+	ModelRuntimeTypeCohere             ModelRuntimeType = "cohere"
+	ModelRuntimeTypeCerebras           ModelRuntimeType = "cerebras"
+	ModelRuntimeTypeXai                ModelRuntimeType = "xai"
+	ModelRuntimeTypeVertexai           ModelRuntimeType = "vertexai"
+	ModelRuntimeTypeAzureOpenAIService ModelRuntimeType = "azure-openai-service"
+	ModelRuntimeTypeAzureAIInference   ModelRuntimeType = "azure-ai-inference"
+	ModelRuntimeTypeAzureMarketplace   ModelRuntimeType = "azure-marketplace"
+	ModelRuntimeTypeGroq               ModelRuntimeType = "groq"
+)
+
+// Runtime configuration for Model
+type ModelRuntimeParam struct {
+	// Endpoint Name of the model. In case of hf_private_endpoint, it is the endpoint
+	// name. In case of hf_public_endpoint, it is not used.
+	EndpointName param.Opt[string] `json:"endpointName,omitzero"`
+	// The slug name of the origin model at HuggingFace.
+	Model param.Opt[string] `json:"model,omitzero"`
+	// The organization of the model
+	Organization param.Opt[string] `json:"organization,omitzero"`
+	// The type of origin for the deployment
+	//
+	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
+	// "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek",
+	// "cohere", "cerebras", "xai", "vertexai", "azure-openai-service",
+	// "azure-ai-inference", "azure-marketplace", "groq".
+	Type ModelRuntimeType `json:"type,omitzero"`
+	paramObj
+}
+
+func (r ModelRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow ModelRuntimeParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ModelRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Model specification for API
 type ModelSpec struct {
 	// Enable or disable the resource
@@ -343,7 +475,7 @@ type ModelSpec struct {
 	IntegrationConnections []string `json:"integrationConnections"`
 	Policies               []string `json:"policies"`
 	// Runtime configuration for Model
-	Runtime ModelSpecRuntime `json:"runtime"`
+	Runtime ModelRuntime `json:"runtime"`
 	// Sandbox mode
 	Sandbox bool `json:"sandbox"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -365,56 +497,13 @@ func (r *ModelSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Runtime configuration for Model
-type ModelSpecRuntime struct {
-	// Endpoint Name of the model. In case of hf_private_endpoint, it is the endpoint
-	// name. In case of hf_public_endpoint, it is not used.
-	EndpointName string `json:"endpointName"`
-	// The slug name of the origin model at HuggingFace.
-	Model string `json:"model"`
-	// The organization of the model
-	Organization string `json:"organization"`
-	// The type of origin for the deployment
-	//
-	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
-	// "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek",
-	// "cohere", "cerebras", "xai", "vertexai", "azure-openai-service",
-	// "azure-ai-inference", "azure-marketplace", "groq".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EndpointName respjson.Field
-		Model        respjson.Field
-		Organization respjson.Field
-		Type         respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelSpecRuntime) RawJSON() string { return r.JSON.raw }
-func (r *ModelSpecRuntime) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Logical object representing a model
+// ToParam converts this ModelSpec to a ModelSpecParam.
 //
-// The properties Metadata, Spec are required.
-type ModelParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Model specification for API
-	Spec ModelSpecParam `json:"spec,omitzero,required"`
-	paramObj
-}
-
-func (r ModelParam) MarshalJSON() (data []byte, err error) {
-	type shadow ModelParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ModelParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ModelSpecParam.Overrides()
+func (r ModelSpec) ToParam() ModelSpecParam {
+	return param.Override[ModelSpecParam](json.RawMessage(r.RawJSON()))
 }
 
 // Model specification for API
@@ -428,7 +517,7 @@ type ModelSpecParam struct {
 	IntegrationConnections []string      `json:"integrationConnections,omitzero"`
 	Policies               []string      `json:"policies,omitzero"`
 	// Runtime configuration for Model
-	Runtime ModelSpecRuntimeParam `json:"runtime,omitzero"`
+	Runtime ModelRuntimeParam `json:"runtime,omitzero"`
 	paramObj
 }
 
@@ -438,39 +527,6 @@ func (r ModelSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *ModelSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-// Runtime configuration for Model
-type ModelSpecRuntimeParam struct {
-	// Endpoint Name of the model. In case of hf_private_endpoint, it is the endpoint
-	// name. In case of hf_public_endpoint, it is not used.
-	EndpointName param.Opt[string] `json:"endpointName,omitzero"`
-	// The slug name of the origin model at HuggingFace.
-	Model param.Opt[string] `json:"model,omitzero"`
-	// The organization of the model
-	Organization param.Opt[string] `json:"organization,omitzero"`
-	// The type of origin for the deployment
-	//
-	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
-	// "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek",
-	// "cohere", "cerebras", "xai", "vertexai", "azure-openai-service",
-	// "azure-ai-inference", "azure-marketplace", "groq".
-	Type string `json:"type,omitzero"`
-	paramObj
-}
-
-func (r ModelSpecRuntimeParam) MarshalJSON() (data []byte, err error) {
-	type shadow ModelSpecRuntimeParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ModelSpecRuntimeParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ModelSpecRuntimeParam](
-		"type", "hf_private_endpoint", "hf_public_endpoint", "huggingface", "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek", "cohere", "cerebras", "xai", "vertexai", "azure-openai-service", "azure-ai-inference", "azure-marketplace", "groq",
-	)
 }
 
 type JobNewParams struct {

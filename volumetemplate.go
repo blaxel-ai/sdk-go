@@ -143,98 +143,6 @@ func (r VolumeTemplate) ToParam() VolumeTemplateParam {
 	return param.Override[VolumeTemplateParam](json.RawMessage(r.RawJSON()))
 }
 
-// Volume template specification
-type VolumeTemplateSpec struct {
-	// Default size of the volume in MB
-	DefaultSize int64 `json:"defaultSize"`
-	// Description of the volume template
-	Description string `json:"description"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		DefaultSize respjson.Field
-		Description respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r VolumeTemplateSpec) RawJSON() string { return r.JSON.raw }
-func (r *VolumeTemplateSpec) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Volume template state
-type VolumeTemplateState struct {
-	// Timestamp of last version upload
-	LastVersionUploadedAt string `json:"lastVersionUploadedAt"`
-	// Current/latest S3 version ID
-	LatestVersion string `json:"latestVersion"`
-	// Status of the volume template (created, ready, error)
-	//
-	// Any of "created", "ready", "error".
-	Status string `json:"status"`
-	// Total number of versions for this template
-	VersionCount int64 `json:"versionCount"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		LastVersionUploadedAt respjson.Field
-		LatestVersion         respjson.Field
-		Status                respjson.Field
-		VersionCount          respjson.Field
-		ExtraFields           map[string]respjson.Field
-		raw                   string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r VolumeTemplateState) RawJSON() string { return r.JSON.raw }
-func (r *VolumeTemplateState) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Volume template version tracking individual versions of template content
-type VolumeTemplateVersion struct {
-	// S3 bucket name where this version is stored
-	Bucket string `json:"bucket"`
-	// Size of the template content in bytes
-	ContentSize int64 `json:"contentSize"`
-	// Name of the template version
-	Name string `json:"name"`
-	// AWS region where this version is stored
-	Region string `json:"region"`
-	// Status of the version (CREATED, READY, FAILED)
-	//
-	// Any of "CREATED", "READY", "FAILED".
-	Status string `json:"status"`
-	// Template name this version belongs to
-	TemplateName string `json:"templateName"`
-	// S3 version ID for this template version
-	VersionID string `json:"versionId"`
-	// Workspace name
-	Workspace   string         `json:"workspace"`
-	ExtraFields map[string]any `json:",extras"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Bucket       respjson.Field
-		ContentSize  respjson.Field
-		Name         respjson.Field
-		Region       respjson.Field
-		Status       respjson.Field
-		TemplateName respjson.Field
-		VersionID    respjson.Field
-		Workspace    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r VolumeTemplateVersion) RawJSON() string { return r.JSON.raw }
-func (r *VolumeTemplateVersion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Volume template for creating pre-configured volumes
 //
 // The properties Metadata, Spec are required.
@@ -259,6 +167,36 @@ func (r *VolumeTemplateParam) UnmarshalJSON(data []byte) error {
 }
 
 // Volume template specification
+type VolumeTemplateSpec struct {
+	// Default size of the volume in MB
+	DefaultSize int64 `json:"defaultSize"`
+	// Description of the volume template
+	Description string `json:"description"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		DefaultSize respjson.Field
+		Description respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeTemplateSpec) RawJSON() string { return r.JSON.raw }
+func (r *VolumeTemplateSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this VolumeTemplateSpec to a VolumeTemplateSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// VolumeTemplateSpecParam.Overrides()
+func (r VolumeTemplateSpec) ToParam() VolumeTemplateSpecParam {
+	return param.Override[VolumeTemplateSpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Volume template specification
 type VolumeTemplateSpecParam struct {
 	// Default size of the volume in MB
 	DefaultSize param.Opt[int64] `json:"defaultSize,omitzero"`
@@ -276,6 +214,53 @@ func (r *VolumeTemplateSpecParam) UnmarshalJSON(data []byte) error {
 }
 
 // Volume template state
+type VolumeTemplateState struct {
+	// Timestamp of last version upload
+	LastVersionUploadedAt string `json:"lastVersionUploadedAt"`
+	// Current/latest S3 version ID
+	LatestVersion string `json:"latestVersion"`
+	// Status of the volume template (created, ready, error)
+	//
+	// Any of "created", "ready", "error".
+	Status VolumeTemplateStateStatus `json:"status"`
+	// Total number of versions for this template
+	VersionCount int64 `json:"versionCount"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LastVersionUploadedAt respjson.Field
+		LatestVersion         respjson.Field
+		Status                respjson.Field
+		VersionCount          respjson.Field
+		ExtraFields           map[string]respjson.Field
+		raw                   string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeTemplateState) RawJSON() string { return r.JSON.raw }
+func (r *VolumeTemplateState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this VolumeTemplateState to a VolumeTemplateStateParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// VolumeTemplateStateParam.Overrides()
+func (r VolumeTemplateState) ToParam() VolumeTemplateStateParam {
+	return param.Override[VolumeTemplateStateParam](json.RawMessage(r.RawJSON()))
+}
+
+// Status of the volume template (created, ready, error)
+type VolumeTemplateStateStatus string
+
+const (
+	VolumeTemplateStateStatusCreated VolumeTemplateStateStatus = "created"
+	VolumeTemplateStateStatusReady   VolumeTemplateStateStatus = "ready"
+	VolumeTemplateStateStatusError   VolumeTemplateStateStatus = "error"
+)
+
+// Volume template state
 type VolumeTemplateStateParam struct {
 	// Timestamp of last version upload
 	LastVersionUploadedAt param.Opt[string] `json:"lastVersionUploadedAt,omitzero"`
@@ -286,7 +271,7 @@ type VolumeTemplateStateParam struct {
 	// Status of the volume template (created, ready, error)
 	//
 	// Any of "created", "ready", "error".
-	Status string `json:"status,omitzero"`
+	Status VolumeTemplateStateStatus `json:"status,omitzero"`
 	paramObj
 }
 
@@ -298,11 +283,64 @@ func (r *VolumeTemplateStateParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func init() {
-	apijson.RegisterFieldValidator[VolumeTemplateStateParam](
-		"status", "created", "ready", "error",
-	)
+// Volume template version tracking individual versions of template content
+type VolumeTemplateVersion struct {
+	// S3 bucket name where this version is stored
+	Bucket string `json:"bucket"`
+	// Size of the template content in bytes
+	ContentSize int64 `json:"contentSize"`
+	// Name of the template version
+	Name string `json:"name"`
+	// AWS region where this version is stored
+	Region string `json:"region"`
+	// Status of the version (CREATED, READY, FAILED)
+	//
+	// Any of "CREATED", "READY", "FAILED".
+	Status VolumeTemplateVersionStatus `json:"status"`
+	// Template name this version belongs to
+	TemplateName string `json:"templateName"`
+	// S3 version ID for this template version
+	VersionID string `json:"versionId"`
+	// Workspace name
+	Workspace string `json:"workspace"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Bucket       respjson.Field
+		ContentSize  respjson.Field
+		Name         respjson.Field
+		Region       respjson.Field
+		Status       respjson.Field
+		TemplateName respjson.Field
+		VersionID    respjson.Field
+		Workspace    respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
 }
+
+// Returns the unmodified JSON received from the API
+func (r VolumeTemplateVersion) RawJSON() string { return r.JSON.raw }
+func (r *VolumeTemplateVersion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this VolumeTemplateVersion to a VolumeTemplateVersionParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// VolumeTemplateVersionParam.Overrides()
+func (r VolumeTemplateVersion) ToParam() VolumeTemplateVersionParam {
+	return param.Override[VolumeTemplateVersionParam](json.RawMessage(r.RawJSON()))
+}
+
+// Status of the version (CREATED, READY, FAILED)
+type VolumeTemplateVersionStatus string
+
+const (
+	VolumeTemplateVersionStatusCreated VolumeTemplateVersionStatus = "CREATED"
+	VolumeTemplateVersionStatusReady   VolumeTemplateVersionStatus = "READY"
+	VolumeTemplateVersionStatusFailed  VolumeTemplateVersionStatus = "FAILED"
+)
 
 // Volume template version tracking individual versions of template content
 type VolumeTemplateVersionParam struct {
@@ -323,23 +361,16 @@ type VolumeTemplateVersionParam struct {
 	// Status of the version (CREATED, READY, FAILED)
 	//
 	// Any of "CREATED", "READY", "FAILED".
-	Status      string         `json:"status,omitzero"`
-	ExtraFields map[string]any `json:"-"`
+	Status VolumeTemplateVersionStatus `json:"status,omitzero"`
 	paramObj
 }
 
 func (r VolumeTemplateVersionParam) MarshalJSON() (data []byte, err error) {
 	type shadow VolumeTemplateVersionParam
-	return param.MarshalWithExtras(r, (*shadow)(&r), r.ExtraFields)
+	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *VolumeTemplateVersionParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[VolumeTemplateVersionParam](
-		"status", "CREATED", "READY", "FAILED",
-	)
 }
 
 type VolumeTemplateDeleteVersionResponse struct {
