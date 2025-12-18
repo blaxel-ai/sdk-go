@@ -270,7 +270,7 @@ func WithEnvironmentProduction() RequestOption {
 func WithAPIKey(value string) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
 		r.APIKey = value
-		return r.Apply(WithHeader("authorization", fmt.Sprintf("Bearer %s", r.APIKey)))
+		return r.Apply(WithHeader("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", r.APIKey)))
 	})
 }
 
@@ -291,5 +291,53 @@ func WithClientSecret(value string) RequestOption {
 		r.ClientSecret = value
 		r.OAuth2State = oauthState
 		return nil
+	})
+}
+
+// WithClientCredentials returns a RequestOption that decodes base64 client credentials
+// and sets both client_id and client_secret. The value should be base64(clientId:clientSecret).
+func WithClientCredentials(value string) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		// Import encoding/base64 and strings at package level
+		decoded, err := requestconfig.DecodeClientCredentials(value)
+		if err != nil {
+			return fmt.Errorf("failed to decode client credentials: %w", err)
+		}
+
+		// Apply both ClientID and ClientSecret
+		if err := r.Apply(WithClientID(decoded.ClientID)); err != nil {
+			return err
+		}
+		return r.Apply(WithClientSecret(decoded.ClientSecret))
+	})
+}
+
+func WithAccessToken(value string) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.AccessToken = value
+		return r.Apply(WithHeader("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", r.AccessToken)))
+	})
+}
+
+func WithRefreshToken(value string) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.RefreshToken = value
+		return nil
+	})
+}
+
+func WithExpires(value int) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.ExpiresIn = value
+		return nil
+	})
+}
+
+// WithWorkspace returns a RequestOption that sets the x-blaxel-workspace header.
+// This header is required by the API to identify which workspace the request is for.
+func WithWorkspace(workspace string) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.Workspace = workspace
+		return r.Apply(WithHeader("x-blaxel-workspace", workspace))
 	})
 }

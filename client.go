@@ -4,9 +4,12 @@ package blaxel
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"net/http"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
 	"github.com/stainless-sdks/blaxel-go/option"
@@ -38,9 +41,8 @@ type Client struct {
 	Sandboxes       SandboxService
 }
 
-// DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_ID,
-// BL_CLIENT_SECRET, BLAXEL_BASE_URL). This should be used to initialize new
-// clients.
+// DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_CREDENTIALS,
+// BL_WORKSPACE, BLAXEL_BASE_URL). This should be used to initialize new clients.
 func DefaultClientOptions() []option.RequestOption {
 	defaults := []option.RequestOption{option.WithEnvironmentProduction()}
 	if o, ok := os.LookupEnv("BLAXEL_BASE_URL"); ok {
@@ -49,11 +51,14 @@ func DefaultClientOptions() []option.RequestOption {
 	if o, ok := os.LookupEnv("BL_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
 	}
-	if o, ok := os.LookupEnv("BL_CLIENT_ID"); ok {
-		defaults = append(defaults, option.WithClientID(o))
+	if o, ok := os.LookupEnv("BL_CLIENT_CREDENTIALS"); ok {
+		// BL_CLIENT_CREDENTIALS is base64(clientId:clientSecret)
+		// Decode and split - handled by custom client options
+		defaults = append(defaults, option.WithClientCredentials(o))
 	}
-	if o, ok := os.LookupEnv("BL_CLIENT_SECRET"); ok {
-		defaults = append(defaults, option.WithClientSecret(o))
+	// Add workspace header if specified
+	if workspace := getDefaultWorkspace(); workspace != "" {
+		defaults = append(defaults, option.WithWorkspace(workspace))
 	}
 	return defaults
 }
@@ -157,4 +162,148 @@ func (r *Client) Patch(ctx context.Context, path string, params any, res any, op
 // response.
 func (r *Client) Delete(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
+}
+
+// getDefaultWorkspace returns the workspace from environment or config file
+func getDefaultWorkspace() string {
+	// First check environment variable
+	if workspace := os.Getenv("BL_WORKSPACE"); workspace != "" {
+		return workspace
+	}
+
+	// Fall back to config file
+	context, err := CurrentContext()
+	if err == nil && context.Workspace != "" {
+		return context.Workspace
+	}
+
+	return ""
+}
+
+// NewDefaultClient creates a client using environment variables and config file.
+// It follows this precedence:
+// 1. BL_API_KEY environment variable
+// 2. BL_CLIENT_CREDENTIALS environment variable (base64 encoded clientId:clientSecret)
+// 3. Credentials from ~/.blaxel/config.yaml for the workspace
+//
+// For workspace, it uses:
+// 1. BL_WORKSPACE environment variable
+// 2. Current context from ~/.blaxel/config.yaml
+func NewDefaultClient(opts ...option.RequestOption) (Client, error) {
+	// Start with provided options
+	clientOpts := make([]option.RequestOption, 0, len(opts)+4)
+
+	// Add base URL if specified
+	if baseURL := os.Getenv("BLAXEL_BASE_URL"); baseURL != "" {
+		clientOpts = append(clientOpts, option.WithBaseURL(baseURL))
+	} else {
+		clientOpts = append(clientOpts, option.WithEnvironmentProduction())
+	}
+
+	// Determine workspace
+	workspace := getDefaultWorkspace()
+
+	// Check for BL_API_KEY first
+	if apiKey := os.Getenv("BL_API_KEY"); apiKey != "" {
+		clientOpts = append(clientOpts, option.WithAPIKey(apiKey))
+	} else if clientCreds := os.Getenv("BL_CLIENT_CREDENTIALS"); clientCreds != "" {
+		// Decode base64 client credentials (format: base64(clientId:clientSecret))
+		decoded, err := base64.StdEncoding.DecodeString(clientCreds)
+		if err != nil {
+			// Try without base64 decoding
+			decoded = []byte(clientCreds)
+		}
+
+		parts := strings.SplitN(string(decoded), ":", 2)
+		if len(parts) == 2 {
+			clientOpts = append(clientOpts,
+				option.WithClientID(parts[0]),
+				option.WithClientSecret(parts[1]),
+			)
+		}
+	} else {
+		// Fall back to config file
+		if workspace != "" {
+			creds, err := LoadCredentials(workspace)
+			if err == nil && creds.IsValid() {
+				if creds.ExpiresIn > 0 {
+					clientOpts = append(clientOpts, option.WithExpires(creds.ExpiresIn))
+				}
+				if creds.RefreshToken != "" {
+					clientOpts = append(clientOpts, option.WithRefreshToken(creds.RefreshToken))
+				}
+				if creds.APIKey != "" {
+					clientOpts = append(clientOpts, option.WithAPIKey(creds.APIKey))
+				} else if creds.AccessToken != "" {
+					clientOpts = append(clientOpts, option.WithAccessToken(creds.AccessToken))
+				} else if creds.ClientCredentials != "" {
+					// Decode base64 client credentials
+					decoded, err := base64.StdEncoding.DecodeString(creds.ClientCredentials)
+					if err != nil {
+						decoded = []byte(creds.ClientCredentials)
+					}
+
+					parts := strings.SplitN(string(decoded), ":", 2)
+					if len(parts) == 2 {
+						clientOpts = append(clientOpts,
+							option.WithClientID(parts[0]),
+							option.WithClientSecret(parts[1]),
+						)
+					}
+				}
+			}
+		}
+	}
+
+	// Add workspace header if specified
+	if workspace != "" {
+		clientOpts = append(clientOpts, option.WithWorkspace(workspace))
+	}
+
+	// Add user-provided options last (they override defaults)
+	clientOpts = append(clientOpts, opts...)
+
+	client := NewClient(clientOpts...)
+	return client, nil
+}
+
+// NewClientFromConfig creates a client using credentials from ~/.blaxel/config.yaml
+// for the specified workspace.
+func NewClientFromConfig(workspaceName string, opts ...option.RequestOption) (*Client, error) {
+	creds, err := LoadCredentials(workspaceName)
+	if err != nil {
+		return nil, err
+	}
+
+	clientOpts := make([]option.RequestOption, 0, len(opts)+3)
+	clientOpts = append(clientOpts, option.WithEnvironmentProduction())
+
+	if creds.APIKey != "" {
+		clientOpts = append(clientOpts, option.WithAPIKey(creds.APIKey))
+	} else if creds.AccessToken != "" {
+		clientOpts = append(clientOpts, option.WithHeader("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", creds.AccessToken)))
+	} else if creds.ClientCredentials != "" {
+		// Decode base64 client credentials
+		decoded, err := base64.StdEncoding.DecodeString(creds.ClientCredentials)
+		if err != nil {
+			decoded = []byte(creds.ClientCredentials)
+		}
+
+		parts := strings.SplitN(string(decoded), ":", 2)
+		if len(parts) == 2 {
+			clientOpts = append(clientOpts,
+				option.WithClientID(parts[0]),
+				option.WithClientSecret(parts[1]),
+			)
+		}
+	}
+
+	// Add workspace header
+	clientOpts = append(clientOpts, option.WithWorkspace(workspaceName))
+
+	// Add user-provided options
+	clientOpts = append(clientOpts, opts...)
+
+	client := NewClient(clientOpts...)
+	return &client, nil
 }

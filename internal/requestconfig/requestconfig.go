@@ -201,6 +201,10 @@ type HTTPDoer interface {
 // Editing the variables inside RequestConfig directly is unstable api. Prefer
 // composing the RequestOption instead if possible.
 type RequestConfig struct {
+	Workspace      string
+	AccessToken    string
+	RefreshToken   string
+	ExpiresIn      int
 	MaxRetries     int
 	RequestTimeout time.Duration
 	Context        context.Context
@@ -414,13 +418,13 @@ func (cfg *RequestConfig) Execute() (err error) {
 		}
 	}
 
-	if cfg.OAuth2State != nil && cfg.Request.Header.Get("Authorization") == "" {
+	if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
 		token, err := cfg.OAuth2State.GetToken(cfg)
 		if err != nil {
 			return err
 		}
 
-		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
 	}
 
 	handler := cfg.HTTPClient.Do
