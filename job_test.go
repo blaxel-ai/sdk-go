@@ -47,11 +47,11 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					StickySessionTtl: blaxel.Int(0),
 					Traffic:          blaxel.Int(0),
 				},
-				Runtime: blaxel.JobSpecRuntimeParam{
+				Runtime: blaxel.JobRuntimeParam{
 					Envs: []map[string]any{{
 						"foo": "bar",
 					}},
-					Generation:         "mk2",
+					Generation:         blaxel.JobRuntimeGenerationMk2,
 					Image:              blaxel.String("image"),
 					MaxConcurrentTasks: blaxel.Int(0),
 					MaxRetries:         blaxel.Int(0),
@@ -159,11 +159,11 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						StickySessionTtl: blaxel.Int(0),
 						Traffic:          blaxel.Int(0),
 					},
-					Runtime: blaxel.JobSpecRuntimeParam{
+					Runtime: blaxel.JobRuntimeParam{
 						Envs: []map[string]any{{
 							"foo": "bar",
 						}},
-						Generation:         "mk2",
+						Generation:         blaxel.JobRuntimeGenerationMk2,
 						Image:              blaxel.String("image"),
 						MaxConcurrentTasks: blaxel.Int(0),
 						MaxRetries:         blaxel.Int(0),

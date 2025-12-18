@@ -41,11 +41,11 @@ func TestPolicyNew(t *testing.T) {
 					Name: blaxel.String("name"),
 					Type: blaxel.FlavorTypeCPU,
 				}},
-				Locations: []blaxel.PolicySpecLocationParam{{
+				Locations: []blaxel.PolicyLocationParam{{
 					Name: blaxel.String("name"),
-					Type: "location",
+					Type: blaxel.PolicyLocationTypeLocation,
 				}},
-				MaxTokens: blaxel.PolicySpecMaxTokensParam{
+				MaxTokens: blaxel.PolicyMaxTokensParam{
 					Granularity:          blaxel.String("granularity"),
 					Input:                blaxel.Int(0),
 					Output:               blaxel.Int(0),
@@ -55,7 +55,7 @@ func TestPolicyNew(t *testing.T) {
 				},
 				ResourceTypes: []string{"model"},
 				Sandbox:       blaxel.Bool(true),
-				Type:          "location",
+				Type:          blaxel.PolicySpecTypeLocation,
 			},
 		},
 	})
@@ -123,11 +123,11 @@ func TestPolicyUpdate(t *testing.T) {
 						Name: blaxel.String("name"),
 						Type: blaxel.FlavorTypeCPU,
 					}},
-					Locations: []blaxel.PolicySpecLocationParam{{
+					Locations: []blaxel.PolicyLocationParam{{
 						Name: blaxel.String("name"),
-						Type: "location",
+						Type: blaxel.PolicyLocationTypeLocation,
 					}},
-					MaxTokens: blaxel.PolicySpecMaxTokensParam{
+					MaxTokens: blaxel.PolicyMaxTokensParam{
 						Granularity:          blaxel.String("granularity"),
 						Input:                blaxel.Int(0),
 						Output:               blaxel.Int(0),
@@ -137,7 +137,7 @@ func TestPolicyUpdate(t *testing.T) {
 					},
 					ResourceTypes: []string{"model"},
 					Sandbox:       blaxel.Bool(true),
-					Type:          "location",
+					Type:          blaxel.PolicySpecTypeLocation,
 				},
 			},
 		},

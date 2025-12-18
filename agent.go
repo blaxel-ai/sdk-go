@@ -142,68 +142,34 @@ func (r Agent) ToParam() AgentParam {
 	return param.Override[AgentParam](json.RawMessage(r.RawJSON()))
 }
 
-// Agent specification for API
-type AgentSpec struct {
-	// Enable or disable the resource
-	Enabled  bool     `json:"enabled"`
-	Policies []string `json:"policies"`
-	// Repository
-	Repository AgentSpecRepository `json:"repository"`
-	// Revision configuration
-	Revision RevisionConfiguration `json:"revision"`
-	// Runtime configuration for Agent
-	Runtime AgentSpecRuntime `json:"runtime"`
-	// Triggers to use your agent
-	Triggers []Trigger `json:"triggers"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Enabled     respjson.Field
-		Policies    respjson.Field
-		Repository  respjson.Field
-		Revision    respjson.Field
-		Runtime     respjson.Field
-		Triggers    respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
+// Agent
+//
+// The properties Metadata, Spec are required.
+type AgentParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Agent specification for API
+	Spec AgentSpecParam `json:"spec,omitzero,required"`
+	paramObj
 }
 
-// Returns the unmodified JSON received from the API
-func (r AgentSpec) RawJSON() string { return r.JSON.raw }
-func (r *AgentSpec) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+func (r AgentParam) MarshalJSON() (data []byte, err error) {
+	type shadow AgentParam
+	return param.MarshalObject(r, (*shadow)(&r))
 }
-
-// Repository
-type AgentSpecRepository struct {
-	// Repository type
-	Type string `json:"type"`
-	// Repository URL
-	URL string `json:"url"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Type        respjson.Field
-		URL         respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r AgentSpecRepository) RawJSON() string { return r.JSON.raw }
-func (r *AgentSpecRepository) UnmarshalJSON(data []byte) error {
+func (r *AgentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Runtime configuration for Agent
-type AgentSpecRuntime struct {
+type AgentRuntime struct {
 	// The env variables to set in the agent. Should be a list of Kubernetes EnvVar
 	// types
 	Envs []map[string]any `json:"envs"`
 	// The generation of the agent
 	//
 	// Any of "mk2", "mk3".
-	Generation string `json:"generation"`
+	Generation AgentRuntimeGeneration `json:"generation"`
 	// The Docker image for the agent
 	Image string `json:"image"`
 	// The maximum number of replicas for the agent.
@@ -227,73 +193,30 @@ type AgentSpecRuntime struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r AgentSpecRuntime) RawJSON() string { return r.JSON.raw }
-func (r *AgentSpecRuntime) UnmarshalJSON(data []byte) error {
+func (r AgentRuntime) RawJSON() string { return r.JSON.raw }
+func (r *AgentRuntime) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Agent
+// ToParam converts this AgentRuntime to a AgentRuntimeParam.
 //
-// The properties Metadata, Spec are required.
-type AgentParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Agent specification for API
-	Spec AgentSpecParam `json:"spec,omitzero,required"`
-	paramObj
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// AgentRuntimeParam.Overrides()
+func (r AgentRuntime) ToParam() AgentRuntimeParam {
+	return param.Override[AgentRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-func (r AgentParam) MarshalJSON() (data []byte, err error) {
-	type shadow AgentParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *AgentParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+// The generation of the agent
+type AgentRuntimeGeneration string
 
-// Agent specification for API
-type AgentSpecParam struct {
-	// Enable or disable the resource
-	Enabled  param.Opt[bool] `json:"enabled,omitzero"`
-	Policies []string        `json:"policies,omitzero"`
-	// Repository
-	Repository AgentSpecRepositoryParam `json:"repository,omitzero"`
-	// Revision configuration
-	Revision RevisionConfigurationParam `json:"revision,omitzero"`
-	// Runtime configuration for Agent
-	Runtime AgentSpecRuntimeParam `json:"runtime,omitzero"`
-	// Triggers to use your agent
-	Triggers []TriggerParam `json:"triggers,omitzero"`
-	paramObj
-}
-
-func (r AgentSpecParam) MarshalJSON() (data []byte, err error) {
-	type shadow AgentSpecParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *AgentSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Repository
-type AgentSpecRepositoryParam struct {
-	// Repository type
-	Type param.Opt[string] `json:"type,omitzero"`
-	// Repository URL
-	URL param.Opt[string] `json:"url,omitzero"`
-	paramObj
-}
-
-func (r AgentSpecRepositoryParam) MarshalJSON() (data []byte, err error) {
-	type shadow AgentSpecRepositoryParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *AgentSpecRepositoryParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	AgentRuntimeGenerationMk2 AgentRuntimeGeneration = "mk2"
+	AgentRuntimeGenerationMk3 AgentRuntimeGeneration = "mk3"
+)
 
 // Runtime configuration for Agent
-type AgentSpecRuntimeParam struct {
+type AgentRuntimeParam struct {
 	// The Docker image for the agent
 	Image param.Opt[string] `json:"image,omitzero"`
 	// The maximum number of replicas for the agent.
@@ -309,22 +232,81 @@ type AgentSpecRuntimeParam struct {
 	// The generation of the agent
 	//
 	// Any of "mk2", "mk3".
-	Generation string `json:"generation,omitzero"`
+	Generation AgentRuntimeGeneration `json:"generation,omitzero"`
 	paramObj
 }
 
-func (r AgentSpecRuntimeParam) MarshalJSON() (data []byte, err error) {
-	type shadow AgentSpecRuntimeParam
+func (r AgentRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow AgentRuntimeParam
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *AgentSpecRuntimeParam) UnmarshalJSON(data []byte) error {
+func (r *AgentRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func init() {
-	apijson.RegisterFieldValidator[AgentSpecRuntimeParam](
-		"generation", "mk2", "mk3",
-	)
+// Agent specification for API
+type AgentSpec struct {
+	// Enable or disable the resource
+	Enabled  bool     `json:"enabled"`
+	Policies []string `json:"policies"`
+	// Repository
+	Repository Repository `json:"repository"`
+	// Revision configuration
+	Revision RevisionConfiguration `json:"revision"`
+	// Runtime configuration for Agent
+	Runtime AgentRuntime `json:"runtime"`
+	// Triggers to use your agent
+	Triggers []Trigger `json:"triggers"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		Policies    respjson.Field
+		Repository  respjson.Field
+		Revision    respjson.Field
+		Runtime     respjson.Field
+		Triggers    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r AgentSpec) RawJSON() string { return r.JSON.raw }
+func (r *AgentSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this AgentSpec to a AgentSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// AgentSpecParam.Overrides()
+func (r AgentSpec) ToParam() AgentSpecParam {
+	return param.Override[AgentSpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Agent specification for API
+type AgentSpecParam struct {
+	// Enable or disable the resource
+	Enabled  param.Opt[bool] `json:"enabled,omitzero"`
+	Policies []string        `json:"policies,omitzero"`
+	// Repository
+	Repository RepositoryParam `json:"repository,omitzero"`
+	// Revision configuration
+	Revision RevisionConfigurationParam `json:"revision,omitzero"`
+	// Runtime configuration for Agent
+	Runtime AgentRuntimeParam `json:"runtime,omitzero"`
+	// Triggers to use your agent
+	Triggers []TriggerParam `json:"triggers,omitzero"`
+	paramObj
+}
+
+func (r AgentSpecParam) MarshalJSON() (data []byte, err error) {
+	type shadow AgentSpecParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *AgentSpecParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Core event
@@ -463,6 +445,53 @@ func (r MetadataParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *MetadataParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Repository
+type Repository struct {
+	// Repository type
+	Type string `json:"type"`
+	// Repository URL
+	URL string `json:"url"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Type        respjson.Field
+		URL         respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r Repository) RawJSON() string { return r.JSON.raw }
+func (r *Repository) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this Repository to a RepositoryParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// RepositoryParam.Overrides()
+func (r Repository) ToParam() RepositoryParam {
+	return param.Override[RepositoryParam](json.RawMessage(r.RawJSON()))
+}
+
+// Repository
+type RepositoryParam struct {
+	// Repository type
+	Type param.Opt[string] `json:"type,omitzero"`
+	// Repository URL
+	URL param.Opt[string] `json:"url,omitzero"`
+	paramObj
+}
+
+func (r RepositoryParam) MarshalJSON() (data []byte, err error) {
+	type shadow RepositoryParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RepositoryParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

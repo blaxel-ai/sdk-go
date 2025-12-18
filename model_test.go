@@ -44,11 +44,11 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 				}},
 				IntegrationConnections: []string{"string"},
 				Policies:               []string{"string"},
-				Runtime: blaxel.ModelSpecRuntimeParam{
+				Runtime: blaxel.ModelRuntimeParam{
 					EndpointName: blaxel.String("endpointName"),
 					Model:        blaxel.String("model"),
 					Organization: blaxel.String("organization"),
-					Type:         "hf_private_endpoint",
+					Type:         blaxel.ModelRuntimeTypeHfPrivateEndpoint,
 				},
 				Sandbox: blaxel.Bool(true),
 			},
@@ -121,11 +121,11 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 					}},
 					IntegrationConnections: []string{"string"},
 					Policies:               []string{"string"},
-					Runtime: blaxel.ModelSpecRuntimeParam{
+					Runtime: blaxel.ModelRuntimeParam{
 						EndpointName: blaxel.String("endpointName"),
 						Model:        blaxel.String("model"),
 						Organization: blaxel.String("organization"),
-						Type:         "hf_private_endpoint",
+						Type:         blaxel.ModelRuntimeTypeHfPrivateEndpoint,
 					},
 					Sandbox: blaxel.Bool(true),
 				},

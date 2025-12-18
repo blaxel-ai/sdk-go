@@ -38,15 +38,15 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 			},
 			Spec: blaxel.SandboxSpecParam{
 				Enabled: blaxel.Bool(true),
-				Lifecycle: blaxel.SandboxSpecLifecycleParam{
-					ExpirationPolicies: []blaxel.SandboxSpecLifecycleExpirationPolicyParam{{
-						Action: "delete",
-						Type:   "ttl-idle",
+				Lifecycle: blaxel.SandboxLifecycleParam{
+					ExpirationPolicies: []blaxel.ExpirationPolicyParam{{
+						Action: blaxel.ExpirationPolicyActionDelete,
+						Type:   blaxel.ExpirationPolicyTypeTtlIdle,
 						Value:  blaxel.String("value"),
 					}},
 				},
 				Region: blaxel.String("region"),
-				Runtime: blaxel.SandboxSpecRuntimeParam{
+				Runtime: blaxel.SandboxRuntimeParam{
 					Envs: []map[string]any{{
 						"foo": "bar",
 					}},
@@ -60,7 +60,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 					}},
 					Ttl: blaxel.String("ttl"),
 				},
-				Volumes: []blaxel.SandboxSpecVolumeParam{{
+				Volumes: []blaxel.VolumeAttachmentParam{{
 					MountPath: blaxel.String("mountPath"),
 					Name:      blaxel.String("name"),
 					ReadOnly:  blaxel.Bool(true),
@@ -135,15 +135,15 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 				},
 				Spec: blaxel.SandboxSpecParam{
 					Enabled: blaxel.Bool(true),
-					Lifecycle: blaxel.SandboxSpecLifecycleParam{
-						ExpirationPolicies: []blaxel.SandboxSpecLifecycleExpirationPolicyParam{{
-							Action: "delete",
-							Type:   "ttl-idle",
+					Lifecycle: blaxel.SandboxLifecycleParam{
+						ExpirationPolicies: []blaxel.ExpirationPolicyParam{{
+							Action: blaxel.ExpirationPolicyActionDelete,
+							Type:   blaxel.ExpirationPolicyTypeTtlIdle,
 							Value:  blaxel.String("value"),
 						}},
 					},
 					Region: blaxel.String("region"),
-					Runtime: blaxel.SandboxSpecRuntimeParam{
+					Runtime: blaxel.SandboxRuntimeParam{
 						Envs: []map[string]any{{
 							"foo": "bar",
 						}},
@@ -157,7 +157,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						}},
 						Ttl: blaxel.String("ttl"),
 					},
-					Volumes: []blaxel.SandboxSpecVolumeParam{{
+					Volumes: []blaxel.VolumeAttachmentParam{{
 						MountPath: blaxel.String("mountPath"),
 						Name:      blaxel.String("name"),
 						ReadOnly:  blaxel.Bool(true),

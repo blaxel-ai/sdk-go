@@ -141,7 +141,25 @@ func (r Preview) ToParam() PreviewParam {
 	return param.Override[PreviewParam](json.RawMessage(r.RawJSON()))
 }
 
-// PreviewMetadata
+// Preview of a Resource
+//
+// The properties Metadata, Spec are required.
+type PreviewParam struct {
+	// PreviewMetadata
+	Metadata PreviewMetadataParam `json:"metadata,omitzero,required"`
+	// Preview of a Resource
+	Spec PreviewSpecParam `json:"spec,omitzero,required"`
+	paramObj
+}
+
+func (r PreviewParam) MarshalJSON() (data []byte, err error) {
+	type shadow PreviewParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PreviewParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type PreviewMetadata struct {
 	// Preview name
 	Name string `json:"name,required"`
@@ -180,6 +198,38 @@ type PreviewMetadata struct {
 // Returns the unmodified JSON received from the API
 func (r PreviewMetadata) RawJSON() string { return r.JSON.raw }
 func (r *PreviewMetadata) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this PreviewMetadata to a PreviewMetadataParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// PreviewMetadataParam.Overrides()
+func (r PreviewMetadata) ToParam() PreviewMetadataParam {
+	return param.Override[PreviewMetadataParam](json.RawMessage(r.RawJSON()))
+}
+
+// The property Name is required.
+type PreviewMetadataParam struct {
+	// Preview name
+	Name string `json:"name,required"`
+	// Model display name
+	DisplayName param.Opt[string] `json:"displayName,omitzero"`
+	// Resource name
+	ResourceName param.Opt[string] `json:"resourceName,omitzero"`
+	// Resource type
+	ResourceType param.Opt[string] `json:"resourceType,omitzero"`
+	// Workspace name
+	Workspace param.Opt[string] `json:"workspace,omitzero"`
+	paramObj
+}
+
+func (r PreviewMetadataParam) MarshalJSON() (data []byte, err error) {
+	type shadow PreviewMetadataParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PreviewMetadataParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -231,48 +281,13 @@ func (r *PreviewSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Preview of a Resource
+// ToParam converts this PreviewSpec to a PreviewSpecParam.
 //
-// The properties Metadata, Spec are required.
-type PreviewParam struct {
-	// PreviewMetadata
-	Metadata PreviewMetadataParam `json:"metadata,omitzero,required"`
-	// Preview of a Resource
-	Spec PreviewSpecParam `json:"spec,omitzero,required"`
-	paramObj
-}
-
-func (r PreviewParam) MarshalJSON() (data []byte, err error) {
-	type shadow PreviewParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *PreviewParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// PreviewMetadata
-//
-// The property Name is required.
-type PreviewMetadataParam struct {
-	// Preview name
-	Name string `json:"name,required"`
-	// Model display name
-	DisplayName param.Opt[string] `json:"displayName,omitzero"`
-	// Resource name
-	ResourceName param.Opt[string] `json:"resourceName,omitzero"`
-	// Resource type
-	ResourceType param.Opt[string] `json:"resourceType,omitzero"`
-	// Workspace name
-	Workspace param.Opt[string] `json:"workspace,omitzero"`
-	paramObj
-}
-
-func (r PreviewMetadataParam) MarshalJSON() (data []byte, err error) {
-	type shadow PreviewMetadataParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *PreviewMetadataParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// PreviewSpecParam.Overrides()
+func (r PreviewSpec) ToParam() PreviewSpecParam {
+	return param.Override[PreviewSpecParam](json.RawMessage(r.RawJSON()))
 }
 
 // Preview of a Resource

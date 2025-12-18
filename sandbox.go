@@ -101,6 +101,82 @@ func (r *SandboxService) GetHub(ctx context.Context, opts ...option.RequestOptio
 	return
 }
 
+// Expiration policy for sandbox lifecycle management
+type ExpirationPolicy struct {
+	// Action to take when policy is triggered
+	//
+	// Any of "delete".
+	Action ExpirationPolicyAction `json:"action"`
+	// Type of expiration policy
+	//
+	// Any of "ttl-idle", "ttl-max-age", "date".
+	Type ExpirationPolicyType `json:"type"`
+	// Duration value (e.g., '1h', '24h', '7d')
+	Value string `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Action      respjson.Field
+		Type        respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ExpirationPolicy) RawJSON() string { return r.JSON.raw }
+func (r *ExpirationPolicy) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this ExpirationPolicy to a ExpirationPolicyParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ExpirationPolicyParam.Overrides()
+func (r ExpirationPolicy) ToParam() ExpirationPolicyParam {
+	return param.Override[ExpirationPolicyParam](json.RawMessage(r.RawJSON()))
+}
+
+// Action to take when policy is triggered
+type ExpirationPolicyAction string
+
+const (
+	ExpirationPolicyActionDelete ExpirationPolicyAction = "delete"
+)
+
+// Type of expiration policy
+type ExpirationPolicyType string
+
+const (
+	ExpirationPolicyTypeTtlIdle   ExpirationPolicyType = "ttl-idle"
+	ExpirationPolicyTypeTtlMaxAge ExpirationPolicyType = "ttl-max-age"
+	ExpirationPolicyTypeDate      ExpirationPolicyType = "date"
+)
+
+// Expiration policy for sandbox lifecycle management
+type ExpirationPolicyParam struct {
+	// Duration value (e.g., '1h', '24h', '7d')
+	Value param.Opt[string] `json:"value,omitzero"`
+	// Action to take when policy is triggered
+	//
+	// Any of "delete".
+	Action ExpirationPolicyAction `json:"action,omitzero"`
+	// Type of expiration policy
+	//
+	// Any of "ttl-idle", "ttl-max-age", "date".
+	Type ExpirationPolicyType `json:"type,omitzero"`
+	paramObj
+}
+
+func (r ExpirationPolicyParam) MarshalJSON() (data []byte, err error) {
+	type shadow ExpirationPolicyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ExpirationPolicyParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // A port for a resource
 type Port struct {
 	// The name of the port
@@ -208,40 +284,29 @@ func (r Sandbox) ToParam() SandboxParam {
 	return param.Override[SandboxParam](json.RawMessage(r.RawJSON()))
 }
 
-// Sandbox specification for API
-type SandboxSpec struct {
-	// Enable or disable the resource
-	Enabled bool `json:"enabled"`
-	// Lifecycle configuration for the sandbox
-	Lifecycle SandboxSpecLifecycle `json:"lifecycle"`
-	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region"`
-	// Runtime configuration for Sandbox
-	Runtime SandboxSpecRuntime `json:"runtime"`
-	// Volumes to attach to the sandbox
-	Volumes []SandboxSpecVolume `json:"volumes"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Enabled     respjson.Field
-		Lifecycle   respjson.Field
-		Region      respjson.Field
-		Runtime     respjson.Field
-		Volumes     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
+// Micro VM for running agentic tasks
+//
+// The properties Metadata, Spec are required.
+type SandboxParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Sandbox specification for API
+	Spec SandboxSpecParam `json:"spec,omitzero,required"`
+	paramObj
 }
 
-// Returns the unmodified JSON received from the API
-func (r SandboxSpec) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSpec) UnmarshalJSON(data []byte) error {
+func (r SandboxParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Lifecycle configuration for the sandbox
-type SandboxSpecLifecycle struct {
+// Lifecycle configuration for sandbox management
+type SandboxLifecycle struct {
 	// List of expiration policies
-	ExpirationPolicies []SandboxSpecLifecycleExpirationPolicy `json:"expirationPolicies"`
+	ExpirationPolicies []ExpirationPolicy `json:"expirationPolicies"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExpirationPolicies respjson.Field
@@ -251,42 +316,37 @@ type SandboxSpecLifecycle struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r SandboxSpecLifecycle) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSpecLifecycle) UnmarshalJSON(data []byte) error {
+func (r SandboxLifecycle) RawJSON() string { return r.JSON.raw }
+func (r *SandboxLifecycle) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Expiration policy for sandbox lifecycle management
-type SandboxSpecLifecycleExpirationPolicy struct {
-	// Action to take when policy is triggered
-	//
-	// Any of "delete".
-	Action string `json:"action"`
-	// Type of expiration policy
-	//
-	// Any of "ttl-idle", "ttl-max-age", "date".
-	Type string `json:"type"`
-	// Duration value (e.g., '1h', '24h', '7d')
-	Value       string         `json:"value"`
-	ExtraFields map[string]any `json:",extras"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Action      respjson.Field
-		Type        respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
+// ToParam converts this SandboxLifecycle to a SandboxLifecycleParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// SandboxLifecycleParam.Overrides()
+func (r SandboxLifecycle) ToParam() SandboxLifecycleParam {
+	return param.Override[SandboxLifecycleParam](json.RawMessage(r.RawJSON()))
 }
 
-// Returns the unmodified JSON received from the API
-func (r SandboxSpecLifecycleExpirationPolicy) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSpecLifecycleExpirationPolicy) UnmarshalJSON(data []byte) error {
+// Lifecycle configuration for sandbox management
+type SandboxLifecycleParam struct {
+	// List of expiration policies
+	ExpirationPolicies []ExpirationPolicyParam `json:"expirationPolicies,omitzero"`
+	paramObj
+}
+
+func (r SandboxLifecycleParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxLifecycleParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Runtime configuration for Sandbox
-type SandboxSpecRuntime struct {
+type SandboxRuntime struct {
 	// The env variables to set in the sandbox. Should be a list of Kubernetes EnvVar
 	// types
 	Envs []map[string]any `json:"envs"`
@@ -314,13 +374,110 @@ type SandboxSpecRuntime struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r SandboxSpecRuntime) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSpecRuntime) UnmarshalJSON(data []byte) error {
+func (r SandboxRuntime) RawJSON() string { return r.JSON.raw }
+func (r *SandboxRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this SandboxRuntime to a SandboxRuntimeParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// SandboxRuntimeParam.Overrides()
+func (r SandboxRuntime) ToParam() SandboxRuntimeParam {
+	return param.Override[SandboxRuntimeParam](json.RawMessage(r.RawJSON()))
+}
+
+// Runtime configuration for Sandbox
+type SandboxRuntimeParam struct {
+	// The expiration date for the sandbox in ISO 8601 format - 2024-12-31T23:59:59Z
+	Expires param.Opt[string] `json:"expires,omitzero"`
+	// The Docker image for the sandbox
+	Image param.Opt[string] `json:"image,omitzero"`
+	// The memory for the sandbox in MB
+	Memory param.Opt[int64] `json:"memory,omitzero"`
+	// The TTL for the sandbox in seconds - 30m, 24h, 7d
+	Ttl param.Opt[string] `json:"ttl,omitzero"`
+	// The env variables to set in the sandbox. Should be a list of Kubernetes EnvVar
+	// types
+	Envs []map[string]any `json:"envs,omitzero"`
+	// The exposed ports of the sandbox
+	Ports []PortParam `json:"ports,omitzero"`
+	paramObj
+}
+
+func (r SandboxRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxRuntimeParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Sandbox specification for API
+type SandboxSpec struct {
+	// Enable or disable the resource
+	Enabled bool `json:"enabled"`
+	// Lifecycle configuration for the sandbox
+	Lifecycle SandboxLifecycle `json:"lifecycle"`
+	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1)
+	Region string `json:"region"`
+	// Runtime configuration for Sandbox
+	Runtime SandboxRuntime `json:"runtime"`
+	// Volumes to attach to the sandbox
+	Volumes []VolumeAttachment `json:"volumes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		Lifecycle   respjson.Field
+		Region      respjson.Field
+		Runtime     respjson.Field
+		Volumes     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxSpec) RawJSON() string { return r.JSON.raw }
+func (r *SandboxSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this SandboxSpec to a SandboxSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// SandboxSpecParam.Overrides()
+func (r SandboxSpec) ToParam() SandboxSpecParam {
+	return param.Override[SandboxSpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Sandbox specification for API
+type SandboxSpecParam struct {
+	// Enable or disable the resource
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1)
+	Region param.Opt[string] `json:"region,omitzero"`
+	// Lifecycle configuration for the sandbox
+	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
+	// Runtime configuration for Sandbox
+	Runtime SandboxRuntimeParam `json:"runtime,omitzero"`
+	// Volumes to attach to the sandbox
+	Volumes []VolumeAttachmentParam `json:"volumes,omitzero"`
+	paramObj
+}
+
+func (r SandboxSpecParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxSpecParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Volume attachment configuration for sandbox
-type SandboxSpecVolume struct {
+type VolumeAttachment struct {
 	// Mount path in the container
 	MountPath string `json:"mountPath"`
 	// Name of the volume to attach
@@ -338,129 +495,22 @@ type SandboxSpecVolume struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r SandboxSpecVolume) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSpecVolume) UnmarshalJSON(data []byte) error {
+func (r VolumeAttachment) RawJSON() string { return r.JSON.raw }
+func (r *VolumeAttachment) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Micro VM for running agentic tasks
+// ToParam converts this VolumeAttachment to a VolumeAttachmentParam.
 //
-// The properties Metadata, Spec are required.
-type SandboxParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Sandbox specification for API
-	Spec SandboxSpecParam `json:"spec,omitzero,required"`
-	paramObj
-}
-
-func (r SandboxParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Sandbox specification for API
-type SandboxSpecParam struct {
-	// Enable or disable the resource
-	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1)
-	Region param.Opt[string] `json:"region,omitzero"`
-	// Lifecycle configuration for the sandbox
-	Lifecycle SandboxSpecLifecycleParam `json:"lifecycle,omitzero"`
-	// Runtime configuration for Sandbox
-	Runtime SandboxSpecRuntimeParam `json:"runtime,omitzero"`
-	// Volumes to attach to the sandbox
-	Volumes []SandboxSpecVolumeParam `json:"volumes,omitzero"`
-	paramObj
-}
-
-func (r SandboxSpecParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSpecParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Lifecycle configuration for the sandbox
-type SandboxSpecLifecycleParam struct {
-	// List of expiration policies
-	ExpirationPolicies []SandboxSpecLifecycleExpirationPolicyParam `json:"expirationPolicies,omitzero"`
-	paramObj
-}
-
-func (r SandboxSpecLifecycleParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSpecLifecycleParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxSpecLifecycleParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Expiration policy for sandbox lifecycle management
-type SandboxSpecLifecycleExpirationPolicyParam struct {
-	// Duration value (e.g., '1h', '24h', '7d')
-	Value param.Opt[string] `json:"value,omitzero"`
-	// Action to take when policy is triggered
-	//
-	// Any of "delete".
-	Action string `json:"action,omitzero"`
-	// Type of expiration policy
-	//
-	// Any of "ttl-idle", "ttl-max-age", "date".
-	Type        string         `json:"type,omitzero"`
-	ExtraFields map[string]any `json:"-"`
-	paramObj
-}
-
-func (r SandboxSpecLifecycleExpirationPolicyParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSpecLifecycleExpirationPolicyParam
-	return param.MarshalWithExtras(r, (*shadow)(&r), r.ExtraFields)
-}
-func (r *SandboxSpecLifecycleExpirationPolicyParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[SandboxSpecLifecycleExpirationPolicyParam](
-		"action", "delete",
-	)
-	apijson.RegisterFieldValidator[SandboxSpecLifecycleExpirationPolicyParam](
-		"type", "ttl-idle", "ttl-max-age", "date",
-	)
-}
-
-// Runtime configuration for Sandbox
-type SandboxSpecRuntimeParam struct {
-	// The expiration date for the sandbox in ISO 8601 format - 2024-12-31T23:59:59Z
-	Expires param.Opt[string] `json:"expires,omitzero"`
-	// The Docker image for the sandbox
-	Image param.Opt[string] `json:"image,omitzero"`
-	// The memory for the sandbox in MB
-	Memory param.Opt[int64] `json:"memory,omitzero"`
-	// The TTL for the sandbox in seconds - 30m, 24h, 7d
-	Ttl param.Opt[string] `json:"ttl,omitzero"`
-	// The env variables to set in the sandbox. Should be a list of Kubernetes EnvVar
-	// types
-	Envs []map[string]any `json:"envs,omitzero"`
-	// The exposed ports of the sandbox
-	Ports []PortParam `json:"ports,omitzero"`
-	paramObj
-}
-
-func (r SandboxSpecRuntimeParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSpecRuntimeParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxSpecRuntimeParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// VolumeAttachmentParam.Overrides()
+func (r VolumeAttachment) ToParam() VolumeAttachmentParam {
+	return param.Override[VolumeAttachmentParam](json.RawMessage(r.RawJSON()))
 }
 
 // Volume attachment configuration for sandbox
-type SandboxSpecVolumeParam struct {
+type VolumeAttachmentParam struct {
 	// Mount path in the container
 	MountPath param.Opt[string] `json:"mountPath,omitzero"`
 	// Name of the volume to attach
@@ -470,11 +520,11 @@ type SandboxSpecVolumeParam struct {
 	paramObj
 }
 
-func (r SandboxSpecVolumeParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSpecVolumeParam
+func (r VolumeAttachmentParam) MarshalJSON() (data []byte, err error) {
+	type shadow VolumeAttachmentParam
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *SandboxSpecVolumeParam) UnmarshalJSON(data []byte) error {
+func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

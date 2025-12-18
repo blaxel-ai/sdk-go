@@ -39,7 +39,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 			Spec: blaxel.AgentSpecParam{
 				Enabled:  blaxel.Bool(true),
 				Policies: []string{"string"},
-				Repository: blaxel.AgentSpecRepositoryParam{
+				Repository: blaxel.RepositoryParam{
 					Type: blaxel.String("type"),
 					URL:  blaxel.String("url"),
 				},
@@ -50,11 +50,11 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 					StickySessionTtl: blaxel.Int(0),
 					Traffic:          blaxel.Int(0),
 				},
-				Runtime: blaxel.AgentSpecRuntimeParam{
+				Runtime: blaxel.AgentRuntimeParam{
 					Envs: []map[string]any{{
 						"foo": "bar",
 					}},
-					Generation: "mk2",
+					Generation: blaxel.AgentRuntimeGenerationMk2,
 					Image:      blaxel.String("image"),
 					MaxScale:   blaxel.Int(0),
 					Memory:     blaxel.Int(0),
@@ -148,7 +148,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 				Spec: blaxel.AgentSpecParam{
 					Enabled:  blaxel.Bool(true),
 					Policies: []string{"string"},
-					Repository: blaxel.AgentSpecRepositoryParam{
+					Repository: blaxel.RepositoryParam{
 						Type: blaxel.String("type"),
 						URL:  blaxel.String("url"),
 					},
@@ -159,11 +159,11 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 						StickySessionTtl: blaxel.Int(0),
 						Traffic:          blaxel.Int(0),
 					},
-					Runtime: blaxel.AgentSpecRuntimeParam{
+					Runtime: blaxel.AgentRuntimeParam{
 						Envs: []map[string]any{{
 							"foo": "bar",
 						}},
-						Generation: "mk2",
+						Generation: blaxel.AgentRuntimeGenerationMk2,
 						Image:      blaxel.String("image"),
 						MaxScale:   blaxel.Int(0),
 						Memory:     blaxel.Int(0),

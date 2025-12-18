@@ -142,51 +142,34 @@ func (r Function) ToParam() FunctionParam {
 	return param.Override[FunctionParam](json.RawMessage(r.RawJSON()))
 }
 
-// Function specification for API
-type FunctionSpec struct {
-	// Enable or disable the resource
-	Enabled                bool     `json:"enabled"`
-	IntegrationConnections []string `json:"integrationConnections"`
-	Policies               []string `json:"policies"`
-	// Revision configuration
-	Revision RevisionConfiguration `json:"revision"`
-	// Runtime configuration for Function
-	Runtime FunctionSpecRuntime `json:"runtime"`
-	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
-	//
-	// Any of "websocket", "http-stream".
-	Transport string `json:"transport"`
-	// Triggers to use your agent
-	Triggers []Trigger `json:"triggers"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Enabled                respjson.Field
-		IntegrationConnections respjson.Field
-		Policies               respjson.Field
-		Revision               respjson.Field
-		Runtime                respjson.Field
-		Transport              respjson.Field
-		Triggers               respjson.Field
-		ExtraFields            map[string]respjson.Field
-		raw                    string
-	} `json:"-"`
+// Function
+//
+// The properties Metadata, Spec are required.
+type FunctionParam struct {
+	// Metadata
+	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	// Function specification for API
+	Spec FunctionSpecParam `json:"spec,omitzero,required"`
+	paramObj
 }
 
-// Returns the unmodified JSON received from the API
-func (r FunctionSpec) RawJSON() string { return r.JSON.raw }
-func (r *FunctionSpec) UnmarshalJSON(data []byte) error {
+func (r FunctionParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FunctionParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Runtime configuration for Function
-type FunctionSpecRuntime struct {
+type FunctionRuntime struct {
 	// The env variables to set in the function. Should be a list of Kubernetes EnvVar
 	// types
 	Envs []map[string]any `json:"envs"`
 	// The generation of the function
 	//
 	// Any of "mk2", "mk3".
-	Generation string `json:"generation"`
+	Generation FunctionRuntimeGeneration `json:"generation"`
 	// The Docker image for the function
 	Image string `json:"image"`
 	// The maximum number of replicas for the function.
@@ -210,65 +193,30 @@ type FunctionSpecRuntime struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FunctionSpecRuntime) RawJSON() string { return r.JSON.raw }
-func (r *FunctionSpecRuntime) UnmarshalJSON(data []byte) error {
+func (r FunctionRuntime) RawJSON() string { return r.JSON.raw }
+func (r *FunctionRuntime) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Function
+// ToParam converts this FunctionRuntime to a FunctionRuntimeParam.
 //
-// The properties Metadata, Spec are required.
-type FunctionParam struct {
-	// Metadata
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Function specification for API
-	Spec FunctionSpecParam `json:"spec,omitzero,required"`
-	paramObj
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// FunctionRuntimeParam.Overrides()
+func (r FunctionRuntime) ToParam() FunctionRuntimeParam {
+	return param.Override[FunctionRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-func (r FunctionParam) MarshalJSON() (data []byte, err error) {
-	type shadow FunctionParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FunctionParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+// The generation of the function
+type FunctionRuntimeGeneration string
 
-// Function specification for API
-type FunctionSpecParam struct {
-	// Enable or disable the resource
-	Enabled                param.Opt[bool] `json:"enabled,omitzero"`
-	IntegrationConnections []string        `json:"integrationConnections,omitzero"`
-	Policies               []string        `json:"policies,omitzero"`
-	// Revision configuration
-	Revision RevisionConfigurationParam `json:"revision,omitzero"`
-	// Runtime configuration for Function
-	Runtime FunctionSpecRuntimeParam `json:"runtime,omitzero"`
-	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
-	//
-	// Any of "websocket", "http-stream".
-	Transport string `json:"transport,omitzero"`
-	// Triggers to use your agent
-	Triggers []TriggerParam `json:"triggers,omitzero"`
-	paramObj
-}
-
-func (r FunctionSpecParam) MarshalJSON() (data []byte, err error) {
-	type shadow FunctionSpecParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FunctionSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[FunctionSpecParam](
-		"transport", "websocket", "http-stream",
-	)
-}
+const (
+	FunctionRuntimeGenerationMk2 FunctionRuntimeGeneration = "mk2"
+	FunctionRuntimeGenerationMk3 FunctionRuntimeGeneration = "mk3"
+)
 
 // Runtime configuration for Function
-type FunctionSpecRuntimeParam struct {
+type FunctionRuntimeParam struct {
 	// The Docker image for the function
 	Image param.Opt[string] `json:"image,omitzero"`
 	// The maximum number of replicas for the function.
@@ -284,22 +232,96 @@ type FunctionSpecRuntimeParam struct {
 	// The generation of the function
 	//
 	// Any of "mk2", "mk3".
-	Generation string `json:"generation,omitzero"`
+	Generation FunctionRuntimeGeneration `json:"generation,omitzero"`
 	paramObj
 }
 
-func (r FunctionSpecRuntimeParam) MarshalJSON() (data []byte, err error) {
-	type shadow FunctionSpecRuntimeParam
+func (r FunctionRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionRuntimeParam
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *FunctionSpecRuntimeParam) UnmarshalJSON(data []byte) error {
+func (r *FunctionRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func init() {
-	apijson.RegisterFieldValidator[FunctionSpecRuntimeParam](
-		"generation", "mk2", "mk3",
-	)
+// Function specification for API
+type FunctionSpec struct {
+	// Enable or disable the resource
+	Enabled                bool     `json:"enabled"`
+	IntegrationConnections []string `json:"integrationConnections"`
+	Policies               []string `json:"policies"`
+	// Revision configuration
+	Revision RevisionConfiguration `json:"revision"`
+	// Runtime configuration for Function
+	Runtime FunctionRuntime `json:"runtime"`
+	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+	//
+	// Any of "websocket", "http-stream".
+	Transport FunctionSpecTransport `json:"transport"`
+	// Triggers to use your agent
+	Triggers []Trigger `json:"triggers"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled                respjson.Field
+		IntegrationConnections respjson.Field
+		Policies               respjson.Field
+		Revision               respjson.Field
+		Runtime                respjson.Field
+		Transport              respjson.Field
+		Triggers               respjson.Field
+		ExtraFields            map[string]respjson.Field
+		raw                    string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionSpec) RawJSON() string { return r.JSON.raw }
+func (r *FunctionSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this FunctionSpec to a FunctionSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// FunctionSpecParam.Overrides()
+func (r FunctionSpec) ToParam() FunctionSpecParam {
+	return param.Override[FunctionSpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+type FunctionSpecTransport string
+
+const (
+	FunctionSpecTransportWebsocket  FunctionSpecTransport = "websocket"
+	FunctionSpecTransportHTTPStream FunctionSpecTransport = "http-stream"
+)
+
+// Function specification for API
+type FunctionSpecParam struct {
+	// Enable or disable the resource
+	Enabled                param.Opt[bool] `json:"enabled,omitzero"`
+	IntegrationConnections []string        `json:"integrationConnections,omitzero"`
+	Policies               []string        `json:"policies,omitzero"`
+	// Revision configuration
+	Revision RevisionConfigurationParam `json:"revision,omitzero"`
+	// Runtime configuration for Function
+	Runtime FunctionRuntimeParam `json:"runtime,omitzero"`
+	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+	//
+	// Any of "websocket", "http-stream".
+	Transport FunctionSpecTransport `json:"transport,omitzero"`
+	// Triggers to use your agent
+	Triggers []TriggerParam `json:"triggers,omitzero"`
+	paramObj
+}
+
+func (r FunctionSpecParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionSpecParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FunctionSpecParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type FunctionNewParams struct {
