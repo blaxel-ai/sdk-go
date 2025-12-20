@@ -25,6 +25,7 @@ type Client struct {
 	Customdomains   CustomdomainService
 	Functions       FunctionService
 	Integrations    IntegrationService
+	Images          ImageService
 	Jobs            JobService
 	Locations       LocationService
 	Mcp             McpService
@@ -77,6 +78,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Customdomains = NewCustomdomainService(opts...)
 	r.Functions = NewFunctionService(opts...)
 	r.Integrations = NewIntegrationService(opts...)
+	r.Images = NewImageService(opts...)
 	r.Jobs = NewJobService(opts...)
 	r.Locations = NewLocationService(opts...)
 	r.Mcp = NewMcpService(opts...)
