@@ -129,8 +129,31 @@ func IsTrackingConfigured() bool {
 	return strings.Contains(content, "tracking:")
 }
 
+// SetTracking saves the tracking preference (placeholder - would need config file update)
+func SetTracking(enabled bool) {
+	// Set environment variable for this session
+	if !enabled {
+		os.Setenv("DO_NOT_TRACK", "1")
+	}
+
+	// Save to config file
+	config, err := LoadConfig()
+	if err != nil {
+		// Initialize empty config if it doesn't exist
+		config = Config{
+			Workspaces: []WorkspaceConfig{},
+		}
+	}
+
+	// Write config with tracking setting
+	if err := writeConfigWithTracking(config, enabled); err != nil {
+		// Silently fail - tracking preference is not critical
+		return
+	}
+}
+
 // writeConfigWithTracking writes the config to file with the tracking setting
-func WriteConfigWithTracking(config Config, tracking bool) error {
+func writeConfigWithTracking(config Config, tracking bool) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
