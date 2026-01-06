@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Context    ContextConfig     `yaml:"context"`
 	Workspaces []WorkspaceConfig `yaml:"workspaces"`
+	Tracking   bool              `yaml:"tracking"`
 }
 
 // WorkspaceConfig represents a workspace configuration
