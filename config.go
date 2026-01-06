@@ -3,8 +3,11 @@
 package blaxel
 
 import (
+	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -92,4 +95,75 @@ func CurrentContext() (ContextConfig, error) {
 		return ContextConfig{}, err
 	}
 	return config.Context, nil
+}
+
+// IsTrackingEnabled returns true if tracking is enabled (not explicitly disabled)
+func IsTrackingEnabled() bool {
+	// Tracking is disabled if DO_NOT_TRACK is set
+	if os.Getenv("DO_NOT_TRACK") == "1" {
+		return false
+	}
+	return true
+}
+
+// isTrackingConfigured checks if tracking has been explicitly configured
+func IsTrackingConfigured() bool {
+	// Environment variable counts as configured
+	if os.Getenv("DO_NOT_TRACK") != "" {
+		return true
+	}
+
+	// Check if config file exists and has tracking field
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+
+	data, err := os.ReadFile(filepath.Join(home, ".blaxel", "config.yaml"))
+	if err != nil {
+		return false // Config doesn't exist yet
+	}
+
+	// Check if the config file contains a tracking setting
+	content := string(data)
+	return strings.Contains(content, "tracking:")
+}
+
+// writeConfigWithTracking writes the config to file with the tracking setting
+func WriteConfigWithTracking(config Config, tracking bool) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	configPath := filepath.Join(home, ".blaxel")
+
+	// Ensure directory exists
+	if err := os.MkdirAll(configPath, 0755); err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+
+	// Write context
+	buf.WriteString("context:\n")
+	buf.WriteString(fmt.Sprintf("  workspace: %s\n", config.Context.Workspace))
+
+	// Write workspaces
+	buf.WriteString("workspaces:\n")
+	for _, ws := range config.Workspaces {
+		buf.WriteString(fmt.Sprintf("- name: %s\n", ws.Name))
+		buf.WriteString("  credentials:\n")
+		buf.WriteString(fmt.Sprintf("    apiKey: \"%s\"\n", ws.Credentials.APIKey))
+		buf.WriteString(fmt.Sprintf("    access_token: %s\n", ws.Credentials.AccessToken))
+		buf.WriteString(fmt.Sprintf("    refresh_token: %s\n", ws.Credentials.RefreshToken))
+		buf.WriteString(fmt.Sprintf("    expires_in: %d\n", ws.Credentials.ExpiresIn))
+		buf.WriteString(fmt.Sprintf("    device_code: %s\n", ws.Credentials.DeviceCode))
+		buf.WriteString(fmt.Sprintf("    client_credentials: \"%s\"\n", ws.Credentials.ClientCredentials))
+		buf.WriteString(fmt.Sprintf("  env: \"%s\"\n", ws.Env))
+	}
+
+	// Write tracking
+	buf.WriteString(fmt.Sprintf("tracking: %v\n", tracking))
+
+	return os.WriteFile(filepath.Join(configPath, "config.yaml"), buf.Bytes(), 0600)
 }
