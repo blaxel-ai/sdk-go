@@ -385,7 +385,7 @@ func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 type SandboxRuntime struct {
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []map[string]any `json:"envs"`
+	Envs []SandboxRuntimeEnv `json:"envs"`
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires string `json:"expires"`
@@ -428,6 +428,30 @@ func (r SandboxRuntime) ToParam() SandboxRuntimeParam {
 	return param.Override[SandboxRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
+// Environment variable with name and value
+type SandboxRuntimeEnv struct {
+	// Name of the environment variable
+	Name string `json:"name"`
+	// Whether the value is a secret
+	Secret bool `json:"secret"`
+	// Value of the environment variable
+	Value string `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name        respjson.Field
+		Secret      respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxRuntimeEnv) RawJSON() string { return r.JSON.raw }
+func (r *SandboxRuntimeEnv) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Runtime configuration defining how the sandbox VM is provisioned and its
 // resource limits
 type SandboxRuntimeParam struct {
@@ -445,7 +469,7 @@ type SandboxRuntimeParam struct {
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []map[string]any `json:"envs,omitzero"`
+	Envs []SandboxRuntimeEnvParam `json:"envs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
@@ -456,6 +480,25 @@ func (r SandboxRuntimeParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Environment variable with name and value
+type SandboxRuntimeEnvParam struct {
+	// Name of the environment variable
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Whether the value is a secret
+	Secret param.Opt[bool] `json:"secret,omitzero"`
+	// Value of the environment variable
+	Value param.Opt[string] `json:"value,omitzero"`
+	paramObj
+}
+
+func (r SandboxRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxRuntimeEnvParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxRuntimeEnvParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

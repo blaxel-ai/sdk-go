@@ -47,8 +47,10 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 				},
 				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
-					Envs: []map[string]any{{
-						"foo": "bar",
+					Envs: []blaxel.SandboxRuntimeEnvParam{{
+						Name:   blaxel.String("MY_ENV_VAR"),
+						Secret: blaxel.Bool(true),
+						Value:  blaxel.String("my-value"),
 					}},
 					Expires: blaxel.String("2025-12-31T23:59:59Z"),
 					Image:   blaxel.String("blaxel/base-image:latest"),
@@ -153,8 +155,10 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 					},
 					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{
-						Envs: []map[string]any{{
-							"foo": "bar",
+						Envs: []blaxel.SandboxRuntimeEnvParam{{
+							Name:   blaxel.String("MY_ENV_VAR"),
+							Secret: blaxel.Bool(true),
+							Value:  blaxel.String("my-value"),
 						}},
 						Expires: blaxel.String("2025-12-31T23:59:59Z"),
 						Image:   blaxel.String("blaxel/base-image:latest"),

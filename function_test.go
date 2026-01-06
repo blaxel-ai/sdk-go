@@ -48,8 +48,10 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					Traffic:          blaxel.Int(100),
 				},
 				Runtime: blaxel.FunctionRuntimeParam{
-					Envs: []map[string]any{{
-						"foo": "bar",
+					Envs: []blaxel.FunctionRuntimeEnvParam{{
+						Name:   blaxel.String("MY_ENV_VAR"),
+						Secret: blaxel.Bool(true),
+						Value:  blaxel.String("my-value"),
 					}},
 					Generation: blaxel.FunctionRuntimeGenerationMk3,
 					Image:      blaxel.String("image"),
@@ -162,8 +164,10 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						Traffic:          blaxel.Int(100),
 					},
 					Runtime: blaxel.FunctionRuntimeParam{
-						Envs: []map[string]any{{
-							"foo": "bar",
+						Envs: []blaxel.FunctionRuntimeEnvParam{{
+							Name:   blaxel.String("MY_ENV_VAR"),
+							Secret: blaxel.Bool(true),
+							Value:  blaxel.String("my-value"),
 						}},
 						Generation: blaxel.FunctionRuntimeGenerationMk3,
 						Image:      blaxel.String("image"),
