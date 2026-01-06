@@ -5,7 +5,6 @@ package blaxel
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"os"
 	"slices"
@@ -191,7 +190,13 @@ func getDefaultWorkspace() string {
 // For workspace, it uses:
 // 1. BL_WORKSPACE environment variable
 // 2. Current context from ~/.blaxel/config.yaml
+//
+// When using access token authentication with a refresh token, this client
+// automatically refreshes tokens when they are about to expire (at 20% remaining lifetime).
 func NewDefaultClient(opts ...option.RequestOption) (Client, error) {
+	// Set up save callback for automatic credential persistence
+	setupOAuth2RefreshSaveCallback()
+
 	// Start with provided options
 	clientOpts := make([]option.RequestOption, 0, len(opts)+4)
 
@@ -231,6 +236,9 @@ func NewDefaultClient(opts ...option.RequestOption) (Client, error) {
 				if creds.ExpiresIn > 0 {
 					clientOpts = append(clientOpts, option.WithExpires(creds.ExpiresIn))
 				}
+				if creds.DeviceCode != "" {
+					clientOpts = append(clientOpts, option.WithDeviceCode(creds.DeviceCode))
+				}
 				if creds.RefreshToken != "" {
 					clientOpts = append(clientOpts, option.WithRefreshToken(creds.RefreshToken))
 				}
@@ -269,21 +277,52 @@ func NewDefaultClient(opts ...option.RequestOption) (Client, error) {
 	return client, nil
 }
 
+// setupOAuth2RefreshSaveCallback configures the OAuth2 refresh state to save
+// credentials after a token refresh
+func setupOAuth2RefreshSaveCallback() {
+	requestconfig.OAuth2RefreshCache.SetSaveCallback(func(workspace string, accessToken string, refreshToken string, expiresIn int) error {
+		// Load existing credentials to preserve other fields
+		creds, _ := LoadCredentials(workspace)
+		creds.AccessToken = accessToken
+		if refreshToken != "" {
+			creds.RefreshToken = refreshToken
+		}
+		if expiresIn > 0 {
+			creds.ExpiresIn = expiresIn
+		}
+		return SaveCredentials(workspace, creds)
+	})
+}
+
 // NewClientFromConfig creates a client using credentials from ~/.blaxel/config.yaml
-// for the specified workspace.
+// for the specified workspace. It supports automatic token refresh when using
+// access tokens with refresh tokens.
 func NewClientFromConfig(workspaceName string, opts ...option.RequestOption) (*Client, error) {
+	// Set up save callback for automatic credential persistence
+	setupOAuth2RefreshSaveCallback()
+
 	creds, err := LoadCredentials(workspaceName)
 	if err != nil {
 		return nil, err
 	}
 
-	clientOpts := make([]option.RequestOption, 0, len(opts)+3)
+	clientOpts := make([]option.RequestOption, 0, len(opts)+6)
 	clientOpts = append(clientOpts, option.WithEnvironmentProduction())
 
 	if creds.APIKey != "" {
 		clientOpts = append(clientOpts, option.WithAPIKey(creds.APIKey))
 	} else if creds.AccessToken != "" {
-		clientOpts = append(clientOpts, option.WithHeader("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", creds.AccessToken)))
+		// Use access token with automatic refresh support
+		clientOpts = append(clientOpts, option.WithAccessToken(creds.AccessToken))
+		if creds.RefreshToken != "" {
+			clientOpts = append(clientOpts, option.WithRefreshToken(creds.RefreshToken))
+		}
+		if creds.DeviceCode != "" {
+			clientOpts = append(clientOpts, option.WithDeviceCode(creds.DeviceCode))
+		}
+		if creds.ExpiresIn > 0 {
+			clientOpts = append(clientOpts, option.WithExpires(creds.ExpiresIn))
+		}
 	} else if creds.ClientCredentials != "" {
 		// Decode base64 client credentials
 		decoded, err := base64.StdEncoding.DecodeString(creds.ClientCredentials)

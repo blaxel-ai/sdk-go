@@ -312,20 +312,38 @@ func WithClientCredentials(value string) RequestOption {
 	})
 }
 
+// WithAccessToken returns a RequestOption that sets the access token for authentication.
+// If a refresh token is also provided (via WithRefreshToken), automatic token refresh
+// will be enabled when the access token is about to expire.
 func WithAccessToken(value string) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
 		r.AccessToken = value
-		return r.Apply(WithHeader("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", r.AccessToken)))
-	})
-}
-
-func WithRefreshToken(value string) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		r.RefreshToken = value
+		r.OAuth2RefreshState = requestconfig.OAuth2RefreshCache
+		// Don't set header here - let Execute() handle it after potential refresh
 		return nil
 	})
 }
 
+// WithRefreshToken returns a RequestOption that sets the refresh token for automatic
+// token refresh. This should be used together with WithAccessToken.
+func WithRefreshToken(value string) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.RefreshToken = value
+		r.OAuth2RefreshState = requestconfig.OAuth2RefreshCache
+		return nil
+	})
+}
+
+// WithDeviceCode returns a RequestOption that sets the device code for token refresh.
+// This is used in the device flow authentication.
+func WithDeviceCode(value string) RequestOption {
+	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		r.DeviceCode = value
+		return nil
+	})
+}
+
+// WithExpires returns a RequestOption that sets the token expiration time in seconds.
 func WithExpires(value int) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
 		r.ExpiresIn = value

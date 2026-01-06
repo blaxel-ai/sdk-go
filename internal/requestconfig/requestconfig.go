@@ -204,6 +204,7 @@ type RequestConfig struct {
 	Workspace      string
 	AccessToken    string
 	RefreshToken   string
+	DeviceCode     string
 	ExpiresIn      int
 	MaxRetries     int
 	RequestTimeout time.Duration
@@ -221,6 +222,8 @@ type RequestConfig struct {
 	ClientSecret   string
 	// OAuth2State holds the OAuth2 provider configuration and cached token information
 	OAuth2State *OAuth2State
+	// OAuth2RefreshState holds the OAuth2 refresh token state for automatic refresh
+	OAuth2RefreshState *OAuth2RefreshState
 	// If ResponseBodyInto not nil, then we will attempt to deserialize into
 	// ResponseBodyInto. If Destination is a []byte, then it will return the body as
 	// is.
@@ -418,12 +421,19 @@ func (cfg *RequestConfig) Execute() (err error) {
 		}
 	}
 
-	if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+	// Handle OAuth2 refresh token flow (access token + refresh token)
+	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		token, err := cfg.OAuth2RefreshState.GetToken(cfg)
+		if err != nil {
+			return err
+		}
+		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		// Handle OAuth2 client credentials flow
 		token, err := cfg.OAuth2State.GetToken(cfg)
 		if err != nil {
 			return err
 		}
-
 		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
 	}
 

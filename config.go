@@ -88,6 +88,90 @@ func LoadCredentials(workspaceName string) (Credentials, error) {
 	return Credentials{}, nil
 }
 
+// SaveCredentials saves updated credentials for a specific workspace
+func SaveCredentials(workspaceName string, creds Credentials) error {
+	config, err := LoadConfig()
+	if err != nil {
+		// Initialize empty config if it doesn't exist
+		config = Config{
+			Workspaces: []WorkspaceConfig{},
+		}
+	}
+
+	// Find and update the workspace credentials
+	found := false
+	for i, workspace := range config.Workspaces {
+		if workspace.Name == workspaceName {
+			config.Workspaces[i].Credentials = creds
+			found = true
+			break
+		}
+	}
+
+	// If workspace not found, add it
+	if !found {
+		config.Workspaces = append(config.Workspaces, WorkspaceConfig{
+			Name:        workspaceName,
+			Credentials: creds,
+		})
+	}
+
+	return writeConfig(config)
+}
+
+// writeConfig writes the config to file
+func writeConfig(config Config) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	configPath := filepath.Join(home, ".blaxel")
+
+	// Ensure directory exists
+	if err := os.MkdirAll(configPath, 0755); err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+
+	// Write context
+	buf.WriteString("context:\n")
+	buf.WriteString(fmt.Sprintf("  workspace: %s\n", config.Context.Workspace))
+
+	// Write workspaces
+	buf.WriteString("workspaces:\n")
+	for _, ws := range config.Workspaces {
+		buf.WriteString(fmt.Sprintf("- name: %s\n", ws.Name))
+		buf.WriteString("  credentials:\n")
+		if ws.Credentials.APIKey != "" {
+			buf.WriteString(fmt.Sprintf("    apiKey: \"%s\"\n", ws.Credentials.APIKey))
+		}
+		if ws.Credentials.AccessToken != "" {
+			buf.WriteString(fmt.Sprintf("    access_token: %s\n", ws.Credentials.AccessToken))
+		}
+		if ws.Credentials.RefreshToken != "" {
+			buf.WriteString(fmt.Sprintf("    refresh_token: %s\n", ws.Credentials.RefreshToken))
+		}
+		if ws.Credentials.ExpiresIn > 0 {
+			buf.WriteString(fmt.Sprintf("    expires_in: %d\n", ws.Credentials.ExpiresIn))
+		}
+		if ws.Credentials.DeviceCode != "" {
+			buf.WriteString(fmt.Sprintf("    device_code: %s\n", ws.Credentials.DeviceCode))
+		}
+		if ws.Credentials.ClientCredentials != "" {
+			buf.WriteString(fmt.Sprintf("    client_credentials: \"%s\"\n", ws.Credentials.ClientCredentials))
+		}
+		if ws.Env != "" {
+			buf.WriteString(fmt.Sprintf("  env: \"%s\"\n", ws.Env))
+		}
+	}
+
+	// Write tracking
+	buf.WriteString(fmt.Sprintf("tracking: %v\n", config.Tracking))
+
+	return os.WriteFile(filepath.Join(configPath, "config.yaml"), buf.Bytes(), 0600)
+}
+
 // CurrentContext returns the current workspace context
 func CurrentContext() (ContextConfig, error) {
 	config, err := LoadConfig()
