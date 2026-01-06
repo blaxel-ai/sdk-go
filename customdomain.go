@@ -37,7 +37,8 @@ func NewCustomdomainService(opts ...option.RequestOption) (r CustomdomainService
 	return
 }
 
-// Create custom domain
+// Creates a new custom domain for preview deployments. After creation, you must
+// configure DNS records and verify domain ownership before it becomes active.
 func (r *CustomdomainService) New(ctx context.Context, body CustomdomainNewParams, opts ...option.RequestOption) (res *CustomDomain, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "customdomains"
@@ -69,7 +70,9 @@ func (r *CustomdomainService) Update(ctx context.Context, domainName string, bod
 	return
 }
 
-// List all custom domains
+// Returns all custom domains configured in the workspace. Custom domains allow
+// serving preview deployments under your own domain (e.g.,
+// preview.yourdomain.com).
 func (r *CustomdomainService) List(ctx context.Context, opts ...option.RequestOption) (res *[]CustomDomain, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "customdomains"
@@ -163,7 +166,8 @@ type CustomDomainMetadata struct {
 	CreatedBy string `json:"createdBy"`
 	// Display name for the custom domain
 	DisplayName string `json:"displayName"`
-	// Labels
+	// Key-value pairs for organizing and filtering resources. Labels can be used to
+	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
 	// Domain name (e.g., "example.com")
 	Name string `json:"name"`
@@ -210,7 +214,8 @@ type CustomDomainMetadataParam struct {
 	Name param.Opt[string] `json:"name,omitzero"`
 	// Workspace name
 	Workspace param.Opt[string] `json:"workspace,omitzero"`
-	// Labels
+	// Key-value pairs for organizing and filtering resources. Labels can be used to
+	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels,omitzero"`
 	paramObj
 }

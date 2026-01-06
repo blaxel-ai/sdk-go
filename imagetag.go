@@ -32,7 +32,8 @@ func NewImageTagService(opts ...option.RequestOption) (r ImageTagService) {
 	return
 }
 
-// Deletes a specific tag from an image.
+// Deletes a specific tag from a container image. The underlying image layers are
+// kept if other tags reference them. Will fail if the tag is currently in use.
 func (r *ImageTagService) Delete(ctx context.Context, tagName string, body ImageTagDeleteParams, opts ...option.RequestOption) (res *Image, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if body.ResourceType == "" {

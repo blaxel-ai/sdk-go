@@ -36,7 +36,8 @@ func NewIntegrationService(opts ...option.RequestOption) (r IntegrationService) 
 	return
 }
 
-// Returns integration information by name.
+// Returns metadata about an integration provider including available endpoints,
+// authentication methods, and supported models or features.
 func (r *IntegrationService) Get(ctx context.Context, integrationName string, opts ...option.RequestOption) (res *IntegrationGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if integrationName == "" {
@@ -177,8 +178,7 @@ type IntegrationGetResponseOrganization struct {
 	// Provider organization display name
 	DisplayName string `json:"displayName"`
 	// Provider organization name
-	Name        string         `json:"name"`
-	ExtraFields map[string]any `json:",extras"`
+	Name string `json:"name"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -207,8 +207,7 @@ type IntegrationGetResponseRepository struct {
 	// Repository owner
 	Organization string `json:"organization"`
 	// Repository URL
-	URL         string         `json:"url"`
-	ExtraFields map[string]any `json:",extras"`
+	URL string `json:"url"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID           respjson.Field

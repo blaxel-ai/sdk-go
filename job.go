@@ -41,7 +41,9 @@ func NewJobService(opts ...option.RequestOption) (r JobService) {
 	return
 }
 
-// Creates a job.
+// Creates a new batch job definition for parallel AI task processing. Jobs can be
+// triggered via API or scheduled, and support configurable parallelism, timeouts,
+// and retry logic.
 func (r *JobService) New(ctx context.Context, body JobNewParams, opts ...option.RequestOption) (res *Job, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "jobs"
@@ -49,7 +51,8 @@ func (r *JobService) New(ctx context.Context, body JobNewParams, opts ...option.
 	return
 }
 
-// Returns a job by name.
+// Returns detailed information about a batch job including its runtime
+// configuration, execution history, and deployment status.
 func (r *JobService) Get(ctx context.Context, jobID string, query JobGetParams, opts ...option.RequestOption) (res *Job, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
@@ -61,7 +64,8 @@ func (r *JobService) Get(ctx context.Context, jobID string, query JobGetParams, 
 	return
 }
 
-// Update a job by name.
+// Updates a batch job's configuration. Changes affect new executions; running
+// executions continue with their original configuration.
 func (r *JobService) Update(ctx context.Context, jobID string, body JobUpdateParams, opts ...option.RequestOption) (res *Job, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
@@ -73,7 +77,8 @@ func (r *JobService) Update(ctx context.Context, jobID string, body JobUpdatePar
 	return
 }
 
-// Returns a list of all jobs in the workspace.
+// Returns all batch job definitions in the workspace. Each job can be triggered to
+// run multiple parallel tasks with configurable concurrency and retry settings.
 func (r *JobService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Job, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "jobs"
@@ -81,7 +86,8 @@ func (r *JobService) List(ctx context.Context, opts ...option.RequestOption) (re
 	return
 }
 
-// Deletes a job by name.
+// Permanently deletes a batch job definition and cancels any running executions.
+// Historical execution data will be retained for a limited time.
 func (r *JobService) Delete(ctx context.Context, jobID string, opts ...option.RequestOption) (res *Job, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
@@ -116,7 +122,7 @@ type CreateJobExecutionRequestParam struct {
 	// Workspace ID
 	WorkspaceID param.Opt[string] `json:"workspaceId,omitzero"`
 	// Array of task parameters for parallel execution
-	Tasks []map[string]any `json:"tasks,omitzero"`
+	Tasks []any `json:"tasks,omitzero"`
 	paramObj
 }
 
@@ -128,15 +134,19 @@ func (r *CreateJobExecutionRequestParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Job
+// Batch processing job definition for running parallel AI tasks. Jobs can execute
+// multiple tasks concurrently with configurable parallelism, retries, and
+// timeouts.
 type Job struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
-	// Job specification for API
+	// Configuration for a batch job including execution parameters, parallelism
+	// settings, and deployment region
 	Spec JobSpec `json:"spec,required"`
-	// Core events
+	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
-	// Job status
+	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
 	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
@@ -167,14 +177,25 @@ func (r Job) ToParam() JobParam {
 	return param.Override[JobParam](json.RawMessage(r.RawJSON()))
 }
 
-// Job
+// Batch processing job definition for running parallel AI tasks. Jobs can execute
+// multiple tasks concurrently with configurable parallelism, retries, and
+// timeouts.
 //
 // The properties Metadata, Spec are required.
 type JobParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Job specification for API
+	// Configuration for a batch job including execution parameters, parallelism
+	// settings, and deployment region
 	Spec JobSpecParam `json:"spec,omitzero,required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEventParam `json:"events,omitzero"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	Status Status `json:"status,omitzero"`
 	paramObj
 }
 
@@ -194,7 +215,7 @@ type JobExecution struct {
 	Spec JobExecutionSpec `json:"spec,required"`
 	// Job execution statistics
 	Stats JobExecutionStats `json:"stats"`
-	// Execution status
+	// Job execution status
 	//
 	// Any of "queued", "pending", "running", "cancelling", "cancelled", "failed",
 	// "succeeded", "timeout".
@@ -300,8 +321,7 @@ type JobExecutionSpecTask struct {
 	//
 	// Any of "unspecified", "pending", "reconciling", "failed", "succeeded",
 	// "running", "cancelled".
-	Status      string         `json:"status"`
-	ExtraFields map[string]any `json:",extras"`
+	Status string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Conditions  respjson.Field
@@ -332,8 +352,7 @@ type JobExecutionSpecTaskCondition struct {
 	// Condition state
 	State string `json:"state"`
 	// Condition type
-	Type        string         `json:"type"`
-	ExtraFields map[string]any `json:",extras"`
+	Type string `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExecutionReason respjson.Field
@@ -440,7 +459,7 @@ func (r *JobExecutionStats) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Execution status
+// Job execution status
 type JobExecutionStatus string
 
 const (
@@ -466,8 +485,7 @@ type JobExecutionTask struct {
 	//
 	// Any of "unspecified", "pending", "reconciling", "failed", "succeeded",
 	// "running", "cancelled".
-	Status      string         `json:"status"`
-	ExtraFields map[string]any `json:",extras"`
+	Status string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Conditions  respjson.Field
@@ -498,8 +516,7 @@ type JobExecutionTaskCondition struct {
 	// Condition state
 	State string `json:"state"`
 	// Condition type
-	Type        string         `json:"type"`
-	ExtraFields map[string]any `json:",extras"`
+	Type string `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExecutionReason respjson.Field
@@ -573,25 +590,30 @@ func (r *JobExecutionTaskSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Runtime configuration for Job
+// Runtime configuration defining how batch job tasks are executed with parallelism
+// and retry settings
 type JobRuntime struct {
-	// The env variables to set in the job. Should be a list of Kubernetes EnvVar types
+	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
+	// with valueFrom references.
 	Envs []map[string]any `json:"envs"`
-	// The generation of the job
+	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
+	// sub-25ms cold starts)
 	//
 	// Any of "mk2", "mk3".
 	Generation JobRuntimeGeneration `json:"generation"`
-	// The Docker image for the job
+	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
+	// auto-populated during deployment.
 	Image string `json:"image"`
-	// The maximum number of concurrent task for an execution
+	// Maximum number of tasks that can run simultaneously within a single execution
 	MaxConcurrentTasks int64 `json:"maxConcurrentTasks"`
-	// The maximum number of retries for the job
+	// Number of automatic retry attempts for failed tasks before marking as failed
 	MaxRetries int64 `json:"maxRetries"`
-	// The memory for the job in MB
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory int64 `json:"memory"`
-	// The exposed ports of the job
+	// Set of ports for a resource
 	Ports []Port `json:"ports"`
-	// The timeout for the job in seconds
+	// Maximum execution time in seconds before a task is terminated
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -623,7 +645,8 @@ func (r JobRuntime) ToParam() JobRuntimeParam {
 	return param.Override[JobRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// The generation of the job
+// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
+// sub-25ms cold starts)
 type JobRuntimeGeneration string
 
 const (
@@ -631,25 +654,30 @@ const (
 	JobRuntimeGenerationMk3 JobRuntimeGeneration = "mk3"
 )
 
-// Runtime configuration for Job
+// Runtime configuration defining how batch job tasks are executed with parallelism
+// and retry settings
 type JobRuntimeParam struct {
-	// The Docker image for the job
+	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
+	// auto-populated during deployment.
 	Image param.Opt[string] `json:"image,omitzero"`
-	// The maximum number of concurrent task for an execution
+	// Maximum number of tasks that can run simultaneously within a single execution
 	MaxConcurrentTasks param.Opt[int64] `json:"maxConcurrentTasks,omitzero"`
-	// The maximum number of retries for the job
+	// Number of automatic retry attempts for failed tasks before marking as failed
 	MaxRetries param.Opt[int64] `json:"maxRetries,omitzero"`
-	// The memory for the job in MB
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
-	// The timeout for the job in seconds
+	// Maximum execution time in seconds before a task is terminated
 	Timeout param.Opt[int64] `json:"timeout,omitzero"`
-	// The env variables to set in the job. Should be a list of Kubernetes EnvVar types
+	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
+	// with valueFrom references.
 	Envs []map[string]any `json:"envs,omitzero"`
-	// The generation of the job
+	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
+	// sub-25ms cold starts)
 	//
 	// Any of "mk2", "mk3".
 	Generation JobRuntimeGeneration `json:"generation,omitzero"`
-	// The exposed ports of the job
+	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
 }
@@ -662,16 +690,18 @@ func (r *JobRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Job specification for API
+// Configuration for a batch job including execution parameters, parallelism
+// settings, and deployment region
 type JobSpec struct {
-	// Enable or disable the resource
+	// When false, the job is disabled and new executions cannot be triggered
 	Enabled  bool     `json:"enabled"`
 	Policies []string `json:"policies"`
 	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
 	Region string `json:"region"`
 	// Revision configuration
 	Revision RevisionConfiguration `json:"revision"`
-	// Runtime configuration for Job
+	// Runtime configuration defining how batch job tasks are executed with parallelism
+	// and retry settings
 	Runtime JobRuntime `json:"runtime"`
 	// Triggers to use your agent
 	Triggers []Trigger `json:"triggers"`
@@ -703,16 +733,18 @@ func (r JobSpec) ToParam() JobSpecParam {
 	return param.Override[JobSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Job specification for API
+// Configuration for a batch job including execution parameters, parallelism
+// settings, and deployment region
 type JobSpecParam struct {
-	// Enable or disable the resource
+	// When false, the job is disabled and new executions cannot be triggered
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
 	Region   param.Opt[string] `json:"region,omitzero"`
 	Policies []string          `json:"policies,omitzero"`
 	// Revision configuration
 	Revision RevisionConfigurationParam `json:"revision,omitzero"`
-	// Runtime configuration for Job
+	// Runtime configuration defining how batch job tasks are executed with parallelism
+	// and retry settings
 	Runtime JobRuntimeParam `json:"runtime,omitzero"`
 	// Triggers to use your agent
 	Triggers []TriggerParam `json:"triggers,omitzero"`
@@ -727,15 +759,18 @@ func (r *JobSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Logical object representing a model
+// Gateway endpoint to external LLM provider APIs (OpenAI, Anthropic, etc.) with
+// unified access control, credentials management, and usage tracking.
 type Model struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
-	// Model specification for API
+	// Configuration for a model gateway endpoint including provider type, credentials,
+	// and access policies
 	Spec ModelSpec `json:"spec,required"`
-	// Core events
+	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
-	// Model status
+	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
 	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
@@ -766,14 +801,24 @@ func (r Model) ToParam() ModelParam {
 	return param.Override[ModelParam](json.RawMessage(r.RawJSON()))
 }
 
-// Logical object representing a model
+// Gateway endpoint to external LLM provider APIs (OpenAI, Anthropic, etc.) with
+// unified access control, credentials management, and usage tracking.
 //
 // The properties Metadata, Spec are required.
 type ModelParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Model specification for API
+	// Configuration for a model gateway endpoint including provider type, credentials,
+	// and access policies
 	Spec ModelSpecParam `json:"spec,omitzero,required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEventParam `json:"events,omitzero"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	Status Status `json:"status,omitzero"`
 	paramObj
 }
 
@@ -785,16 +830,18 @@ func (r *ModelParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Runtime configuration for Model
+// Configuration identifying which external LLM provider and model this gateway
+// endpoint proxies to
 type ModelRuntime struct {
-	// Endpoint Name of the model. In case of hf_private_endpoint, it is the endpoint
-	// name. In case of hf_public_endpoint, it is not used.
+	// Provider-specific endpoint name (e.g., HuggingFace Inference Endpoints name)
 	EndpointName string `json:"endpointName"`
-	// The slug name of the origin model at HuggingFace.
+	// Model identifier at the provider (e.g., gpt-4.1, claude-sonnet-4-20250514,
+	// mistral-large-latest)
 	Model string `json:"model"`
-	// The organization of the model
+	// Organization or account identifier at the provider (required for some providers
+	// like OpenAI)
 	Organization string `json:"organization"`
-	// The type of origin for the deployment
+	// LLM provider type determining the API protocol and authentication method
 	//
 	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
 	// "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek",
@@ -827,7 +874,7 @@ func (r ModelRuntime) ToParam() ModelRuntimeParam {
 	return param.Override[ModelRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// The type of origin for the deployment
+// LLM provider type determining the API protocol and authentication method
 type ModelRuntimeType string
 
 const (
@@ -851,16 +898,18 @@ const (
 	ModelRuntimeTypeGroq               ModelRuntimeType = "groq"
 )
 
-// Runtime configuration for Model
+// Configuration identifying which external LLM provider and model this gateway
+// endpoint proxies to
 type ModelRuntimeParam struct {
-	// Endpoint Name of the model. In case of hf_private_endpoint, it is the endpoint
-	// name. In case of hf_public_endpoint, it is not used.
+	// Provider-specific endpoint name (e.g., HuggingFace Inference Endpoints name)
 	EndpointName param.Opt[string] `json:"endpointName,omitzero"`
-	// The slug name of the origin model at HuggingFace.
+	// Model identifier at the provider (e.g., gpt-4.1, claude-sonnet-4-20250514,
+	// mistral-large-latest)
 	Model param.Opt[string] `json:"model,omitzero"`
-	// The organization of the model
+	// Organization or account identifier at the provider (required for some providers
+	// like OpenAI)
 	Organization param.Opt[string] `json:"organization,omitzero"`
-	// The type of origin for the deployment
+	// LLM provider type determining the API protocol and authentication method
 	//
 	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
 	// "public_model", "mcp", "openai", "anthropic", "gemini", "mistral", "deepseek",
@@ -878,17 +927,20 @@ func (r *ModelRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Model specification for API
+// Configuration for a model gateway endpoint including provider type, credentials,
+// and access policies
 type ModelSpec struct {
-	// Enable or disable the resource
+	// When false, the model endpoint is disabled and will not accept inference
+	// requests
 	Enabled bool `json:"enabled"`
 	// Types of hardware available for deployments
 	Flavors                []Flavor `json:"flavors"`
 	IntegrationConnections []string `json:"integrationConnections"`
 	Policies               []string `json:"policies"`
-	// Runtime configuration for Model
+	// Configuration identifying which external LLM provider and model this gateway
+	// endpoint proxies to
 	Runtime ModelRuntime `json:"runtime"`
-	// Sandbox mode
+	// When true, uses sandbox/test credentials from the integration connection
 	Sandbox bool `json:"sandbox"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -918,17 +970,20 @@ func (r ModelSpec) ToParam() ModelSpecParam {
 	return param.Override[ModelSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Model specification for API
+// Configuration for a model gateway endpoint including provider type, credentials,
+// and access policies
 type ModelSpecParam struct {
-	// Enable or disable the resource
+	// When false, the model endpoint is disabled and will not accept inference
+	// requests
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	// Sandbox mode
+	// When true, uses sandbox/test credentials from the integration connection
 	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
 	// Types of hardware available for deployments
 	Flavors                []FlavorParam `json:"flavors,omitzero"`
 	IntegrationConnections []string      `json:"integrationConnections,omitzero"`
 	Policies               []string      `json:"policies,omitzero"`
-	// Runtime configuration for Model
+	// Configuration identifying which external LLM provider and model this gateway
+	// endpoint proxies to
 	Runtime ModelRuntimeParam `json:"runtime,omitzero"`
 	paramObj
 }
@@ -942,7 +997,9 @@ func (r *ModelSpecParam) UnmarshalJSON(data []byte) error {
 }
 
 type JobNewParams struct {
-	// Job
+	// Batch processing job definition for running parallel AI tasks. Jobs can execute
+	// multiple tasks concurrently with configurable parallelism, retries, and
+	// timeouts.
 	Job JobParam
 	paramObj
 }
@@ -955,7 +1012,7 @@ func (r *JobNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type JobGetParams struct {
-	// Show secret values (admin only)
+	// Show secret values (requires workspace admin role)
 	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
 	paramObj
 }
@@ -969,7 +1026,9 @@ func (r JobGetParams) URLQuery() (v url.Values, err error) {
 }
 
 type JobUpdateParams struct {
-	// Job
+	// Batch processing job definition for running parallel AI tasks. Jobs can execute
+	// multiple tasks concurrently with configurable parallelism, retries, and
+	// timeouts.
 	Job JobParam
 	paramObj
 }

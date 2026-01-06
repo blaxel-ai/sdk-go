@@ -34,7 +34,9 @@ func NewLocationService(opts ...option.RequestOption) (r LocationService) {
 	return
 }
 
-// Returns a list of all locations available with status.
+// Returns all deployment regions with their current availability status and
+// supported hardware flavors. Use this to discover where resources can be
+// deployed.
 func (r *LocationService) List(ctx context.Context, opts ...option.RequestOption) (res *[]LocationListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "locations"

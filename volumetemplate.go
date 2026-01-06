@@ -39,7 +39,9 @@ func NewVolumeTemplateService(opts ...option.RequestOption) (r VolumeTemplateSer
 	return
 }
 
-// Creates a volume template.
+// Creates a new volume template for initializing volumes with pre-configured
+// filesystem contents. Optionally returns a presigned URL for uploading the
+// template archive.
 func (r *VolumeTemplateService) New(ctx context.Context, params VolumeTemplateNewParams, opts ...option.RequestOption) (res *VolumeTemplate, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "volume_templates"
@@ -59,7 +61,8 @@ func (r *VolumeTemplateService) Get(ctx context.Context, volumeTemplateName stri
 	return
 }
 
-// Returns a list of all volume templates.
+// Returns all volume templates in the workspace. Volume templates contain
+// pre-configured filesystem snapshots that can be used to initialize new volumes.
 func (r *VolumeTemplateService) List(ctx context.Context, opts ...option.RequestOption) (res *[]VolumeTemplate, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "volume_templates"
@@ -109,7 +112,8 @@ func (r *VolumeTemplateService) Upsert(ctx context.Context, volumeTemplateName s
 
 // Volume template for creating pre-configured volumes
 type VolumeTemplate struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
 	// Volume template specification
 	Spec VolumeTemplateSpec `json:"spec,required"`
@@ -147,7 +151,8 @@ func (r VolumeTemplate) ToParam() VolumeTemplateParam {
 //
 // The properties Metadata, Spec are required.
 type VolumeTemplateParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
 	// Volume template specification
 	Spec VolumeTemplateSpecParam `json:"spec,omitzero,required"`

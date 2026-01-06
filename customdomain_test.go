@@ -30,18 +30,18 @@ func TestCustomdomainNew(t *testing.T) {
 	_, err := client.Customdomains.New(context.TODO(), blaxel.CustomdomainNewParams{
 		CustomDomain: blaxel.CustomDomainParam{
 			Metadata: blaxel.CustomDomainMetadataParam{
-				DisplayName: blaxel.String("displayName"),
+				DisplayName: blaxel.String("Preview Domain"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
-				Name:      blaxel.String("name"),
+				Name:      blaxel.String("preview.example.com"),
 				Workspace: blaxel.String("workspace"),
 			},
 			Spec: blaxel.CustomDomainSpecParam{
 				CnameRecords:   blaxel.String("cnameRecords"),
 				LastVerifiedAt: blaxel.String("lastVerifiedAt"),
-				Region:         blaxel.String("region"),
-				Status:         blaxel.CustomDomainSpecStatusPending,
+				Region:         blaxel.String("us-pdx-1"),
+				Status:         blaxel.CustomDomainSpecStatusVerified,
 				TxtRecords: map[string]string{
 					"foo": "string",
 				},
@@ -102,18 +102,18 @@ func TestCustomdomainUpdate(t *testing.T) {
 		blaxel.CustomdomainUpdateParams{
 			CustomDomain: blaxel.CustomDomainParam{
 				Metadata: blaxel.CustomDomainMetadataParam{
-					DisplayName: blaxel.String("displayName"),
+					DisplayName: blaxel.String("Preview Domain"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
-					Name:      blaxel.String("name"),
+					Name:      blaxel.String("preview.example.com"),
 					Workspace: blaxel.String("workspace"),
 				},
 				Spec: blaxel.CustomDomainSpecParam{
 					CnameRecords:   blaxel.String("cnameRecords"),
 					LastVerifiedAt: blaxel.String("lastVerifiedAt"),
-					Region:         blaxel.String("region"),
-					Status:         blaxel.CustomDomainSpecStatusPending,
+					Region:         blaxel.String("us-pdx-1"),
+					Status:         blaxel.CustomDomainSpecStatusVerified,
 					TxtRecords: map[string]string{
 						"foo": "string",
 					},

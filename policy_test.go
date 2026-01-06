@@ -30,31 +30,31 @@ func TestPolicyNew(t *testing.T) {
 	_, err := client.Policies.New(context.TODO(), blaxel.PolicyNewParams{
 		Policy: blaxel.PolicyParam{
 			Metadata: blaxel.MetadataParam{
-				Name:        "name",
-				DisplayName: blaxel.String("displayName"),
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
 			},
 			Spec: blaxel.PolicySpecParam{
 				Flavors: []blaxel.FlavorParam{{
-					Name: blaxel.String("name"),
+					Name: blaxel.String("t4"),
 					Type: blaxel.FlavorTypeCPU,
 				}},
 				Locations: []blaxel.PolicyLocationParam{{
-					Name: blaxel.String("name"),
-					Type: blaxel.PolicyLocationTypeLocation,
+					Name: blaxel.String("EU"),
+					Type: blaxel.PolicyLocationTypeContinent,
 				}},
 				MaxTokens: blaxel.PolicyMaxTokensParam{
-					Granularity:          blaxel.String("granularity"),
-					Input:                blaxel.Int(0),
-					Output:               blaxel.Int(0),
-					RatioInputOverOutput: blaxel.Int(0),
-					Step:                 blaxel.Int(0),
-					Total:                blaxel.Int(0),
+					Granularity:          blaxel.String("minute"),
+					Input:                blaxel.Int(10000),
+					Output:               blaxel.Int(5000),
+					RatioInputOverOutput: blaxel.Int(2),
+					Step:                 blaxel.Int(1),
+					Total:                blaxel.Int(15000),
 				},
 				ResourceTypes: []string{"model"},
-				Sandbox:       blaxel.Bool(true),
+				Sandbox:       blaxel.Bool(false),
 				Type:          blaxel.PolicySpecTypeLocation,
 			},
 		},
@@ -112,31 +112,31 @@ func TestPolicyUpdate(t *testing.T) {
 		blaxel.PolicyUpdateParams{
 			Policy: blaxel.PolicyParam{
 				Metadata: blaxel.MetadataParam{
-					Name:        "name",
-					DisplayName: blaxel.String("displayName"),
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
 				},
 				Spec: blaxel.PolicySpecParam{
 					Flavors: []blaxel.FlavorParam{{
-						Name: blaxel.String("name"),
+						Name: blaxel.String("t4"),
 						Type: blaxel.FlavorTypeCPU,
 					}},
 					Locations: []blaxel.PolicyLocationParam{{
-						Name: blaxel.String("name"),
-						Type: blaxel.PolicyLocationTypeLocation,
+						Name: blaxel.String("EU"),
+						Type: blaxel.PolicyLocationTypeContinent,
 					}},
 					MaxTokens: blaxel.PolicyMaxTokensParam{
-						Granularity:          blaxel.String("granularity"),
-						Input:                blaxel.Int(0),
-						Output:               blaxel.Int(0),
-						RatioInputOverOutput: blaxel.Int(0),
-						Step:                 blaxel.Int(0),
-						Total:                blaxel.Int(0),
+						Granularity:          blaxel.String("minute"),
+						Input:                blaxel.Int(10000),
+						Output:               blaxel.Int(5000),
+						RatioInputOverOutput: blaxel.Int(2),
+						Step:                 blaxel.Int(1),
+						Total:                blaxel.Int(15000),
 					},
 					ResourceTypes: []string{"model"},
-					Sandbox:       blaxel.Bool(true),
+					Sandbox:       blaxel.Bool(false),
 					Type:          blaxel.PolicySpecTypeLocation,
 				},
 			},

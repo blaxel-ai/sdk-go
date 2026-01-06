@@ -34,10 +34,8 @@ func TestJobExecutionNewWithOptionalParams(t *testing.T) {
 			CreateJobExecutionRequest: blaxel.CreateJobExecutionRequestParam{
 				ID:          blaxel.String("id"),
 				ExecutionID: blaxel.String("executionId"),
-				JobID:       blaxel.String("jobId"),
-				Tasks: []map[string]any{{
-					"foo": "bar",
-				}},
+				JobID:       blaxel.String("data-processing-job"),
+				Tasks:       []any{map[string]any{}},
 				WorkspaceID: blaxel.String("workspaceId"),
 			},
 		},

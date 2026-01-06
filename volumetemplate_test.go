@@ -30,8 +30,8 @@ func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
 	_, err := client.VolumeTemplates.New(context.TODO(), blaxel.VolumeTemplateNewParams{
 		VolumeTemplate: blaxel.VolumeTemplateParam{
 			Metadata: blaxel.MetadataParam{
-				Name:        "name",
-				DisplayName: blaxel.String("displayName"),
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -191,8 +191,8 @@ func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
 		blaxel.VolumeTemplateUpsertParams{
 			VolumeTemplate: blaxel.VolumeTemplateParam{
 				Metadata: blaxel.MetadataParam{
-					Name:        "name",
-					DisplayName: blaxel.String("displayName"),
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
 					Labels: map[string]string{
 						"foo": "string",
 					},

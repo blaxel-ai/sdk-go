@@ -39,7 +39,9 @@ func NewAgentService(opts ...option.RequestOption) (r AgentService) {
 	return
 }
 
-// Create agent by name
+// Creates a new AI agent deployment from your code. The agent will be built and
+// deployed as a serverless auto-scaling endpoint. Use the Blaxel CLI 'bl deploy'
+// for a simpler deployment experience.
 func (r *AgentService) New(ctx context.Context, body AgentNewParams, opts ...option.RequestOption) (res *Agent, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "agents"
@@ -47,7 +49,8 @@ func (r *AgentService) New(ctx context.Context, body AgentNewParams, opts ...opt
 	return
 }
 
-// Get agent by name
+// Returns detailed information about an agent including its current deployment
+// status, configuration, events history, and inference endpoint URL.
 func (r *AgentService) Get(ctx context.Context, agentName string, query AgentGetParams, opts ...option.RequestOption) (res *Agent, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
@@ -59,7 +62,9 @@ func (r *AgentService) Get(ctx context.Context, agentName string, query AgentGet
 	return
 }
 
-// Update agent by name
+// Updates an agent's configuration and triggers a new deployment. Changes to
+// runtime settings, environment variables, or scaling parameters will be applied
+// on the next deployment.
 func (r *AgentService) Update(ctx context.Context, agentName string, body AgentUpdateParams, opts ...option.RequestOption) (res *Agent, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
@@ -71,7 +76,8 @@ func (r *AgentService) Update(ctx context.Context, agentName string, body AgentU
 	return
 }
 
-// List all agents
+// Returns all AI agents deployed in the workspace. Each agent includes its
+// deployment status, runtime configuration, and global inference endpoint URL.
 func (r *AgentService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Agent, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "agents"
@@ -79,7 +85,9 @@ func (r *AgentService) List(ctx context.Context, opts ...option.RequestOption) (
 	return
 }
 
-// Delete agent by name
+// Permanently deletes an agent and all its deployment history. The agent's
+// inference endpoint will immediately stop responding. This action cannot be
+// undone.
 func (r *AgentService) Delete(ctx context.Context, agentName string, opts ...option.RequestOption) (res *Agent, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
@@ -103,15 +111,19 @@ func (r *AgentService) ListRevisions(ctx context.Context, agentName string, opts
 	return
 }
 
-// Agent
+// Serverless AI agent deployment that runs your custom agent code as an
+// auto-scaling API endpoint. Agents are deployed from your code repository and
+// expose a global inference URL for querying.
 type Agent struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
-	// Agent specification for API
+	// Configuration for an AI agent including runtime settings, repository source, and
+	// deployment triggers
 	Spec AgentSpec `json:"spec,required"`
-	// Core events
+	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
-	// Agent status
+	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
 	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
@@ -142,14 +154,25 @@ func (r Agent) ToParam() AgentParam {
 	return param.Override[AgentParam](json.RawMessage(r.RawJSON()))
 }
 
-// Agent
+// Serverless AI agent deployment that runs your custom agent code as an
+// auto-scaling API endpoint. Agents are deployed from your code repository and
+// expose a global inference URL for querying.
 //
 // The properties Metadata, Spec are required.
 type AgentParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Agent specification for API
+	// Configuration for an AI agent including runtime settings, repository source, and
+	// deployment triggers
 	Spec AgentSpecParam `json:"spec,omitzero,required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEventParam `json:"events,omitzero"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	Status Status `json:"status,omitzero"`
 	paramObj
 }
 
@@ -161,23 +184,26 @@ func (r *AgentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Runtime configuration for Agent
+// Runtime configuration defining how the AI agent is deployed and scaled globally
 type AgentRuntime struct {
-	// The env variables to set in the agent. Should be a list of Kubernetes EnvVar
-	// types
+	// Environment variables injected into the agent. Supports Kubernetes EnvVar format
+	// with valueFrom references.
 	Envs []map[string]any `json:"envs"`
-	// The generation of the agent
+	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
+	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
 	// Any of "mk2", "mk3".
 	Generation AgentRuntimeGeneration `json:"generation"`
-	// The Docker image for the agent
+	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
+	// auto-populated during deployment.
 	Image string `json:"image"`
-	// The maximum number of replicas for the agent.
+	// Maximum number of concurrent agent instances for auto-scaling under load
 	MaxScale int64 `json:"maxScale"`
-	// The memory for the agent in MB
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory int64 `json:"memory"`
-	// The minimum number of replicas for the agent. Can be 0 or 1 (in which case the
-	// agent is always running in at least one location).
+	// Minimum instances to keep warm. Set to 1+ to eliminate cold starts, 0 for
+	// scale-to-zero.
 	MinScale int64 `json:"minScale"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -207,7 +233,8 @@ func (r AgentRuntime) ToParam() AgentRuntimeParam {
 	return param.Override[AgentRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// The generation of the agent
+// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
+// regions) or mk3 (microVMs, sub-25ms cold starts)
 type AgentRuntimeGeneration string
 
 const (
@@ -215,21 +242,24 @@ const (
 	AgentRuntimeGenerationMk3 AgentRuntimeGeneration = "mk3"
 )
 
-// Runtime configuration for Agent
+// Runtime configuration defining how the AI agent is deployed and scaled globally
 type AgentRuntimeParam struct {
-	// The Docker image for the agent
+	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
+	// auto-populated during deployment.
 	Image param.Opt[string] `json:"image,omitzero"`
-	// The maximum number of replicas for the agent.
+	// Maximum number of concurrent agent instances for auto-scaling under load
 	MaxScale param.Opt[int64] `json:"maxScale,omitzero"`
-	// The memory for the agent in MB
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
-	// The minimum number of replicas for the agent. Can be 0 or 1 (in which case the
-	// agent is always running in at least one location).
+	// Minimum instances to keep warm. Set to 1+ to eliminate cold starts, 0 for
+	// scale-to-zero.
 	MinScale param.Opt[int64] `json:"minScale,omitzero"`
-	// The env variables to set in the agent. Should be a list of Kubernetes EnvVar
-	// types
+	// Environment variables injected into the agent. Supports Kubernetes EnvVar format
+	// with valueFrom references.
 	Envs []map[string]any `json:"envs,omitzero"`
-	// The generation of the agent
+	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
+	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
 	// Any of "mk2", "mk3".
 	Generation AgentRuntimeGeneration `json:"generation,omitzero"`
@@ -244,16 +274,17 @@ func (r *AgentRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Agent specification for API
+// Configuration for an AI agent including runtime settings, repository source, and
+// deployment triggers
 type AgentSpec struct {
-	// Enable or disable the resource
+	// When false, the agent is disabled and will not serve inference requests
 	Enabled  bool     `json:"enabled"`
 	Policies []string `json:"policies"`
 	// Repository
 	Repository Repository `json:"repository"`
 	// Revision configuration
 	Revision RevisionConfiguration `json:"revision"`
-	// Runtime configuration for Agent
+	// Runtime configuration defining how the AI agent is deployed and scaled globally
 	Runtime AgentRuntime `json:"runtime"`
 	// Triggers to use your agent
 	Triggers []Trigger `json:"triggers"`
@@ -285,16 +316,17 @@ func (r AgentSpec) ToParam() AgentSpecParam {
 	return param.Override[AgentSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Agent specification for API
+// Configuration for an AI agent including runtime settings, repository source, and
+// deployment triggers
 type AgentSpecParam struct {
-	// Enable or disable the resource
+	// When false, the agent is disabled and will not serve inference requests
 	Enabled  param.Opt[bool] `json:"enabled,omitzero"`
 	Policies []string        `json:"policies,omitzero"`
 	// Repository
 	Repository RepositoryParam `json:"repository,omitzero"`
 	// Revision configuration
 	Revision RevisionConfigurationParam `json:"revision,omitzero"`
-	// Runtime configuration for Agent
+	// Runtime configuration defining how the AI agent is deployed and scaled globally
 	Runtime AgentRuntimeParam `json:"runtime,omitzero"`
 	// Triggers to use your agent
 	Triggers []TriggerParam `json:"triggers,omitzero"`
@@ -377,25 +409,29 @@ func (r *CoreEventParam) UnmarshalJSON(data []byte) error {
 }
 
 type Metadata struct {
-	// Model name
+	// Unique identifier for the resource within the workspace. Must be lowercase
+	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
 	Name string `json:"name,required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
 	CreatedBy string `json:"createdBy"`
-	// Model display name
+	// Human-readable name for display in the UI. Can contain spaces and special
+	// characters, max 63 characters.
 	DisplayName string `json:"displayName"`
-	// Labels
+	// Key-value pairs for organizing and filtering resources. Labels can be used to
+	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
-	// Plan
+	// Billing plan tier applied to this resource (inherited from workspace account)
 	Plan string `json:"plan"`
 	// The date and time when the resource was updated
 	UpdatedAt string `json:"updatedAt"`
 	// The user or service account who updated the resource
 	UpdatedBy string `json:"updatedBy"`
-	// URL
+	// Auto-generated endpoint URL for accessing this resource (for agents, functions,
+	// models, sandboxes)
 	URL string `json:"url"`
-	// Workspace name
+	// Name of the workspace this resource belongs to (read-only, set automatically)
 	Workspace string `json:"workspace"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -431,11 +467,14 @@ func (r Metadata) ToParam() MetadataParam {
 
 // The property Name is required.
 type MetadataParam struct {
-	// Model name
+	// Unique identifier for the resource within the workspace. Must be lowercase
+	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
 	Name string `json:"name,required"`
-	// Model display name
+	// Human-readable name for display in the UI. Can contain spaces and special
+	// characters, max 63 characters.
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
-	// Labels
+	// Key-value pairs for organizing and filtering resources. Labels can be used to
+	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels,omitzero"`
 	paramObj
 }
@@ -596,7 +635,7 @@ func (r *RevisionMetadata) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Status of a resource
+// Deployment status of a resource deployed on Blaxel
 type Status string
 
 const (
@@ -615,7 +654,7 @@ const (
 type Trigger struct {
 	// The id of the trigger
 	ID string `json:"id"`
-	// The configuration of the trigger
+	// Trigger configuration
 	Configuration TriggerConfiguration `json:"configuration"`
 	// Enable or disable the trigger (default: true)
 	Enabled bool `json:"enabled"`
@@ -649,7 +688,7 @@ func (r Trigger) ToParam() TriggerParam {
 	return param.Override[TriggerParam](json.RawMessage(r.RawJSON()))
 }
 
-// The configuration of the trigger
+// Trigger configuration
 type TriggerConfiguration struct {
 	// The authentication type of the trigger
 	AuthenticationType string `json:"authenticationType"`
@@ -664,7 +703,7 @@ type TriggerConfiguration struct {
 	// The schedule of the trigger, cron expression \* \* \* \* \*
 	Schedule string `json:"schedule"`
 	// The tasks configuration of the cronjob
-	Tasks []map[string]any `json:"tasks"`
+	Tasks []any `json:"tasks"`
 	// The timeout in seconds for async triggers (max 900s, MK3 only)
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -703,7 +742,7 @@ type TriggerParam struct {
 	ID param.Opt[string] `json:"id,omitzero"`
 	// Enable or disable the trigger (default: true)
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	// The configuration of the trigger
+	// Trigger configuration
 	Configuration TriggerConfigurationParam `json:"configuration,omitzero"`
 	// The type of trigger, can be http or http-async
 	//
@@ -720,7 +759,7 @@ func (r *TriggerParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The configuration of the trigger
+// Trigger configuration
 type TriggerConfigurationParam struct {
 	// The authentication type of the trigger
 	AuthenticationType param.Opt[string] `json:"authenticationType,omitzero"`
@@ -737,7 +776,7 @@ type TriggerConfigurationParam struct {
 	// The timeout in seconds for async triggers (max 900s, MK3 only)
 	Timeout param.Opt[int64] `json:"timeout,omitzero"`
 	// The tasks configuration of the cronjob
-	Tasks []map[string]any `json:"tasks,omitzero"`
+	Tasks []any `json:"tasks,omitzero"`
 	paramObj
 }
 
@@ -750,7 +789,9 @@ func (r *TriggerConfigurationParam) UnmarshalJSON(data []byte) error {
 }
 
 type AgentNewParams struct {
-	// Agent
+	// Serverless AI agent deployment that runs your custom agent code as an
+	// auto-scaling API endpoint. Agents are deployed from your code repository and
+	// expose a global inference URL for querying.
 	Agent AgentParam
 	paramObj
 }
@@ -763,7 +804,7 @@ func (r *AgentNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type AgentGetParams struct {
-	// Show secret values (admin only)
+	// Show secret values (requires workspace admin role)
 	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
 	paramObj
 }
@@ -777,7 +818,9 @@ func (r AgentGetParams) URLQuery() (v url.Values, err error) {
 }
 
 type AgentUpdateParams struct {
-	// Agent
+	// Serverless AI agent deployment that runs your custom agent code as an
+	// auto-scaling API endpoint. Agents are deployed from your code repository and
+	// expose a global inference URL for querying.
 	Agent AgentParam
 	paramObj
 }

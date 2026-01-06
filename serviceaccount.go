@@ -37,7 +37,9 @@ func NewServiceAccountService(opts ...option.RequestOption) (r ServiceAccountSer
 	return
 }
 
-// Creates a service account in the workspace.
+// Creates a new service account for machine-to-machine authentication. Returns
+// client ID and secret (secret is only shown once at creation). Use these
+// credentials for OAuth client_credentials flow.
 func (r *ServiceAccountService) New(ctx context.Context, body ServiceAccountNewParams, opts ...option.RequestOption) (res *ServiceAccountNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "service_accounts"
@@ -45,7 +47,8 @@ func (r *ServiceAccountService) New(ctx context.Context, body ServiceAccountNewP
 	return
 }
 
-// Updates a service account.
+// Updates a service account's name or description. Credentials (client ID/secret)
+// cannot be changed.
 func (r *ServiceAccountService) Update(ctx context.Context, clientID string, body ServiceAccountUpdateParams, opts ...option.RequestOption) (res *ServiceAccountUpdateResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clientID == "" {
@@ -57,7 +60,9 @@ func (r *ServiceAccountService) Update(ctx context.Context, clientID string, bod
 	return
 }
 
-// Returns a list of all service accounts in the workspace.
+// Returns all service accounts in the workspace. Service accounts are machine
+// identities for external systems to authenticate with Blaxel via OAuth or API
+// keys.
 func (r *ServiceAccountService) List(ctx context.Context, opts ...option.RequestOption) (res *[]ServiceAccountListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "service_accounts"
@@ -65,7 +70,8 @@ func (r *ServiceAccountService) List(ctx context.Context, opts ...option.Request
 	return
 }
 
-// Deletes a service account.
+// Permanently deletes a service account and invalidates all its credentials. Any
+// systems using this service account will lose access immediately.
 func (r *ServiceAccountService) Delete(ctx context.Context, clientID string, opts ...option.RequestOption) (res *ServiceAccountDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clientID == "" {

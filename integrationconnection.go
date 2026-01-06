@@ -39,7 +39,9 @@ func NewIntegrationConnectionService(opts ...option.RequestOption) (r Integratio
 	return
 }
 
-// Create a connection for an integration.
+// Creates a new integration connection with credentials for an external service.
+// The connection can then be used by models, functions, and other resources to
+// authenticate with the service.
 func (r *IntegrationConnectionService) New(ctx context.Context, body IntegrationConnectionNewParams, opts ...option.RequestOption) (res *IntegrationConnection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "integrations/connections"
@@ -47,7 +49,8 @@ func (r *IntegrationConnectionService) New(ctx context.Context, body Integration
 	return
 }
 
-// Returns an integration connection by integration name and connection name.
+// Returns detailed information about an integration connection including its
+// provider type, configuration (secrets are masked), and usage status.
 func (r *IntegrationConnectionService) Get(ctx context.Context, connectionName string, opts ...option.RequestOption) (res *IntegrationConnection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if connectionName == "" {
@@ -59,7 +62,8 @@ func (r *IntegrationConnectionService) Get(ctx context.Context, connectionName s
 	return
 }
 
-// Update an integration connection by integration name and connection name.
+// Updates an integration connection's configuration or credentials. Changes take
+// effect immediately for all resources using this connection.
 func (r *IntegrationConnectionService) Update(ctx context.Context, connectionName string, body IntegrationConnectionUpdateParams, opts ...option.RequestOption) (res *IntegrationConnection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if connectionName == "" {
@@ -71,7 +75,9 @@ func (r *IntegrationConnectionService) Update(ctx context.Context, connectionNam
 	return
 }
 
-// Returns a list of all connections integrations in the workspace.
+// Returns all configured integration connections in the workspace. Each connection
+// stores credentials and settings for an external service (LLM provider, API,
+// database).
 func (r *IntegrationConnectionService) List(ctx context.Context, opts ...option.RequestOption) (res *[]IntegrationConnection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "integrations/connections"
@@ -79,7 +85,8 @@ func (r *IntegrationConnectionService) List(ctx context.Context, opts ...option.
 	return
 }
 
-// Deletes an integration connection by integration name and connection name.
+// Permanently deletes an integration connection. Any resources using this
+// connection will lose access to the external service.
 func (r *IntegrationConnectionService) Delete(ctx context.Context, connectionName string, opts ...option.RequestOption) (res *IntegrationConnection, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if connectionName == "" {
@@ -104,11 +111,14 @@ func (r *IntegrationConnectionService) ListEndpointConfigurations(ctx context.Co
 	return
 }
 
-// Integration Connection
+// Configured connection to an external service (LLM provider, API, SaaS, database)
+// storing credentials and settings for use by workspace resources.
 type IntegrationConnection struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
-	// Integration connection specification
+	// Specification defining the integration type, configuration parameters, and
+	// encrypted credentials
 	Spec IntegrationConnectionSpec `json:"spec,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -134,13 +144,16 @@ func (r IntegrationConnection) ToParam() IntegrationConnectionParam {
 	return param.Override[IntegrationConnectionParam](json.RawMessage(r.RawJSON()))
 }
 
-// Integration Connection
+// Configured connection to an external service (LLM provider, API, SaaS, database)
+// storing credentials and settings for use by workspace resources.
 //
 // The properties Metadata, Spec are required.
 type IntegrationConnectionParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Integration connection specification
+	// Specification defining the integration type, configuration parameters, and
+	// encrypted credentials
 	Spec IntegrationConnectionSpecParam `json:"spec,omitzero,required"`
 	paramObj
 }
@@ -153,15 +166,17 @@ func (r *IntegrationConnectionParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Integration connection specification
+// Specification defining the integration type, configuration parameters, and
+// encrypted credentials
 type IntegrationConnectionSpec struct {
-	// Additional configuration for the integration
+	// Non-sensitive configuration parameters for the integration (e.g., organization
+	// ID, region)
 	Config map[string]string `json:"config"`
-	// Integration type
+	// Integration provider type (e.g., openai, anthropic, github, slack)
 	Integration string `json:"integration"`
-	// Sandbox mode
+	// Whether this connection uses sandbox/test credentials instead of production
 	Sandbox bool `json:"sandbox"`
-	// Integration secret
+	// Encrypted credentials and API keys for authenticating with the external service
 	Secret map[string]string `json:"secret"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -190,15 +205,17 @@ func (r IntegrationConnectionSpec) ToParam() IntegrationConnectionSpecParam {
 	return param.Override[IntegrationConnectionSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Integration connection specification
+// Specification defining the integration type, configuration parameters, and
+// encrypted credentials
 type IntegrationConnectionSpecParam struct {
-	// Integration type
+	// Integration provider type (e.g., openai, anthropic, github, slack)
 	Integration param.Opt[string] `json:"integration,omitzero"`
-	// Sandbox mode
+	// Whether this connection uses sandbox/test credentials instead of production
 	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
-	// Additional configuration for the integration
+	// Non-sensitive configuration parameters for the integration (e.g., organization
+	// ID, region)
 	Config map[string]string `json:"config,omitzero"`
-	// Integration secret
+	// Encrypted credentials and API keys for authenticating with the external service
 	Secret map[string]string `json:"secret,omitzero"`
 	paramObj
 }
@@ -212,7 +229,8 @@ func (r *IntegrationConnectionSpecParam) UnmarshalJSON(data []byte) error {
 }
 
 type IntegrationConnectionNewParams struct {
-	// Integration Connection
+	// Configured connection to an external service (LLM provider, API, SaaS, database)
+	// storing credentials and settings for use by workspace resources.
 	IntegrationConnection IntegrationConnectionParam
 	paramObj
 }
@@ -225,7 +243,8 @@ func (r *IntegrationConnectionNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type IntegrationConnectionUpdateParams struct {
-	// Integration Connection
+	// Configured connection to an external service (LLM provider, API, SaaS, database)
+	// storing credentials and settings for use by workspace resources.
 	IntegrationConnection IntegrationConnectionParam
 	paramObj
 }

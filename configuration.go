@@ -32,7 +32,8 @@ func NewConfigurationService(opts ...option.RequestOption) (r ConfigurationServi
 	return
 }
 
-// List all configurations
+// Returns global platform configuration including available regions, countries,
+// continents, and private locations for deployment policies.
 func (r *ConfigurationService) List(ctx context.Context, opts ...option.RequestOption) (res *ConfigurationListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "configuration"
@@ -72,8 +73,7 @@ type ConfigurationListResponseContinent struct {
 	// Continent display name
 	DisplayName string `json:"displayName"`
 	// Continent code
-	Name        string         `json:"name"`
-	ExtraFields map[string]any `json:",extras"`
+	Name string `json:"name"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DisplayName respjson.Field
@@ -94,8 +94,7 @@ type ConfigurationListResponseCountry struct {
 	// Country display name
 	DisplayName string `json:"displayName"`
 	// Country code
-	Name        string         `json:"name"`
-	ExtraFields map[string]any `json:",extras"`
+	Name string `json:"name"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DisplayName respjson.Field
@@ -114,8 +113,7 @@ func (r *ConfigurationListResponseCountry) UnmarshalJSON(data []byte) error {
 // Private location available for policies
 type ConfigurationListResponsePrivateLocation struct {
 	// Location name
-	Name        string         `json:"name"`
-	ExtraFields map[string]any `json:",extras"`
+	Name string `json:"name"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Name        respjson.Field
@@ -143,8 +141,7 @@ type ConfigurationListResponseRegion struct {
 	// Region display name
 	Location string `json:"location"`
 	// Region name
-	Name        string         `json:"name"`
-	ExtraFields map[string]any `json:",extras"`
+	Name string `json:"name"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Allowed        respjson.Field

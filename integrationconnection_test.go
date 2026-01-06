@@ -30,8 +30,8 @@ func TestIntegrationConnectionNew(t *testing.T) {
 	_, err := client.Integrations.Connections.New(context.TODO(), blaxel.IntegrationConnectionNewParams{
 		IntegrationConnection: blaxel.IntegrationConnectionParam{
 			Metadata: blaxel.MetadataParam{
-				Name:        "name",
-				DisplayName: blaxel.String("displayName"),
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -40,8 +40,8 @@ func TestIntegrationConnectionNew(t *testing.T) {
 				Config: map[string]string{
 					"foo": "string",
 				},
-				Integration: blaxel.String("integration"),
-				Sandbox:     blaxel.Bool(true),
+				Integration: blaxel.String("openai"),
+				Sandbox:     blaxel.Bool(false),
 				Secret: map[string]string{
 					"foo": "string",
 				},
@@ -101,8 +101,8 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 		blaxel.IntegrationConnectionUpdateParams{
 			IntegrationConnection: blaxel.IntegrationConnectionParam{
 				Metadata: blaxel.MetadataParam{
-					Name:        "name",
-					DisplayName: blaxel.String("displayName"),
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -111,8 +111,8 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 					Config: map[string]string{
 						"foo": "string",
 					},
-					Integration: blaxel.String("integration"),
-					Sandbox:     blaxel.Bool(true),
+					Integration: blaxel.String("openai"),
+					Sandbox:     blaxel.Bool(false),
 					Secret: map[string]string{
 						"foo": "string",
 					},

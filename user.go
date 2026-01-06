@@ -35,7 +35,8 @@ func NewUserService(opts ...option.RequestOption) (r UserService) {
 	return
 }
 
-// Returns a list of all users in the workspace.
+// Returns all team members in the workspace including their roles (admin or
+// member) and invitation status.
 func (r *UserService) List(ctx context.Context, opts ...option.RequestOption) (res *[]WorkspaceUser, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "users"
@@ -43,7 +44,8 @@ func (r *UserService) List(ctx context.Context, opts ...option.RequestOption) (r
 	return
 }
 
-// Invites a user to the workspace by email.
+// Invites a new team member to the workspace by email. The invitee will receive an
+// email to accept the invitation before gaining access to workspace resources.
 func (r *UserService) Invite(ctx context.Context, body UserInviteParams, opts ...option.RequestOption) (res *PendingInvitation, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "users"
