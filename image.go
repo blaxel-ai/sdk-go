@@ -36,7 +36,8 @@ func NewImageService(opts ...option.RequestOption) (r ImageService) {
 	return
 }
 
-// Returns an image by name.
+// Returns detailed information about a container image including all available
+// tags, creation dates, and size information.
 func (r *ImageService) Get(ctx context.Context, imageName string, query ImageGetParams, opts ...option.RequestOption) (res *Image, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if query.ResourceType == "" {
@@ -52,7 +53,9 @@ func (r *ImageService) Get(ctx context.Context, imageName string, query ImageGet
 	return
 }
 
-// Returns a list of all images in the workspace grouped by repository with tags.
+// Returns all container images stored in the workspace registry, grouped by
+// repository with their available tags. Images are created during deployments of
+// agents, functions, sandboxes, and jobs.
 func (r *ImageService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Image, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
@@ -60,7 +63,8 @@ func (r *ImageService) List(ctx context.Context, opts ...option.RequestOption) (
 	return
 }
 
-// Deletes an image by name.
+// Deletes a container image and all its tags from the workspace registry. Will
+// fail if the image is currently in use by an active deployment.
 func (r *ImageService) Delete(ctx context.Context, imageName string, body ImageDeleteParams, opts ...option.RequestOption) (res *Image, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if body.ResourceType == "" {
@@ -76,8 +80,9 @@ func (r *ImageService) Delete(ctx context.Context, imageName string, body ImageD
 	return
 }
 
-// Deletes all unused images in the workspace. Only removes images that are not
-// currently being used by any agents, functions, sandboxes, or jobs.
+// Cleans up unused container images in the workspace registry. Only removes images
+// that are not currently referenced by any active agent, function, sandbox, or job
+// deployment.
 func (r *ImageService) Cleanup(ctx context.Context, opts ...option.RequestOption) (res *ImageCleanupResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
@@ -86,10 +91,8 @@ func (r *ImageService) Cleanup(ctx context.Context, opts ...option.RequestOption
 }
 
 type Image struct {
-	// Metadata for the image.
 	Metadata ImageMetadata `json:"metadata,required"`
-	// Specification for the image.
-	Spec ImageSpec `json:"spec,required"`
+	Spec     ImageSpec     `json:"spec,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
@@ -105,7 +108,6 @@ func (r *Image) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Metadata for the image.
 type ImageMetadata struct {
 	// The date and time when the image was created.
 	CreatedAt string `json:"createdAt"`
@@ -142,7 +144,6 @@ func (r *ImageMetadata) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Specification for the image.
 type ImageSpec struct {
 	// The size of the image in bytes.
 	Size int64 `json:"size"`
@@ -171,8 +172,7 @@ type ImageSpecTag struct {
 	// The size of the image in bytes.
 	Size int64 `json:"size"`
 	// The date and time when the tag was last updated.
-	UpdatedAt   string         `json:"updatedAt"`
-	ExtraFields map[string]any `json:",extras"`
+	UpdatedAt string `json:"updatedAt"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CreatedAt   respjson.Field

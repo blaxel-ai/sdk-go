@@ -30,8 +30,8 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 	_, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
 		Sandbox: blaxel.SandboxParam{
 			Metadata: blaxel.MetadataParam{
-				Name:        "name",
-				DisplayName: blaxel.String("displayName"),
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -42,30 +42,39 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 					ExpirationPolicies: []blaxel.ExpirationPolicyParam{{
 						Action: blaxel.ExpirationPolicyActionDelete,
 						Type:   blaxel.ExpirationPolicyTypeTtlIdle,
-						Value:  blaxel.String("value"),
+						Value:  blaxel.String("24h"),
 					}},
 				},
-				Region: blaxel.String("region"),
+				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
 					Envs: []map[string]any{{
 						"foo": "bar",
 					}},
-					Expires: blaxel.String("expires"),
-					Image:   blaxel.String("image"),
-					Memory:  blaxel.Int(0),
+					Expires: blaxel.String("2025-12-31T23:59:59Z"),
+					Image:   blaxel.String("blaxel/base-image:latest"),
+					Memory:  blaxel.Int(4096),
 					Ports: []blaxel.PortParam{{
-						Name:     blaxel.String("name"),
+						Name:     blaxel.String("http"),
 						Protocol: blaxel.PortProtocolHTTP,
-						Target:   blaxel.Int(0),
+						Target:   blaxel.Int(8080),
 					}},
-					Ttl: blaxel.String("ttl"),
+					Ttl: blaxel.String("24h"),
 				},
 				Volumes: []blaxel.VolumeAttachmentParam{{
-					MountPath: blaxel.String("mountPath"),
-					Name:      blaxel.String("name"),
-					ReadOnly:  blaxel.Bool(true),
+					MountPath: blaxel.String("/mnt/data"),
+					Name:      blaxel.String("my-volume"),
+					ReadOnly:  blaxel.Bool(false),
 				}},
 			},
+			Events: []blaxel.CoreEventParam{{
+				CanaryRevision: blaxel.String("canaryRevision"),
+				Message:        blaxel.String("Deployment successful"),
+				Revision:       blaxel.String("rev-abc123"),
+				Status:         blaxel.String("DEPLOYED"),
+				Time:           blaxel.String("2025-01-15T10:30:00Z"),
+				Type:           blaxel.String("deployment"),
+			}},
+			Status: blaxel.StatusDeleting,
 		},
 	})
 	if err != nil {
@@ -127,8 +136,8 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 		blaxel.SandboxUpdateParams{
 			Sandbox: blaxel.SandboxParam{
 				Metadata: blaxel.MetadataParam{
-					Name:        "name",
-					DisplayName: blaxel.String("displayName"),
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -139,30 +148,39 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						ExpirationPolicies: []blaxel.ExpirationPolicyParam{{
 							Action: blaxel.ExpirationPolicyActionDelete,
 							Type:   blaxel.ExpirationPolicyTypeTtlIdle,
-							Value:  blaxel.String("value"),
+							Value:  blaxel.String("24h"),
 						}},
 					},
-					Region: blaxel.String("region"),
+					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{
 						Envs: []map[string]any{{
 							"foo": "bar",
 						}},
-						Expires: blaxel.String("expires"),
-						Image:   blaxel.String("image"),
-						Memory:  blaxel.Int(0),
+						Expires: blaxel.String("2025-12-31T23:59:59Z"),
+						Image:   blaxel.String("blaxel/base-image:latest"),
+						Memory:  blaxel.Int(4096),
 						Ports: []blaxel.PortParam{{
-							Name:     blaxel.String("name"),
+							Name:     blaxel.String("http"),
 							Protocol: blaxel.PortProtocolHTTP,
-							Target:   blaxel.Int(0),
+							Target:   blaxel.Int(8080),
 						}},
-						Ttl: blaxel.String("ttl"),
+						Ttl: blaxel.String("24h"),
 					},
 					Volumes: []blaxel.VolumeAttachmentParam{{
-						MountPath: blaxel.String("mountPath"),
-						Name:      blaxel.String("name"),
-						ReadOnly:  blaxel.Bool(true),
+						MountPath: blaxel.String("/mnt/data"),
+						Name:      blaxel.String("my-volume"),
+						ReadOnly:  blaxel.Bool(false),
 					}},
 				},
+				Events: []blaxel.CoreEventParam{{
+					CanaryRevision: blaxel.String("canaryRevision"),
+					Message:        blaxel.String("Deployment successful"),
+					Revision:       blaxel.String("rev-abc123"),
+					Status:         blaxel.String("DEPLOYED"),
+					Time:           blaxel.String("2025-01-15T10:30:00Z"),
+					Type:           blaxel.String("deployment"),
+				}},
+				Status: blaxel.StatusDeleting,
 			},
 		},
 	)

@@ -34,7 +34,8 @@ func NewTemplateService(opts ...option.RequestOption) (r TemplateService) {
 	return
 }
 
-// Returns a template by name.
+// Returns detailed information about a deployment template including its
+// configuration, source code reference, and available parameters.
 func (r *TemplateService) Get(ctx context.Context, templateName string, opts ...option.RequestOption) (res *Template, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if templateName == "" {
@@ -46,7 +47,8 @@ func (r *TemplateService) Get(ctx context.Context, templateName string, opts ...
 	return
 }
 
-// Returns a list of all templates.
+// Returns all deployment templates available for creating agents, functions, and
+// other resources with pre-configured settings and code.
 func (r *TemplateService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Template, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "templates"
@@ -116,8 +118,7 @@ type TemplateVariable struct {
 	// Path of the variable
 	Path string `json:"path"`
 	// Whether the variable is secret
-	Secret      bool           `json:"secret"`
-	ExtraFields map[string]any `json:",extras"`
+	Secret bool `json:"secret"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Description respjson.Field

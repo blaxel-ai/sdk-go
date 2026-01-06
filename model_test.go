@@ -30,8 +30,8 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 	_, err := client.Models.New(context.TODO(), blaxel.ModelNewParams{
 		Model: blaxel.ModelParam{
 			Metadata: blaxel.MetadataParam{
-				Name:        "name",
-				DisplayName: blaxel.String("displayName"),
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -39,19 +39,28 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 			Spec: blaxel.ModelSpecParam{
 				Enabled: blaxel.Bool(true),
 				Flavors: []blaxel.FlavorParam{{
-					Name: blaxel.String("name"),
+					Name: blaxel.String("t4"),
 					Type: blaxel.FlavorTypeCPU,
 				}},
 				IntegrationConnections: []string{"string"},
 				Policies:               []string{"string"},
 				Runtime: blaxel.ModelRuntimeParam{
 					EndpointName: blaxel.String("endpointName"),
-					Model:        blaxel.String("model"),
-					Organization: blaxel.String("organization"),
-					Type:         blaxel.ModelRuntimeTypeHfPrivateEndpoint,
+					Model:        blaxel.String("gpt-4.1"),
+					Organization: blaxel.String("org-abc123"),
+					Type:         blaxel.ModelRuntimeTypeOpenAI,
 				},
-				Sandbox: blaxel.Bool(true),
+				Sandbox: blaxel.Bool(false),
 			},
+			Events: []blaxel.CoreEventParam{{
+				CanaryRevision: blaxel.String("canaryRevision"),
+				Message:        blaxel.String("Deployment successful"),
+				Revision:       blaxel.String("rev-abc123"),
+				Status:         blaxel.String("DEPLOYED"),
+				Time:           blaxel.String("2025-01-15T10:30:00Z"),
+				Type:           blaxel.String("deployment"),
+			}},
+			Status: blaxel.StatusDeleting,
 		},
 	})
 	if err != nil {
@@ -107,8 +116,8 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 		blaxel.ModelUpdateParams{
 			Model: blaxel.ModelParam{
 				Metadata: blaxel.MetadataParam{
-					Name:        "name",
-					DisplayName: blaxel.String("displayName"),
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -116,19 +125,28 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 				Spec: blaxel.ModelSpecParam{
 					Enabled: blaxel.Bool(true),
 					Flavors: []blaxel.FlavorParam{{
-						Name: blaxel.String("name"),
+						Name: blaxel.String("t4"),
 						Type: blaxel.FlavorTypeCPU,
 					}},
 					IntegrationConnections: []string{"string"},
 					Policies:               []string{"string"},
 					Runtime: blaxel.ModelRuntimeParam{
 						EndpointName: blaxel.String("endpointName"),
-						Model:        blaxel.String("model"),
-						Organization: blaxel.String("organization"),
-						Type:         blaxel.ModelRuntimeTypeHfPrivateEndpoint,
+						Model:        blaxel.String("gpt-4.1"),
+						Organization: blaxel.String("org-abc123"),
+						Type:         blaxel.ModelRuntimeTypeOpenAI,
 					},
-					Sandbox: blaxel.Bool(true),
+					Sandbox: blaxel.Bool(false),
 				},
+				Events: []blaxel.CoreEventParam{{
+					CanaryRevision: blaxel.String("canaryRevision"),
+					Message:        blaxel.String("Deployment successful"),
+					Revision:       blaxel.String("rev-abc123"),
+					Status:         blaxel.String("DEPLOYED"),
+					Time:           blaxel.String("2025-01-15T10:30:00Z"),
+					Type:           blaxel.String("deployment"),
+				}},
+				Status: blaxel.StatusDeleting,
 			},
 		},
 	)

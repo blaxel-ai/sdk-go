@@ -37,7 +37,9 @@ func NewPolicyService(opts ...option.RequestOption) (r PolicyService) {
 	return
 }
 
-// Creates a policy.
+// Creates a new governance policy to control where and how resources are deployed.
+// Policies can restrict deployment to specific regions, countries, or continents
+// for compliance.
 func (r *PolicyService) New(ctx context.Context, body PolicyNewParams, opts ...option.RequestOption) (res *Policy, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "policies"
@@ -45,7 +47,9 @@ func (r *PolicyService) New(ctx context.Context, body PolicyNewParams, opts ...o
 	return
 }
 
-// Returns a policy by name.
+// Returns detailed information about a governance policy including its type
+// (location, flavor, or maxToken), restrictions, and which resource types it
+// applies to.
 func (r *PolicyService) Get(ctx context.Context, policyName string, opts ...option.RequestOption) (res *Policy, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if policyName == "" {
@@ -57,7 +61,8 @@ func (r *PolicyService) Get(ctx context.Context, policyName string, opts ...opti
 	return
 }
 
-// Updates a policy.
+// Updates a governance policy's restrictions. Changes take effect on the next
+// deployment of resources using this policy.
 func (r *PolicyService) Update(ctx context.Context, policyName string, body PolicyUpdateParams, opts ...option.RequestOption) (res *Policy, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if policyName == "" {
@@ -69,7 +74,8 @@ func (r *PolicyService) Update(ctx context.Context, policyName string, body Poli
 	return
 }
 
-// Returns a list of all policies in the workspace.
+// Returns all governance policies in the workspace. Policies control deployment
+// locations, hardware flavors, and token limits for agents, functions, and models.
 func (r *PolicyService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Policy, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "policies"
@@ -77,7 +83,8 @@ func (r *PolicyService) List(ctx context.Context, opts ...option.RequestOption) 
 	return
 }
 
-// Deletes a policy by name.
+// Permanently deletes a governance policy. Resources using this policy will need
+// to be updated to use a different policy.
 func (r *PolicyService) Delete(ctx context.Context, policyName string, opts ...option.RequestOption) (res *Policy, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if policyName == "" {
@@ -92,7 +99,8 @@ func (r *PolicyService) Delete(ctx context.Context, policyName string, opts ...o
 // Rule that controls how a deployment is made and served (e.g. location
 // restrictions)
 type Policy struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
 	// Policy specification
 	Spec PolicySpec `json:"spec,required"`
@@ -125,7 +133,8 @@ func (r Policy) ToParam() PolicyParam {
 //
 // The properties Metadata, Spec are required.
 type PolicyParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
 	// Policy specification
 	Spec PolicySpecParam `json:"spec,omitzero,required"`
@@ -269,14 +278,13 @@ func (r *PolicyMaxTokensParam) UnmarshalJSON(data []byte) error {
 
 // Policy specification
 type PolicySpec struct {
-	// Flavors allowed by the policy. If not set, all flavors are allowed.
+	// Types of hardware available for deployments
 	Flavors []Flavor `json:"flavors"`
-	// Locations allowed by the policy. If not set, all locations are allowed.
+	// PolicyLocations is a local type that wraps a slice of Location
 	Locations []PolicyLocation `json:"locations"`
-	// Max token allowed by the policy. If not set, no max token is allowed.
+	// PolicyMaxTokens is a local type that wraps a slice of PolicyMaxTokens
 	MaxTokens PolicyMaxTokens `json:"maxTokens"`
-	// ResourceTypes where the policy is applied. If not set, the policy is applied to
-	// all resource types.
+	// PolicyResourceTypes is a local type that wraps a slice of PolicyResourceType
 	//
 	// Any of "model", "function", "agent", "sandbox".
 	ResourceTypes []string `json:"resourceTypes"`
@@ -327,14 +335,13 @@ const (
 type PolicySpecParam struct {
 	// Sandbox mode
 	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
-	// Flavors allowed by the policy. If not set, all flavors are allowed.
+	// Types of hardware available for deployments
 	Flavors []FlavorParam `json:"flavors,omitzero"`
-	// Locations allowed by the policy. If not set, all locations are allowed.
+	// PolicyLocations is a local type that wraps a slice of Location
 	Locations []PolicyLocationParam `json:"locations,omitzero"`
-	// Max token allowed by the policy. If not set, no max token is allowed.
+	// PolicyMaxTokens is a local type that wraps a slice of PolicyMaxTokens
 	MaxTokens PolicyMaxTokensParam `json:"maxTokens,omitzero"`
-	// ResourceTypes where the policy is applied. If not set, the policy is applied to
-	// all resource types.
+	// PolicyResourceTypes is a local type that wraps a slice of PolicyResourceType
 	//
 	// Any of "model", "function", "agent", "sandbox".
 	ResourceTypes []string `json:"resourceTypes,omitzero"`

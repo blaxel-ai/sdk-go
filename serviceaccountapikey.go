@@ -35,7 +35,8 @@ func NewServiceAccountAPIKeyService(opts ...option.RequestOption) (r ServiceAcco
 	return
 }
 
-// Creates an API key for a service account.
+// Creates a new long-lived API key for a service account. The full key value is
+// only returned once at creation. API keys can have optional expiration dates.
 func (r *ServiceAccountAPIKeyService) New(ctx context.Context, clientID string, body ServiceAccountAPIKeyNewParams, opts ...option.RequestOption) (res *APIKey, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clientID == "" {
@@ -47,7 +48,8 @@ func (r *ServiceAccountAPIKeyService) New(ctx context.Context, clientID string, 
 	return
 }
 
-// Returns a list of all API keys for a service account.
+// Returns all long-lived API keys created for a service account. API keys provide
+// an alternative to OAuth for simpler authentication scenarios.
 func (r *ServiceAccountAPIKeyService) List(ctx context.Context, clientID string, opts ...option.RequestOption) (res *[]APIKey, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clientID == "" {
@@ -59,7 +61,8 @@ func (r *ServiceAccountAPIKeyService) List(ctx context.Context, clientID string,
 	return
 }
 
-// Deletes an API key for a service account.
+// Revokes an API key for a service account. The key becomes invalid immediately
+// and any requests using it will fail authentication.
 func (r *ServiceAccountAPIKeyService) Delete(ctx context.Context, apiKeyID string, body ServiceAccountAPIKeyDeleteParams, opts ...option.RequestOption) (err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
@@ -85,13 +88,14 @@ type APIKey struct {
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
 	CreatedBy string `json:"createdBy"`
-	// Duration until expiration (in seconds)
+	// Duration until expiration. Supports formats like '30d' (30 days), '24h' (24
+	// hours), '1w' (1 week). If not set, the API key never expires.
 	ExpiresIn string `json:"expires_in"`
 	// Name for the API key
 	Name string `json:"name"`
 	// User subject identifier
 	Sub string `json:"sub"`
-	// Subject type
+	// Subject type (user or service_account)
 	SubType string `json:"sub_type"`
 	// The date and time when the resource was updated
 	UpdatedAt string `json:"updatedAt"`
@@ -121,7 +125,8 @@ func (r *APIKey) UnmarshalJSON(data []byte) error {
 }
 
 type ServiceAccountAPIKeyNewParams struct {
-	// Expiration period for the API key
+	// Expiration period for the API key. Supports formats like '30d' (30 days), '24h'
+	// (24 hours), '1w' (1 week). If not set, the API key never expires.
 	ExpiresIn param.Opt[string] `json:"expires_in,omitzero"`
 	// Name for the API key
 	Name param.Opt[string] `json:"name,omitzero"`

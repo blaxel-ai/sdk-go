@@ -30,28 +30,28 @@ func TestVolumeNewWithOptionalParams(t *testing.T) {
 	_, err := client.Volumes.New(context.TODO(), blaxel.VolumeNewParams{
 		Volume: blaxel.VolumeParam{
 			Metadata: blaxel.MetadataParam{
-				Name:        "name",
-				DisplayName: blaxel.String("displayName"),
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
 			},
 			Spec: blaxel.VolumeSpecParam{
 				InfrastructureID: blaxel.String("infrastructureId"),
-				Region:           blaxel.String("region"),
-				Size:             blaxel.Int(0),
-				Template:         blaxel.String("template"),
+				Region:           blaxel.String("us-pdx-1"),
+				Size:             blaxel.Int(1024),
+				Template:         blaxel.String("mytemplate:latest"),
 			},
 			Events: []blaxel.CoreEventParam{{
 				CanaryRevision: blaxel.String("canaryRevision"),
-				Message:        blaxel.String("message"),
-				Revision:       blaxel.String("revision"),
-				Status:         blaxel.String("status"),
-				Time:           blaxel.String("time"),
-				Type:           blaxel.String("type"),
+				Message:        blaxel.String("Deployment successful"),
+				Revision:       blaxel.String("rev-abc123"),
+				Status:         blaxel.String("DEPLOYED"),
+				Time:           blaxel.String("2025-01-15T10:30:00Z"),
+				Type:           blaxel.String("deployment"),
 			}},
 			State: blaxel.VolumeStateParam{
-				AttachedTo: blaxel.String("attachedTo"),
+				AttachedTo: blaxel.String("sandbox:my-sandbox"),
 			},
 			Status:       blaxel.String("status"),
 			TerminatedAt: blaxel.String("terminatedAt"),

@@ -32,7 +32,9 @@ func NewMcpService(opts ...option.RequestOption) (r McpService) {
 	return
 }
 
-// List MCP hub definitions
+// Returns all pre-built MCP server definitions available in the Blaxel Hub. These
+// can be deployed directly to your workspace with pre-configured tools and
+// integrations.
 func (r *McpService) GetHub(ctx context.Context, opts ...option.RequestOption) (res *[]McpGetHubResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "mcp/hub"

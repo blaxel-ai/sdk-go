@@ -37,7 +37,9 @@ func NewVolumeService(opts ...option.RequestOption) (r VolumeService) {
 	return
 }
 
-// Creates a volume.
+// Creates a new persistent storage volume that can be attached to sandboxes.
+// Volumes must be created in a specific region and can only attach to sandboxes in
+// the same region.
 func (r *VolumeService) New(ctx context.Context, body VolumeNewParams, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "volumes"
@@ -45,7 +47,8 @@ func (r *VolumeService) New(ctx context.Context, body VolumeNewParams, opts ...o
 	return
 }
 
-// Returns a volume by name.
+// Returns detailed information about a volume including its size, region,
+// attachment status, and any events history.
 func (r *VolumeService) Get(ctx context.Context, volumeName string, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if volumeName == "" {
@@ -57,7 +60,9 @@ func (r *VolumeService) Get(ctx context.Context, volumeName string, opts ...opti
 	return
 }
 
-// Returns a list of all volumes in the workspace.
+// Returns all persistent storage volumes in the workspace. Volumes can be attached
+// to sandboxes for durable file storage that persists across sessions and sandbox
+// deletions.
 func (r *VolumeService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "volumes"
@@ -65,7 +70,8 @@ func (r *VolumeService) List(ctx context.Context, opts ...option.RequestOption) 
 	return
 }
 
-// Deletes a volume by name.
+// Permanently deletes a volume and all its data. The volume must not be attached
+// to any sandbox. This action cannot be undone.
 func (r *VolumeService) Delete(ctx context.Context, volumeName string, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if volumeName == "" {
@@ -77,15 +83,19 @@ func (r *VolumeService) Delete(ctx context.Context, volumeName string, opts ...o
 	return
 }
 
-// Volume resource for persistent storage
+// Persistent storage volume that can be attached to sandboxes for durable file
+// storage across sessions. Volumes survive sandbox deletion and can be reattached
+// to new sandboxes.
 type Volume struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
-	// Volume specification - immutable configuration
+	// Immutable volume configuration set at creation time (size and region cannot be
+	// changed after creation)
 	Spec VolumeSpec `json:"spec,required"`
-	// Events are loaded from the events table, not stored in volume table
+	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
-	// Volume state - mutable runtime state
+	// Current runtime state of the volume including attachment status
 	State VolumeState `json:"state"`
 	// Volume status computed from events
 	Status string `json:"status"`
@@ -119,15 +129,19 @@ func (r Volume) ToParam() VolumeParam {
 	return param.Override[VolumeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Volume specification - immutable configuration
+// Immutable volume configuration set at creation time (size and region cannot be
+// changed after creation)
 type VolumeSpec struct {
 	// The internal infrastructure resource identifier for this volume
 	InfrastructureID string `json:"infrastructureId"`
-	// Region where the volume should be created (e.g. us-pdx-1, eu-lon-1)
+	// Deployment region for the volume (e.g., us-pdx-1, eu-lon-1). Must match the
+	// region of sandboxes it attaches to.
 	Region string `json:"region"`
-	// Size of the volume in MB
+	// Storage capacity in megabytes. Can be increased after creation but not
+	// decreased.
 	Size int64 `json:"size"`
-	// Volume template with revision (e.g. "mytemplate:1" or "mytemplate:latest")
+	// Volume template to initialize from, with optional revision (e.g., "mytemplate:1"
+	// or "mytemplate:latest")
 	Template string `json:"template"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -146,10 +160,10 @@ func (r *VolumeSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Volume state - mutable runtime state
+// Current runtime state of the volume including attachment status
 type VolumeState struct {
-	// Resource this volume is attached to (e.g. "sandbox:my-sandbox",
-	// "model:my-model")
+	// Resource currently using this volume in format "type:name" (e.g.,
+	// "sandbox:my-sandbox"). Empty if not attached.
 	AttachedTo string `json:"attachedTo"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -165,21 +179,25 @@ func (r *VolumeState) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Volume resource for persistent storage
+// Persistent storage volume that can be attached to sandboxes for durable file
+// storage across sessions. Volumes survive sandbox deletion and can be reattached
+// to new sandboxes.
 //
 // The properties Metadata, Spec are required.
 type VolumeParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Volume specification - immutable configuration
+	// Immutable volume configuration set at creation time (size and region cannot be
+	// changed after creation)
 	Spec VolumeSpecParam `json:"spec,omitzero,required"`
 	// Volume status computed from events
 	Status param.Opt[string] `json:"status,omitzero"`
 	// Timestamp when the volume was marked for termination
 	TerminatedAt param.Opt[string] `json:"terminatedAt,omitzero"`
-	// Events are loaded from the events table, not stored in volume table
+	// Events happening on a resource deployed on Blaxel
 	Events []CoreEventParam `json:"events,omitzero"`
-	// Volume state - mutable runtime state
+	// Current runtime state of the volume including attachment status
 	State VolumeStateParam `json:"state,omitzero"`
 	paramObj
 }
@@ -192,15 +210,19 @@ func (r *VolumeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Volume specification - immutable configuration
+// Immutable volume configuration set at creation time (size and region cannot be
+// changed after creation)
 type VolumeSpecParam struct {
 	// The internal infrastructure resource identifier for this volume
 	InfrastructureID param.Opt[string] `json:"infrastructureId,omitzero"`
-	// Region where the volume should be created (e.g. us-pdx-1, eu-lon-1)
+	// Deployment region for the volume (e.g., us-pdx-1, eu-lon-1). Must match the
+	// region of sandboxes it attaches to.
 	Region param.Opt[string] `json:"region,omitzero"`
-	// Size of the volume in MB
+	// Storage capacity in megabytes. Can be increased after creation but not
+	// decreased.
 	Size param.Opt[int64] `json:"size,omitzero"`
-	// Volume template with revision (e.g. "mytemplate:1" or "mytemplate:latest")
+	// Volume template to initialize from, with optional revision (e.g., "mytemplate:1"
+	// or "mytemplate:latest")
 	Template param.Opt[string] `json:"template,omitzero"`
 	paramObj
 }
@@ -213,10 +235,10 @@ func (r *VolumeSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Volume state - mutable runtime state
+// Current runtime state of the volume including attachment status
 type VolumeStateParam struct {
-	// Resource this volume is attached to (e.g. "sandbox:my-sandbox",
-	// "model:my-model")
+	// Resource currently using this volume in format "type:name" (e.g.,
+	// "sandbox:my-sandbox"). Empty if not attached.
 	AttachedTo param.Opt[string] `json:"attachedTo,omitzero"`
 	paramObj
 }
@@ -230,7 +252,9 @@ func (r *VolumeStateParam) UnmarshalJSON(data []byte) error {
 }
 
 type VolumeNewParams struct {
-	// Volume resource for persistent storage
+	// Persistent storage volume that can be attached to sandboxes for durable file
+	// storage across sessions. Volumes survive sandbox deletion and can be reattached
+	// to new sandboxes.
 	Volume VolumeParam
 	paramObj
 }

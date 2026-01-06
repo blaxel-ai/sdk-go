@@ -41,7 +41,9 @@ func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 	return
 }
 
-// Creates a Sandbox.
+// Creates a new sandbox VM for secure AI code execution. Sandboxes automatically
+// scale to zero when idle and resume instantly, preserving memory state including
+// running processes and filesystem.
 func (r *SandboxService) New(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
@@ -49,7 +51,9 @@ func (r *SandboxService) New(ctx context.Context, body SandboxNewParams, opts ..
 	return
 }
 
-// Returns a Sandbox by name.
+// Returns detailed information about a sandbox including its current state
+// (active/standby), configuration, attached volumes, lifecycle policies, and API
+// endpoint URL.
 func (r *SandboxService) Get(ctx context.Context, sandboxName string, query SandboxGetParams, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
@@ -61,7 +65,9 @@ func (r *SandboxService) Get(ctx context.Context, sandboxName string, query Sand
 	return
 }
 
-// Update a Sandbox by name.
+// Updates a sandbox's configuration. Note that certain changes (like image or
+// memory) may reset the sandbox state. Use lifecycle policies to control automatic
+// cleanup.
 func (r *SandboxService) Update(ctx context.Context, sandboxName string, body SandboxUpdateParams, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
@@ -73,7 +79,9 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 	return
 }
 
-// Returns a list of all Sandboxes in the workspace.
+// Returns all sandboxes in the workspace. Each sandbox includes its current state
+// (active/standby), configuration, and endpoint URL. Sandboxes resume from standby
+// in under 25ms.
 func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
@@ -81,7 +89,8 @@ func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption)
 	return
 }
 
-// Deletes a Sandbox by name.
+// Permanently deletes a sandbox and all its data. If no volumes are attached, this
+// guarantees zero data retention (ZDR). This action cannot be undone.
 func (r *SandboxService) Delete(ctx context.Context, sandboxName string, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
@@ -93,7 +102,9 @@ func (r *SandboxService) Delete(ctx context.Context, sandboxName string, opts ..
 	return
 }
 
-// List sandbox hub definitions
+// Returns all pre-built sandbox templates available in the Blaxel Hub. These
+// include popular development environments with pre-installed tools and
+// frameworks.
 func (r *SandboxService) GetHub(ctx context.Context, opts ...option.RequestOption) (res *[]SandboxGetHubResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandbox/hub"
@@ -101,17 +112,19 @@ func (r *SandboxService) GetHub(ctx context.Context, opts ...option.RequestOptio
 	return
 }
 
-// Expiration policy for sandbox lifecycle management
+// Expiration policy for automatic sandbox cleanup based on time conditions
 type ExpirationPolicy struct {
-	// Action to take when policy is triggered
+	// Action to take when the expiration condition is met
 	//
 	// Any of "delete".
 	Action ExpirationPolicyAction `json:"action"`
-	// Type of expiration policy
+	// Type of expiration policy: ttl-idle (delete after inactivity), ttl-max-age
+	// (delete after total lifetime), or date (delete at specific time)
 	//
 	// Any of "ttl-idle", "ttl-max-age", "date".
 	Type ExpirationPolicyType `json:"type"`
-	// Duration value (e.g., '1h', '24h', '7d')
+	// Duration value for TTL policies (e.g., '30m', '24h', '7d') or ISO 8601 date for
+	// date policies
 	Value string `json:"value"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -138,14 +151,15 @@ func (r ExpirationPolicy) ToParam() ExpirationPolicyParam {
 	return param.Override[ExpirationPolicyParam](json.RawMessage(r.RawJSON()))
 }
 
-// Action to take when policy is triggered
+// Action to take when the expiration condition is met
 type ExpirationPolicyAction string
 
 const (
 	ExpirationPolicyActionDelete ExpirationPolicyAction = "delete"
 )
 
-// Type of expiration policy
+// Type of expiration policy: ttl-idle (delete after inactivity), ttl-max-age
+// (delete after total lifetime), or date (delete at specific time)
 type ExpirationPolicyType string
 
 const (
@@ -154,15 +168,17 @@ const (
 	ExpirationPolicyTypeDate      ExpirationPolicyType = "date"
 )
 
-// Expiration policy for sandbox lifecycle management
+// Expiration policy for automatic sandbox cleanup based on time conditions
 type ExpirationPolicyParam struct {
-	// Duration value (e.g., '1h', '24h', '7d')
+	// Duration value for TTL policies (e.g., '30m', '24h', '7d') or ISO 8601 date for
+	// date policies
 	Value param.Opt[string] `json:"value,omitzero"`
-	// Action to take when policy is triggered
+	// Action to take when the expiration condition is met
 	//
 	// Any of "delete".
 	Action ExpirationPolicyAction `json:"action,omitzero"`
-	// Type of expiration policy
+	// Type of expiration policy: ttl-idle (delete after inactivity), ttl-max-age
+	// (delete after total lifetime), or date (delete at specific time)
 	//
 	// Any of "ttl-idle", "ttl-max-age", "date".
 	Type ExpirationPolicyType `json:"type,omitzero"`
@@ -242,17 +258,21 @@ func (r *PortParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Micro VM for running agentic tasks
+// Lightweight virtual machine for secure AI code execution. Sandboxes resume from
+// standby in under 25ms and automatically scale to zero after inactivity,
+// preserving memory state including running processes and filesystem.
 type Sandbox struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata,required"`
-	// Sandbox specification for API
+	// Configuration for a sandbox including its image, memory, ports, region, and
+	// lifecycle policies
 	Spec SandboxSpec `json:"spec,required"`
-	// Core events
+	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Last time the sandbox was used (read-only, managed by the system)
 	LastUsedAt string `json:"lastUsedAt"`
-	// Sandbox status
+	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
 	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
@@ -284,14 +304,25 @@ func (r Sandbox) ToParam() SandboxParam {
 	return param.Override[SandboxParam](json.RawMessage(r.RawJSON()))
 }
 
-// Micro VM for running agentic tasks
+// Lightweight virtual machine for secure AI code execution. Sandboxes resume from
+// standby in under 25ms and automatically scale to zero after inactivity,
+// preserving memory state including running processes and filesystem.
 //
 // The properties Metadata, Spec are required.
 type SandboxParam struct {
-	// Metadata
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
 	Metadata MetadataParam `json:"metadata,omitzero,required"`
-	// Sandbox specification for API
+	// Configuration for a sandbox including its image, memory, ports, region, and
+	// lifecycle policies
 	Spec SandboxSpecParam `json:"spec,omitzero,required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEventParam `json:"events,omitzero"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	Status Status `json:"status,omitzero"`
 	paramObj
 }
 
@@ -303,9 +334,11 @@ func (r *SandboxParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Lifecycle configuration for sandbox management
+// Lifecycle configuration controlling automatic sandbox deletion based on idle
+// time, max age, or specific dates
 type SandboxLifecycle struct {
-	// List of expiration policies
+	// List of expiration policies. Multiple policies can be combined; whichever
+	// condition is met first triggers the action.
 	ExpirationPolicies []ExpirationPolicy `json:"expirationPolicies"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -330,9 +363,11 @@ func (r SandboxLifecycle) ToParam() SandboxLifecycleParam {
 	return param.Override[SandboxLifecycleParam](json.RawMessage(r.RawJSON()))
 }
 
-// Lifecycle configuration for sandbox management
+// Lifecycle configuration controlling automatic sandbox deletion based on idle
+// time, max age, or specific dates
 type SandboxLifecycleParam struct {
-	// List of expiration policies
+	// List of expiration policies. Multiple policies can be combined; whichever
+	// condition is met first triggers the action.
 	ExpirationPolicies []ExpirationPolicyParam `json:"expirationPolicies,omitzero"`
 	paramObj
 }
@@ -345,20 +380,25 @@ func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Runtime configuration for Sandbox
+// Runtime configuration defining how the sandbox VM is provisioned and its
+// resource limits
 type SandboxRuntime struct {
-	// The env variables to set in the sandbox. Should be a list of Kubernetes EnvVar
-	// types
+	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
+	// format with valueFrom references.
 	Envs []map[string]any `json:"envs"`
-	// The expiration date for the sandbox in ISO 8601 format - 2024-12-31T23:59:59Z
+	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
+	// deleted
 	Expires string `json:"expires"`
-	// The Docker image for the sandbox
+	// Sandbox image to use. Can be a public Blaxel image (e.g.,
+	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
 	Image string `json:"image"`
-	// The memory for the sandbox in MB
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory int64 `json:"memory"`
-	// The exposed ports of the sandbox
+	// Set of ports for a resource
 	Ports []Port `json:"ports"`
-	// The TTL for the sandbox in seconds - 30m, 24h, 7d
+	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
+	// '30m', '24h', '7d')
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -388,20 +428,25 @@ func (r SandboxRuntime) ToParam() SandboxRuntimeParam {
 	return param.Override[SandboxRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Runtime configuration for Sandbox
+// Runtime configuration defining how the sandbox VM is provisioned and its
+// resource limits
 type SandboxRuntimeParam struct {
-	// The expiration date for the sandbox in ISO 8601 format - 2024-12-31T23:59:59Z
+	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
+	// deleted
 	Expires param.Opt[string] `json:"expires,omitzero"`
-	// The Docker image for the sandbox
+	// Sandbox image to use. Can be a public Blaxel image (e.g.,
+	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
 	Image param.Opt[string] `json:"image,omitzero"`
-	// The memory for the sandbox in MB
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
-	// The TTL for the sandbox in seconds - 30m, 24h, 7d
+	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
+	// '30m', '24h', '7d')
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
-	// The env variables to set in the sandbox. Should be a list of Kubernetes EnvVar
-	// types
+	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
+	// format with valueFrom references.
 	Envs []map[string]any `json:"envs,omitzero"`
-	// The exposed ports of the sandbox
+	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
 }
@@ -414,17 +459,20 @@ func (r *SandboxRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Sandbox specification for API
+// Configuration for a sandbox including its image, memory, ports, region, and
+// lifecycle policies
 type SandboxSpec struct {
-	// Enable or disable the resource
+	// When false, the sandbox is disabled and will not accept connections
 	Enabled bool `json:"enabled"`
-	// Lifecycle configuration for the sandbox
+	// Lifecycle configuration controlling automatic sandbox deletion based on idle
+	// time, max age, or specific dates
 	Lifecycle SandboxLifecycle `json:"lifecycle"`
-	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1)
+	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
+	// specified, defaults to the region closest to the user.
 	Region string `json:"region"`
-	// Runtime configuration for Sandbox
-	Runtime SandboxRuntime `json:"runtime"`
-	// Volumes to attach to the sandbox
+	// Runtime configuration defining how the sandbox VM is provisioned and its
+	// resource limits
+	Runtime SandboxRuntime     `json:"runtime"`
 	Volumes []VolumeAttachment `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -453,17 +501,20 @@ func (r SandboxSpec) ToParam() SandboxSpecParam {
 	return param.Override[SandboxSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Sandbox specification for API
+// Configuration for a sandbox including its image, memory, ports, region, and
+// lifecycle policies
 type SandboxSpecParam struct {
-	// Enable or disable the resource
+	// When false, the sandbox is disabled and will not accept connections
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1)
+	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
+	// specified, defaults to the region closest to the user.
 	Region param.Opt[string] `json:"region,omitzero"`
-	// Lifecycle configuration for the sandbox
+	// Lifecycle configuration controlling automatic sandbox deletion based on idle
+	// time, max age, or specific dates
 	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
-	// Runtime configuration for Sandbox
-	Runtime SandboxRuntimeParam `json:"runtime,omitzero"`
-	// Volumes to attach to the sandbox
+	// Runtime configuration defining how the sandbox VM is provisioned and its
+	// resource limits
+	Runtime SandboxRuntimeParam     `json:"runtime,omitzero"`
 	Volumes []VolumeAttachmentParam `json:"volumes,omitzero"`
 	paramObj
 }
@@ -476,13 +527,14 @@ func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Volume attachment configuration for sandbox
+// Configuration for attaching a volume to a sandbox at a specific filesystem path
 type VolumeAttachment struct {
-	// Mount path in the container
+	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath string `json:"mountPath"`
-	// Name of the volume to attach
+	// Name of the volume resource to attach (must exist in the same workspace and
+	// region)
 	Name string `json:"name"`
-	// Whether the volume is mounted as read-only
+	// If true, the volume is mounted read-only and cannot be modified by the sandbox
 	ReadOnly bool `json:"readOnly"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -509,13 +561,14 @@ func (r VolumeAttachment) ToParam() VolumeAttachmentParam {
 	return param.Override[VolumeAttachmentParam](json.RawMessage(r.RawJSON()))
 }
 
-// Volume attachment configuration for sandbox
+// Configuration for attaching a volume to a sandbox at a specific filesystem path
 type VolumeAttachmentParam struct {
-	// Mount path in the container
+	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath param.Opt[string] `json:"mountPath,omitzero"`
-	// Name of the volume to attach
+	// Name of the volume resource to attach (must exist in the same workspace and
+	// region)
 	Name param.Opt[string] `json:"name,omitzero"`
-	// Whether the volume is mounted as read-only
+	// If true, the volume is mounted read-only and cannot be modified by the sandbox
 	ReadOnly param.Opt[bool] `json:"readOnly,omitzero"`
 	paramObj
 }
@@ -528,7 +581,8 @@ func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Sandbox definition for admin store operations
+// Pre-configured sandbox template available in the Sandbox Hub for quick
+// deployment with predefined tools and configurations
 type SandboxGetHubResponse struct {
 	// Categories of the defintion
 	Categories []map[string]any `json:"categories"`
@@ -586,7 +640,9 @@ func (r *SandboxGetHubResponse) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxNewParams struct {
-	// Micro VM for running agentic tasks
+	// Lightweight virtual machine for secure AI code execution. Sandboxes resume from
+	// standby in under 25ms and automatically scale to zero after inactivity,
+	// preserving memory state including running processes and filesystem.
 	Sandbox SandboxParam
 	paramObj
 }
@@ -599,7 +655,7 @@ func (r *SandboxNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxGetParams struct {
-	// Show secret values (admin only)
+	// Show secret values (requires workspace admin role)
 	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
 	paramObj
 }
@@ -613,7 +669,9 @@ func (r SandboxGetParams) URLQuery() (v url.Values, err error) {
 }
 
 type SandboxUpdateParams struct {
-	// Micro VM for running agentic tasks
+	// Lightweight virtual machine for secure AI code execution. Sandboxes resume from
+	// standby in under 25ms and automatically scale to zero after inactivity,
+	// preserving memory state including running processes and filesystem.
 	Sandbox SandboxParam
 	paramObj
 }

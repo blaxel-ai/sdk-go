@@ -37,7 +37,8 @@ func NewWorkspaceService(opts ...option.RequestOption) (r WorkspaceService) {
 	return
 }
 
-// Creates a workspace.
+// Creates a new workspace tenant. The authenticated user becomes the workspace
+// admin. Requires a linked billing account.
 func (r *WorkspaceService) New(ctx context.Context, body WorkspaceNewParams, opts ...option.RequestOption) (res *Workspace, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "workspaces"
@@ -45,7 +46,8 @@ func (r *WorkspaceService) New(ctx context.Context, body WorkspaceNewParams, opt
 	return
 }
 
-// Returns a workspace by name.
+// Returns detailed information about a workspace including its display name,
+// account ID, status, and runtime configuration.
 func (r *WorkspaceService) Get(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *Workspace, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if workspaceName == "" {
@@ -57,7 +59,8 @@ func (r *WorkspaceService) Get(ctx context.Context, workspaceName string, opts .
 	return
 }
 
-// Updates a workspace by name.
+// Updates a workspace's settings such as display name and labels. The workspace
+// name cannot be changed after creation.
 func (r *WorkspaceService) Update(ctx context.Context, workspaceName string, body WorkspaceUpdateParams, opts ...option.RequestOption) (res *Workspace, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if workspaceName == "" {
@@ -69,7 +72,8 @@ func (r *WorkspaceService) Update(ctx context.Context, workspaceName string, bod
 	return
 }
 
-// Returns a list of all workspaces.
+// Returns all workspaces the authenticated user has access to. Each workspace is a
+// separate tenant with its own resources, team members, and billing.
 func (r *WorkspaceService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Workspace, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "workspaces"
@@ -77,7 +81,9 @@ func (r *WorkspaceService) List(ctx context.Context, opts ...option.RequestOptio
 	return
 }
 
-// Deletes a workspace by name.
+// Permanently deletes a workspace and ALL its resources (agents, functions,
+// sandboxes, volumes, etc.). This action cannot be undone. Only workspace admins
+// can delete a workspace.
 func (r *WorkspaceService) Delete(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *Workspace, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if workspaceName == "" {
@@ -144,13 +150,14 @@ type Workspace struct {
 	CreatedBy string `json:"createdBy"`
 	// Workspace display name
 	DisplayName string `json:"displayName"`
-	// Workspace labels
+	// Key-value pairs for organizing and filtering resources. Labels can be used to
+	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
 	// Workspace name
 	Name string `json:"name"`
 	// Workspace write region
 	Region string `json:"region"`
-	// Workspace runtime
+	// Runtime configuration for the workspace infrastructure
 	Runtime WorkspaceRuntime `json:"runtime"`
 	// Workspace status (created, account_binded, account_configured,
 	// workspace_configured, ready, error)
@@ -225,9 +232,10 @@ type WorkspaceParam struct {
 	Region param.Opt[string] `json:"region,omitzero"`
 	// Reason for current status (only set for error status)
 	StatusReason param.Opt[string] `json:"statusReason,omitzero"`
-	// Workspace labels
+	// Key-value pairs for organizing and filtering resources. Labels can be used to
+	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels,omitzero"`
-	// Workspace runtime
+	// Runtime configuration for the workspace infrastructure
 	Runtime WorkspaceRuntimeParam `json:"runtime,omitzero"`
 	// Workspace status (created, account_binded, account_configured,
 	// workspace_configured, ready, error)
@@ -246,9 +254,10 @@ func (r *WorkspaceParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Workspace runtime
+// Runtime configuration for the workspace infrastructure
 type WorkspaceRuntime struct {
-	// Workspace generation
+	// Infrastructure generation version for the workspace (affects available features
+	// and deployment behavior)
 	Generation string `json:"generation"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -273,9 +282,10 @@ func (r WorkspaceRuntime) ToParam() WorkspaceRuntimeParam {
 	return param.Override[WorkspaceRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Workspace runtime
+// Runtime configuration for the workspace infrastructure
 type WorkspaceRuntimeParam struct {
-	// Workspace generation
+	// Infrastructure generation version for the workspace (affects available features
+	// and deployment behavior)
 	Generation param.Opt[string] `json:"generation,omitzero"`
 	paramObj
 }
@@ -292,7 +302,8 @@ func (r *WorkspaceRuntimeParam) UnmarshalJSON(data []byte) error {
 type WorkspaceAcceptInvitationResponse struct {
 	// User email
 	Email string `json:"email"`
-	// Workspace
+	// Tenant container that groups all Blaxel resources (agents, functions, models,
+	// etc.) with shared team access control and billing.
 	Workspace Workspace `json:"workspace"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -310,7 +321,8 @@ func (r *WorkspaceAcceptInvitationResponse) UnmarshalJSON(data []byte) error {
 }
 
 type WorkspaceNewParams struct {
-	// Workspace
+	// Tenant container that groups all Blaxel resources (agents, functions, models,
+	// etc.) with shared team access control and billing.
 	Workspace WorkspaceParam
 	paramObj
 }
@@ -323,7 +335,8 @@ func (r *WorkspaceNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type WorkspaceUpdateParams struct {
-	// Workspace
+	// Tenant container that groups all Blaxel resources (agents, functions, models,
+	// etc.) with shared team access control and billing.
 	Workspace WorkspaceParam
 	paramObj
 }

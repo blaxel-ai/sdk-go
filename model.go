@@ -34,7 +34,9 @@ func NewModelService(opts ...option.RequestOption) (r ModelService) {
 	return
 }
 
-// Creates a model.
+// Creates a new model gateway endpoint that proxies requests to an external LLM
+// provider. Requires an integration connection with valid API credentials for the
+// target provider.
 func (r *ModelService) New(ctx context.Context, body ModelNewParams, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
@@ -42,7 +44,8 @@ func (r *ModelService) New(ctx context.Context, body ModelNewParams, opts ...opt
 	return
 }
 
-// Returns a model by name.
+// Returns detailed information about a model gateway endpoint including its
+// provider configuration, integration connection, and usage status.
 func (r *ModelService) Get(ctx context.Context, modelName string, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
@@ -54,7 +57,8 @@ func (r *ModelService) Get(ctx context.Context, modelName string, opts ...option
 	return
 }
 
-// Update a model by name.
+// Updates a model gateway endpoint's configuration. Changes to provider settings
+// or integration connection take effect immediately.
 func (r *ModelService) Update(ctx context.Context, modelName string, body ModelUpdateParams, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
@@ -66,7 +70,9 @@ func (r *ModelService) Update(ctx context.Context, modelName string, body ModelU
 	return
 }
 
-// Returns a list of all models in the workspace.
+// Returns all model gateway endpoints configured in the workspace. Each model
+// represents a proxy to an external LLM provider (OpenAI, Anthropic, etc.) with
+// unified access control.
 func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Model, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
@@ -74,7 +80,8 @@ func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (
 	return
 }
 
-// Deletes a model by name.
+// Permanently deletes a model gateway endpoint. Any agents or applications using
+// this endpoint will need to be updated to use a different model.
 func (r *ModelService) Delete(ctx context.Context, modelName string, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
@@ -99,7 +106,8 @@ func (r *ModelService) ListRevisions(ctx context.Context, modelName string, opts
 }
 
 type ModelNewParams struct {
-	// Logical object representing a model
+	// Gateway endpoint to external LLM provider APIs (OpenAI, Anthropic, etc.) with
+	// unified access control, credentials management, and usage tracking.
 	Model ModelParam
 	paramObj
 }
@@ -112,7 +120,8 @@ func (r *ModelNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type ModelUpdateParams struct {
-	// Logical object representing a model
+	// Gateway endpoint to external LLM provider APIs (OpenAI, Anthropic, etc.) with
+	// unified access control, credentials management, and usage tracking.
 	Model ModelParam
 	paramObj
 }

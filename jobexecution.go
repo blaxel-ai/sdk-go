@@ -37,7 +37,9 @@ func NewJobExecutionService(opts ...option.RequestOption) (r JobExecutionService
 	return
 }
 
-// Creates a new execution for a job by name.
+// Triggers a new execution of the batch job. Each execution runs multiple tasks in
+// parallel according to the job's configured concurrency. Tasks can be
+// parameterized via the request body.
 func (r *JobExecutionService) New(ctx context.Context, jobID string, body JobExecutionNewParams, opts ...option.RequestOption) (res *JobExecution, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
@@ -49,7 +51,8 @@ func (r *JobExecutionService) New(ctx context.Context, jobID string, body JobExe
 	return
 }
 
-// Returns an execution for a job by name.
+// Returns detailed information about a specific job execution including status,
+// task statistics (success/failure/running counts), and timing information.
 func (r *JobExecutionService) Get(ctx context.Context, executionID string, query JobExecutionGetParams, opts ...option.RequestOption) (res *JobExecution, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if query.JobID == "" {
@@ -65,7 +68,8 @@ func (r *JobExecutionService) Get(ctx context.Context, executionID string, query
 	return
 }
 
-// Returns a list of all executions for a job by name.
+// Returns paginated list of executions for a batch job, sorted by creation time.
+// Each execution contains status, task counts, and timing information.
 func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobExecutionListParams, opts ...option.RequestOption) (res *[]JobExecution, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
@@ -77,7 +81,9 @@ func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobE
 	return
 }
 
-// Stop an execution for a job by name.
+// Cancels a running job execution. Tasks already in progress will complete, but no
+// new tasks will be started. The execution status changes to 'cancelling' then
+// 'cancelled'.
 func (r *JobExecutionService) Delete(ctx context.Context, executionID string, body JobExecutionDeleteParams, opts ...option.RequestOption) (res *JobExecution, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if body.JobID == "" {

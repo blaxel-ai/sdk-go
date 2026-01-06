@@ -31,16 +31,16 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 		Workspace: blaxel.WorkspaceParam{
 			ID:          blaxel.String("id"),
 			AccountID:   blaxel.String("accountId"),
-			DisplayName: blaxel.String("displayName"),
+			DisplayName: blaxel.String("My Workspace"),
 			Labels: map[string]string{
 				"foo": "string",
 			},
-			Name:   blaxel.String("name"),
-			Region: blaxel.String("region"),
+			Name:   blaxel.String("my-workspace"),
+			Region: blaxel.String("us-west-2"),
 			Runtime: blaxel.WorkspaceRuntimeParam{
-				Generation: blaxel.String("generation"),
+				Generation: blaxel.String("mk3"),
 			},
-			Status:       blaxel.WorkspaceStatusCreated,
+			Status:       blaxel.WorkspaceStatusReady,
 			StatusReason: blaxel.String("statusReason"),
 		},
 	})
@@ -98,16 +98,16 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 			Workspace: blaxel.WorkspaceParam{
 				ID:          blaxel.String("id"),
 				AccountID:   blaxel.String("accountId"),
-				DisplayName: blaxel.String("displayName"),
+				DisplayName: blaxel.String("My Workspace"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
-				Name:   blaxel.String("name"),
-				Region: blaxel.String("region"),
+				Name:   blaxel.String("my-workspace"),
+				Region: blaxel.String("us-west-2"),
 				Runtime: blaxel.WorkspaceRuntimeParam{
-					Generation: blaxel.String("generation"),
+					Generation: blaxel.String("mk3"),
 				},
-				Status:       blaxel.WorkspaceStatusCreated,
+				Status:       blaxel.WorkspaceStatusReady,
 				StatusReason: blaxel.String("statusReason"),
 			},
 		},
