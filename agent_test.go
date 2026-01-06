@@ -51,8 +51,10 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 					Traffic:          blaxel.Int(100),
 				},
 				Runtime: blaxel.AgentRuntimeParam{
-					Envs: []map[string]any{{
-						"foo": "bar",
+					Envs: []blaxel.AgentRuntimeEnvParam{{
+						Name:   blaxel.String("MY_ENV_VAR"),
+						Secret: blaxel.Bool(true),
+						Value:  blaxel.String("my-value"),
 					}},
 					Generation: blaxel.AgentRuntimeGenerationMk3,
 					Image:      blaxel.String("image"),
@@ -167,8 +169,10 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 						Traffic:          blaxel.Int(100),
 					},
 					Runtime: blaxel.AgentRuntimeParam{
-						Envs: []map[string]any{{
-							"foo": "bar",
+						Envs: []blaxel.AgentRuntimeEnvParam{{
+							Name:   blaxel.String("MY_ENV_VAR"),
+							Secret: blaxel.Bool(true),
+							Value:  blaxel.String("my-value"),
 						}},
 						Generation: blaxel.AgentRuntimeGenerationMk3,
 						Image:      blaxel.String("image"),

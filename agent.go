@@ -188,7 +188,7 @@ func (r *AgentParam) UnmarshalJSON(data []byte) error {
 type AgentRuntime struct {
 	// Environment variables injected into the agent. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []map[string]any `json:"envs"`
+	Envs []AgentRuntimeEnv `json:"envs"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -233,6 +233,30 @@ func (r AgentRuntime) ToParam() AgentRuntimeParam {
 	return param.Override[AgentRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
+// Environment variable with name and value
+type AgentRuntimeEnv struct {
+	// Name of the environment variable
+	Name string `json:"name"`
+	// Whether the value is a secret
+	Secret bool `json:"secret"`
+	// Value of the environment variable
+	Value string `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name        respjson.Field
+		Secret      respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r AgentRuntimeEnv) RawJSON() string { return r.JSON.raw }
+func (r *AgentRuntimeEnv) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 // regions) or mk3 (microVMs, sub-25ms cold starts)
 type AgentRuntimeGeneration string
@@ -257,7 +281,7 @@ type AgentRuntimeParam struct {
 	MinScale param.Opt[int64] `json:"minScale,omitzero"`
 	// Environment variables injected into the agent. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []map[string]any `json:"envs,omitzero"`
+	Envs []AgentRuntimeEnvParam `json:"envs,omitzero"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -271,6 +295,25 @@ func (r AgentRuntimeParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *AgentRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Environment variable with name and value
+type AgentRuntimeEnvParam struct {
+	// Name of the environment variable
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Whether the value is a secret
+	Secret param.Opt[bool] `json:"secret,omitzero"`
+	// Value of the environment variable
+	Value param.Opt[string] `json:"value,omitzero"`
+	paramObj
+}
+
+func (r AgentRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
+	type shadow AgentRuntimeEnvParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *AgentRuntimeEnvParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

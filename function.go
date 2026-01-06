@@ -189,7 +189,7 @@ func (r *FunctionParam) UnmarshalJSON(data []byte) error {
 type FunctionRuntime struct {
 	// Environment variables injected into the function. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []map[string]any `json:"envs"`
+	Envs []FunctionRuntimeEnv `json:"envs"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -234,6 +234,30 @@ func (r FunctionRuntime) ToParam() FunctionRuntimeParam {
 	return param.Override[FunctionRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
+// Environment variable with name and value
+type FunctionRuntimeEnv struct {
+	// Name of the environment variable
+	Name string `json:"name"`
+	// Whether the value is a secret
+	Secret bool `json:"secret"`
+	// Value of the environment variable
+	Value string `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name        respjson.Field
+		Secret      respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionRuntimeEnv) RawJSON() string { return r.JSON.raw }
+func (r *FunctionRuntimeEnv) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 // regions) or mk3 (microVMs, sub-25ms cold starts)
 type FunctionRuntimeGeneration string
@@ -259,7 +283,7 @@ type FunctionRuntimeParam struct {
 	MinScale param.Opt[int64] `json:"minScale,omitzero"`
 	// Environment variables injected into the function. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []map[string]any `json:"envs,omitzero"`
+	Envs []FunctionRuntimeEnvParam `json:"envs,omitzero"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -273,6 +297,25 @@ func (r FunctionRuntimeParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *FunctionRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Environment variable with name and value
+type FunctionRuntimeEnvParam struct {
+	// Name of the environment variable
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Whether the value is a secret
+	Secret param.Opt[bool] `json:"secret,omitzero"`
+	// Value of the environment variable
+	Value param.Opt[string] `json:"value,omitzero"`
+	paramObj
+}
+
+func (r FunctionRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionRuntimeEnvParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FunctionRuntimeEnvParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

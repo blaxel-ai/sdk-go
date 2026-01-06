@@ -595,7 +595,7 @@ func (r *JobExecutionTaskSpec) UnmarshalJSON(data []byte) error {
 type JobRuntime struct {
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []map[string]any `json:"envs"`
+	Envs []JobRuntimeEnv `json:"envs"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
 	// sub-25ms cold starts)
 	//
@@ -645,6 +645,30 @@ func (r JobRuntime) ToParam() JobRuntimeParam {
 	return param.Override[JobRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
+// Environment variable with name and value
+type JobRuntimeEnv struct {
+	// Name of the environment variable
+	Name string `json:"name"`
+	// Whether the value is a secret
+	Secret bool `json:"secret"`
+	// Value of the environment variable
+	Value string `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name        respjson.Field
+		Secret      respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobRuntimeEnv) RawJSON() string { return r.JSON.raw }
+func (r *JobRuntimeEnv) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
 // sub-25ms cold starts)
 type JobRuntimeGeneration string
@@ -671,7 +695,7 @@ type JobRuntimeParam struct {
 	Timeout param.Opt[int64] `json:"timeout,omitzero"`
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []map[string]any `json:"envs,omitzero"`
+	Envs []JobRuntimeEnvParam `json:"envs,omitzero"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
 	// sub-25ms cold starts)
 	//
@@ -687,6 +711,25 @@ func (r JobRuntimeParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *JobRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Environment variable with name and value
+type JobRuntimeEnvParam struct {
+	// Name of the environment variable
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Whether the value is a secret
+	Secret param.Opt[bool] `json:"secret,omitzero"`
+	// Value of the environment variable
+	Value param.Opt[string] `json:"value,omitzero"`
+	paramObj
+}
+
+func (r JobRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
+	type shadow JobRuntimeEnvParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *JobRuntimeEnvParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
