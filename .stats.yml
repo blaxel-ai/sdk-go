@@ -1,4 +1,4 @@
 configured_endpoints: 128
 openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/blaxel%2Fblaxel-cd1bff4a44521a79b1bdab7b9790e3b579569265f70544a71f893b3b83f9c186.yml
 openapi_spec_hash: bf9aacf47be5e461479b396912bfdcfc
-config_hash: 301359b3201536e6a4c0681f768ed358
+config_hash: 21b28f9434435ea9f8f8c1677aaa746c
