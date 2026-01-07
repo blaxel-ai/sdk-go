@@ -29,6 +29,8 @@ import (
 type SandboxService struct {
 	Options  []option.RequestOption
 	Process  SandboxProcessService
+	Fs       SandboxFService
+	Codegen  SandboxCodegenService
 	Previews SandboxPreviewService
 }
 
@@ -39,6 +41,8 @@ func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 	r = SandboxService{}
 	r.Options = opts
 	r.Process = NewSandboxProcessService(opts...)
+	r.Fs = NewSandboxFService(opts...)
+	r.Codegen = NewSandboxCodegenService(opts...)
 	r.Previews = NewSandboxPreviewService(opts...)
 	return
 }

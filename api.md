@@ -443,6 +443,45 @@ Methods:
 - <code title="get /process/{identifier}/logs">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.GetLogs">GetLogs</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, identifier <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessLogs">ProcessLogs</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /process/{identifier}">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.Stop">Stop</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, identifier <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessStopResponse">SandboxProcessStopResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+## Fs
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#FileRequestParam">FileRequestParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#Directory">Directory</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#File">File</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#Subdirectory">Subdirectory</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFGetResponseUnion">SandboxFGetResponseUnion</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFUpdateResponse">SandboxFUpdateResponse</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFListResponseUnion">SandboxFListResponseUnion</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFDeleteResponse">SandboxFDeleteResponse</a>
+
+Methods:
+
+- <code title="get /filesystem/{path}">client.Sandboxes.Fs.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, path <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFGetParams">SandboxFGetParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFGetResponseUnion">SandboxFGetResponseUnion</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="put /filesystem/{path}">client.Sandboxes.Fs.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, path <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFUpdateParams">SandboxFUpdateParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFUpdateResponse">SandboxFUpdateResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /filesystem/{path}">client.Sandboxes.Fs.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, path <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFListParams">SandboxFListParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFListResponseUnion">SandboxFListResponseUnion</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /filesystem/{path}">client.Sandboxes.Fs.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, path <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFDeleteParams">SandboxFDeleteParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFDeleteResponse">SandboxFDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+## Codegen
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ApplyEditRequestParam">ApplyEditRequestParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ApplyEditResponse">ApplyEditResponse</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#RerankingResponse">RerankingResponse</a>
+
+Methods:
+
+- <code title="put /codegen/fastapply/{path}">client.Sandboxes.Codegen.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxCodegenService.Fastapply">Fastapply</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, path <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxCodegenFastapplyParams">SandboxCodegenFastapplyParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ApplyEditResponse">ApplyEditResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /codegen/reranking/{path}">client.Sandboxes.Codegen.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxCodegenService.Reranking">Reranking</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, path <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxCodegenRerankingParams">SandboxCodegenRerankingParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#RerankingResponse">RerankingResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 ## Previews
 
 Params Types:
