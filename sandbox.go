@@ -28,6 +28,7 @@ import (
 // the [NewSandboxService] method instead.
 type SandboxService struct {
 	Options  []option.RequestOption
+	Process  SandboxProcessService
 	Previews SandboxPreviewService
 }
 
@@ -37,6 +38,7 @@ type SandboxService struct {
 func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 	r = SandboxService{}
 	r.Options = opts
+	r.Process = NewSandboxProcessService(opts...)
 	r.Previews = NewSandboxPreviewService(opts...)
 	return
 }
