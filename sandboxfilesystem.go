@@ -200,9 +200,9 @@ func (r *ContentSearchResponse) UnmarshalJSON(data []byte) error {
 }
 
 type Directory struct {
-	Files []File `json:"files,required"`
-	Name  string `json:"name,required"`
-	Path  string `json:"path,required"`
+	Files []FilesystemRead `json:"files,required"`
+	Name  string           `json:"name,required"`
+	Path  string           `json:"path,required"`
 	// @name Subdirectories
 	Subdirectories []Subdirectory `json:"subdirectories,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -222,7 +222,7 @@ func (r *Directory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type File struct {
+type FilesystemRead struct {
 	Group        string `json:"group,required"`
 	LastModified string `json:"lastModified,required"`
 	Name         string `json:"name,required"`
@@ -245,27 +245,12 @@ type File struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r File) RawJSON() string { return r.JSON.raw }
-func (r *File) UnmarshalJSON(data []byte) error {
+func (r FilesystemRead) RawJSON() string { return r.JSON.raw }
+func (r *FilesystemRead) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FileRequestParam struct {
-	Content     param.Opt[string] `json:"content,omitzero"`
-	IsDirectory param.Opt[bool]   `json:"isDirectory,omitzero"`
-	Permissions param.Opt[string] `json:"permissions,omitzero"`
-	paramObj
-}
-
-func (r FileRequestParam) MarshalJSON() (data []byte, err error) {
-	type shadow FileRequestParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FileRequestParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FileWithContent struct {
+type FilesystemReadWithContent struct {
 	Content      string `json:"content,required"`
 	Group        string `json:"group,required"`
 	LastModified string `json:"lastModified,required"`
@@ -290,8 +275,23 @@ type FileWithContent struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FileWithContent) RawJSON() string { return r.JSON.raw }
-func (r *FileWithContent) UnmarshalJSON(data []byte) error {
+func (r FilesystemReadWithContent) RawJSON() string { return r.JSON.raw }
+func (r *FilesystemReadWithContent) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FilesystemWriteRequestParam struct {
+	Content     param.Opt[string] `json:"content,omitzero"`
+	IsDirectory param.Opt[bool]   `json:"isDirectory,omitzero"`
+	Permissions param.Opt[string] `json:"permissions,omitzero"`
+	paramObj
+}
+
+func (r FilesystemWriteRequestParam) MarshalJSON() (data []byte, err error) {
+	type shadow FilesystemWriteRequestParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FilesystemWriteRequestParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -403,7 +403,7 @@ func (r *TreeRequestParam) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemListResponseUnion contains all possible properties and values
-// from [Directory], [FileWithContent], [io.Reader].
+// from [Directory], [FilesystemReadWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
@@ -413,22 +413,22 @@ type SandboxFilesystemListResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
 	// This field is from variant [Directory].
-	Files []File `json:"files"`
-	Name  string `json:"name"`
-	Path  string `json:"path"`
+	Files []FilesystemRead `json:"files"`
+	Name  string           `json:"name"`
+	Path  string           `json:"path"`
 	// This field is from variant [Directory].
 	Subdirectories []Subdirectory `json:"subdirectories"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Content string `json:"content"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Group string `json:"group"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	LastModified string `json:"lastModified"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Owner string `json:"owner"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Permissions string `json:"permissions"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
 		OfFile         respjson.Field
@@ -451,7 +451,7 @@ func (u SandboxFilesystemListResponseUnion) AsDirectory() (v Directory) {
 	return
 }
 
-func (u SandboxFilesystemListResponseUnion) AsFileWithContent() (v FileWithContent) {
+func (u SandboxFilesystemListResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -505,7 +505,7 @@ func (r *SandboxFilesystemDeleteTreeResponse) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemGetTreeResponseUnion contains all possible properties and
-// values from [Directory], [FileWithContent], [io.Reader].
+// values from [Directory], [FilesystemReadWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
@@ -515,22 +515,22 @@ type SandboxFilesystemGetTreeResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
 	// This field is from variant [Directory].
-	Files []File `json:"files"`
-	Name  string `json:"name"`
-	Path  string `json:"path"`
+	Files []FilesystemRead `json:"files"`
+	Name  string           `json:"name"`
+	Path  string           `json:"path"`
 	// This field is from variant [Directory].
 	Subdirectories []Subdirectory `json:"subdirectories"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Content string `json:"content"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Group string `json:"group"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	LastModified string `json:"lastModified"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Owner string `json:"owner"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Permissions string `json:"permissions"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
 		OfFile         respjson.Field
@@ -553,7 +553,7 @@ func (u SandboxFilesystemGetTreeResponseUnion) AsDirectory() (v Directory) {
 	return
 }
 
-func (u SandboxFilesystemGetTreeResponseUnion) AsFileWithContent() (v FileWithContent) {
+func (u SandboxFilesystemGetTreeResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -589,7 +589,7 @@ func (r *SandboxFilesystemWriteResponse) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemWriteTreeResponseUnion contains all possible properties and
-// values from [Directory], [FileWithContent], [io.Reader].
+// values from [Directory], [FilesystemReadWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
@@ -599,22 +599,22 @@ type SandboxFilesystemWriteTreeResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
 	// This field is from variant [Directory].
-	Files []File `json:"files"`
-	Name  string `json:"name"`
-	Path  string `json:"path"`
+	Files []FilesystemRead `json:"files"`
+	Name  string           `json:"name"`
+	Path  string           `json:"path"`
 	// This field is from variant [Directory].
 	Subdirectories []Subdirectory `json:"subdirectories"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Content string `json:"content"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Group string `json:"group"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	LastModified string `json:"lastModified"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Owner string `json:"owner"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Permissions string `json:"permissions"`
-	// This field is from variant [FileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
 		OfFile         respjson.Field
@@ -637,7 +637,7 @@ func (u SandboxFilesystemWriteTreeResponseUnion) AsDirectory() (v Directory) {
 	return
 }
 
-func (u SandboxFilesystemWriteTreeResponseUnion) AsFileWithContent() (v FileWithContent) {
+func (u SandboxFilesystemWriteTreeResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -773,15 +773,15 @@ func (r SandboxFilesystemSearchParams) URLQuery() (v url.Values, err error) {
 }
 
 type SandboxFilesystemWriteParams struct {
-	FileRequest FileRequestParam
+	FilesystemWriteRequest FilesystemWriteRequestParam
 	paramObj
 }
 
 func (r SandboxFilesystemWriteParams) MarshalJSON() (data []byte, err error) {
-	return shimjson.Marshal(r.FileRequest)
+	return shimjson.Marshal(r.FilesystemWriteRequest)
 }
 func (r *SandboxFilesystemWriteParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.FileRequest)
+	return json.Unmarshal(data, &r.FilesystemWriteRequest)
 }
 
 type SandboxFilesystemWriteTreeParams struct {
