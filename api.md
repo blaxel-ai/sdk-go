@@ -453,6 +453,7 @@ Response Types:
 
 - <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#FilesystemDirectory">FilesystemDirectory</a>
 - <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#FilesystemRead">FilesystemRead</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#FilesystemReadWithContent">FilesystemReadWithContent</a>
 - <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#FilesystemSubdirectory">FilesystemSubdirectory</a>
 - <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFilesystemGetResponseUnion">SandboxFilesystemGetResponseUnion</a>
 - <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxFilesystemUpdateResponse">SandboxFilesystemUpdateResponse</a>

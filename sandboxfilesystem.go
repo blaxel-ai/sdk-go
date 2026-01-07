@@ -141,6 +141,36 @@ func (r *FilesystemRead) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FilesystemReadWithContent struct {
+	Content      string `json:"content,required"`
+	Group        string `json:"group,required"`
+	LastModified string `json:"lastModified,required"`
+	Name         string `json:"name,required"`
+	Owner        string `json:"owner,required"`
+	Path         string `json:"path,required"`
+	Permissions  string `json:"permissions,required"`
+	Size         int64  `json:"size,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Content      respjson.Field
+		Group        respjson.Field
+		LastModified respjson.Field
+		Name         respjson.Field
+		Owner        respjson.Field
+		Path         respjson.Field
+		Permissions  respjson.Field
+		Size         respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FilesystemReadWithContent) RawJSON() string { return r.JSON.raw }
+func (r *FilesystemReadWithContent) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type FilesystemSubdirectory struct {
 	Name string `json:"name,required"`
 	Path string `json:"path,required"`
@@ -175,8 +205,7 @@ func (r *FilesystemWriteParam) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemGetResponseUnion contains all possible properties and values
-// from [FilesystemDirectory], [SandboxFilesystemGetResponseFileWithContent],
-// [io.Reader].
+// from [FilesystemDirectory], [FilesystemReadWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
@@ -191,17 +220,17 @@ type SandboxFilesystemGetResponseUnion struct {
 	Path  string           `json:"path"`
 	// This field is from variant [FilesystemDirectory].
 	Subdirectories []FilesystemSubdirectory `json:"subdirectories"`
-	// This field is from variant [SandboxFilesystemGetResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Content string `json:"content"`
-	// This field is from variant [SandboxFilesystemGetResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Group string `json:"group"`
-	// This field is from variant [SandboxFilesystemGetResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	LastModified string `json:"lastModified"`
-	// This field is from variant [SandboxFilesystemGetResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Owner string `json:"owner"`
-	// This field is from variant [SandboxFilesystemGetResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Permissions string `json:"permissions"`
-	// This field is from variant [SandboxFilesystemGetResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
 		OfFile         respjson.Field
@@ -224,7 +253,7 @@ func (u SandboxFilesystemGetResponseUnion) AsFilesystemDirectory() (v Filesystem
 	return
 }
 
-func (u SandboxFilesystemGetResponseUnion) AsSandboxFilesystemGetResponseFileWithContent() (v SandboxFilesystemGetResponseFileWithContent) {
+func (u SandboxFilesystemGetResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -238,36 +267,6 @@ func (u SandboxFilesystemGetResponseUnion) AsFile() (v io.Reader) {
 func (u SandboxFilesystemGetResponseUnion) RawJSON() string { return u.JSON.raw }
 
 func (r *SandboxFilesystemGetResponseUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type SandboxFilesystemGetResponseFileWithContent struct {
-	Content      string `json:"content,required"`
-	Group        string `json:"group,required"`
-	LastModified string `json:"lastModified,required"`
-	Name         string `json:"name,required"`
-	Owner        string `json:"owner,required"`
-	Path         string `json:"path,required"`
-	Permissions  string `json:"permissions,required"`
-	Size         int64  `json:"size,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Content      respjson.Field
-		Group        respjson.Field
-		LastModified respjson.Field
-		Name         respjson.Field
-		Owner        respjson.Field
-		Path         respjson.Field
-		Permissions  respjson.Field
-		Size         respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxFilesystemGetResponseFileWithContent) RawJSON() string { return r.JSON.raw }
-func (r *SandboxFilesystemGetResponseFileWithContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -290,8 +289,7 @@ func (r *SandboxFilesystemUpdateResponse) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemListResponseUnion contains all possible properties and values
-// from [FilesystemDirectory], [SandboxFilesystemListResponseFileWithContent],
-// [io.Reader].
+// from [FilesystemDirectory], [FilesystemReadWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
@@ -306,17 +304,17 @@ type SandboxFilesystemListResponseUnion struct {
 	Path  string           `json:"path"`
 	// This field is from variant [FilesystemDirectory].
 	Subdirectories []FilesystemSubdirectory `json:"subdirectories"`
-	// This field is from variant [SandboxFilesystemListResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Content string `json:"content"`
-	// This field is from variant [SandboxFilesystemListResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Group string `json:"group"`
-	// This field is from variant [SandboxFilesystemListResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	LastModified string `json:"lastModified"`
-	// This field is from variant [SandboxFilesystemListResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Owner string `json:"owner"`
-	// This field is from variant [SandboxFilesystemListResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Permissions string `json:"permissions"`
-	// This field is from variant [SandboxFilesystemListResponseFileWithContent].
+	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
 		OfFile         respjson.Field
@@ -339,7 +337,7 @@ func (u SandboxFilesystemListResponseUnion) AsFilesystemDirectory() (v Filesyste
 	return
 }
 
-func (u SandboxFilesystemListResponseUnion) AsSandboxFilesystemListResponseFileWithContent() (v SandboxFilesystemListResponseFileWithContent) {
+func (u SandboxFilesystemListResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -353,36 +351,6 @@ func (u SandboxFilesystemListResponseUnion) AsFile() (v io.Reader) {
 func (u SandboxFilesystemListResponseUnion) RawJSON() string { return u.JSON.raw }
 
 func (r *SandboxFilesystemListResponseUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type SandboxFilesystemListResponseFileWithContent struct {
-	Content      string `json:"content,required"`
-	Group        string `json:"group,required"`
-	LastModified string `json:"lastModified,required"`
-	Name         string `json:"name,required"`
-	Owner        string `json:"owner,required"`
-	Path         string `json:"path,required"`
-	Permissions  string `json:"permissions,required"`
-	Size         int64  `json:"size,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Content      respjson.Field
-		Group        respjson.Field
-		LastModified respjson.Field
-		Name         respjson.Field
-		Owner        respjson.Field
-		Path         respjson.Field
-		Permissions  respjson.Field
-		Size         respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxFilesystemListResponseFileWithContent) RawJSON() string { return r.JSON.raw }
-func (r *SandboxFilesystemListResponseFileWithContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
