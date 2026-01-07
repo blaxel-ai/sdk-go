@@ -3,9 +3,15 @@
 package blaxel
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"mime/multipart"
+	"net/http"
+	"os"
 	"slices"
 
+	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
 	"github.com/stainless-sdks/blaxel-go/option"
 )
 
@@ -21,7 +27,7 @@ func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams,
 	if err != nil {
 		return nil, err
 	}
-	return newSandboxInstance(sandbox, opts), nil
+	return newSandboxInstance(sandbox, r, opts), nil
 }
 
 // GetInstance returns a sandbox as a SandboxInstance with scoped services.
@@ -36,7 +42,7 @@ func (r *SandboxService) GetInstance(ctx context.Context, sandboxName string, op
 	if err != nil {
 		return nil, err
 	}
-	return newSandboxInstance(sandbox, opts), nil
+	return newSandboxInstance(sandbox, r, opts), nil
 }
 
 // UpdateInstance updates a sandbox's configuration and returns a SandboxInstance with scoped services.
@@ -46,7 +52,7 @@ func (r *SandboxService) UpdateInstance(ctx context.Context, sandboxName string,
 	if err != nil {
 		return nil, err
 	}
-	return newSandboxInstance(sandbox, opts), nil
+	return newSandboxInstance(sandbox, r, opts), nil
 }
 
 // DeleteInstance permanently deletes a sandbox and returns a SandboxInstance.
@@ -57,7 +63,7 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 	if err != nil {
 		return nil, err
 	}
-	return newSandboxInstance(sandbox, opts), nil
+	return newSandboxInstance(sandbox, r, opts), nil
 }
 
 // SandboxInstance wraps a Sandbox with scoped services that automatically use
@@ -66,8 +72,24 @@ type SandboxInstance struct {
 	*Sandbox
 	// Process provides process operations for this sandbox
 	Process *SandboxInstanceProcessService
+	// FS provides filesystem operations for this sandbox
+	FS *SandboxInstanceFSService
+	// Codegen provides code generation operations for this sandbox
+	Codegen *SandboxInstanceCodegenService
 	// Previews provides preview operations scoped to this sandbox
 	Previews *SandboxInstancePreviewService
+
+	sandboxService *SandboxService
+	options        []option.RequestOption
+}
+
+// Delete permanently deletes this sandbox. This action cannot be undone.
+func (r *SandboxInstance) Delete(ctx context.Context, opts ...option.RequestOption) error {
+	_, err := r.sandboxService.Delete(ctx, r.Metadata.Name, opts...)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // SandboxInstanceProcessService provides process operations for a specific sandbox
@@ -105,6 +127,272 @@ func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier 
 // Stop gracefully stops a running process
 func (r *SandboxInstanceProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessStopResponse, error) {
 	return r.service.Stop(ctx, identifier, opts...)
+}
+
+// SandboxInstanceFSService provides filesystem operations for a specific sandbox
+type SandboxInstanceFSService struct {
+	sandboxName string
+	options     []option.RequestOption
+	service     *SandboxFilesystemService
+}
+
+// Read returns the content of a file as a string
+func (r *SandboxInstanceFSService) Read(ctx context.Context, path string, opts ...option.RequestOption) (string, error) {
+	res, err := r.service.Get(ctx, path, SandboxFilesystemGetParams{}, opts...)
+	if err != nil {
+		return "", err
+	}
+	return res.Content, nil
+}
+
+// ReadBinary reads a file and returns its content as raw bytes.
+// This is useful for binary files like images, PDFs, etc.
+func (r *SandboxInstanceFSService) ReadBinary(ctx context.Context, path string, opts ...option.RequestOption) ([]byte, error) {
+	opts = slices.Concat(r.options, opts)
+	// Set Accept header for binary response
+	opts = append(opts, option.WithHeader("Accept", "application/octet-stream"))
+
+	// Use the SDK's built-in support for []byte responses
+	var result []byte
+	requestPath := fmt.Sprintf("filesystem/%s", path)
+	err := requestconfig.ExecuteNewRequest(ctx, http.MethodGet, requestPath, nil, &result, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Write creates or updates a text file
+func (r *SandboxInstanceFSService) Write(ctx context.Context, path string, content string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
+	return r.service.Write(ctx, path, SandboxFilesystemWriteParams{
+		FilesystemWriteRequest: FilesystemWriteRequestParam{
+			Content: String(content),
+		},
+	}, opts...)
+}
+
+// WriteBinary writes binary data to a file using multipart upload.
+// For files larger than 5MB, it automatically uses chunked multipart upload.
+func (r *SandboxInstanceFSService) WriteBinary(ctx context.Context, path string, data []byte, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
+	const multipartThreshold = 5 * 1024 * 1024 // 5MB
+
+	if permissions == "" {
+		permissions = "0644"
+	}
+
+	// Use multipart upload for large files
+	if len(data) > multipartThreshold {
+		return r.writeBinaryMultipart(ctx, path, data, permissions, opts...)
+	}
+
+	// Use regular multipart form upload for small files
+	return r.writeBinaryForm(ctx, path, data, permissions, opts...)
+}
+
+// binaryUploadBody implements the multipart marshaler interface for binary file uploads
+type binaryUploadBody struct {
+	data        []byte
+	permissions string
+}
+
+func (b binaryUploadBody) MarshalMultipart() ([]byte, string, error) {
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	// Add file field
+	part, err := writer.CreateFormFile("file", "file")
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create form file: %w", err)
+	}
+	if _, err := part.Write(b.data); err != nil {
+		return nil, "", fmt.Errorf("failed to write file data: %w", err)
+	}
+
+	// Add permissions field
+	if err := writer.WriteField("permissions", b.permissions); err != nil {
+		return nil, "", fmt.Errorf("failed to write permissions: %w", err)
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, "", fmt.Errorf("failed to close writer: %w", err)
+	}
+
+	return buf.Bytes(), writer.FormDataContentType(), nil
+}
+
+// writeBinaryForm uploads a file using multipart form data (for smaller files)
+func (r *SandboxInstanceFSService) writeBinaryForm(ctx context.Context, path string, data []byte, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
+	opts = slices.Concat(r.options, opts)
+
+	body := binaryUploadBody{
+		data:        data,
+		permissions: permissions,
+	}
+
+	var result SandboxFilesystemWriteResponse
+	requestPath := fmt.Sprintf("filesystem/%s", path)
+	err := requestconfig.ExecuteNewRequest(ctx, http.MethodPut, requestPath, body, &result, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// writeBinaryMultipart uploads a large file using chunked multipart upload
+func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, path string, data []byte, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
+	const chunkSize = 5 * 1024 * 1024 // 5MB per part
+	const maxParallelUploads = 20
+
+	// Initiate multipart upload
+	initResp, err := r.service.Multipart.Initiate(ctx, path, SandboxFilesystemMultipartInitiateParams{
+		InitiateRequest: InitiateRequestParam{
+			Permissions: String(permissions),
+		},
+	}, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate multipart upload: %w", err)
+	}
+
+	uploadID := initResp.UploadID
+	if uploadID == "" {
+		return nil, fmt.Errorf("failed to get upload ID from initiate response")
+	}
+
+	// Upload parts
+	numParts := (len(data) + chunkSize - 1) / chunkSize
+	parts := make([]PartInfoParam, 0, numParts)
+
+	for i := 0; i < numParts; i++ {
+		partNumber := i + 1
+		start := i * chunkSize
+		end := start + chunkSize
+		if end > len(data) {
+			end = len(data)
+		}
+		chunk := data[start:end]
+
+		partResp, err := r.service.Multipart.UploadPart(ctx, uploadID, SandboxFilesystemMultipartUploadPartParams{
+			PartNumber: int64(partNumber),
+			File:       bytes.NewReader(chunk),
+		}, opts...)
+		if err != nil {
+			// Abort on failure
+			_, _ = r.service.Multipart.Abort(ctx, uploadID, opts...)
+			return nil, fmt.Errorf("failed to upload part %d: %w", partNumber, err)
+		}
+
+		parts = append(parts, PartInfoParam{
+			PartNumber: Int(int64(partNumber)),
+			Etag:       String(partResp.Etag),
+		})
+	}
+
+	// Complete multipart upload
+	completeResp, err := r.service.Multipart.Complete(ctx, uploadID, SandboxFilesystemMultipartCompleteParams{
+		CompleteRequest: CompleteRequestParam{
+			Parts: parts,
+		},
+	}, opts...)
+	if err != nil {
+		// Abort on failure
+		_, _ = r.service.Multipart.Abort(ctx, uploadID, opts...)
+		return nil, fmt.Errorf("failed to complete multipart upload: %w", err)
+	}
+
+	return &SandboxFilesystemWriteResponse{
+		Message: completeResp.Message,
+		Path:    completeResp.Path,
+	}, nil
+}
+
+// Download downloads a file from the sandbox to the local filesystem
+func (r *SandboxInstanceFSService) Download(ctx context.Context, remotePath string, localPath string, opts ...option.RequestOption) error {
+	data, err := r.ReadBinary(ctx, remotePath, opts...)
+	if err != nil {
+		return fmt.Errorf("failed to read remote file: %w", err)
+	}
+
+	if err := os.WriteFile(localPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write local file: %w", err)
+	}
+
+	return nil
+}
+
+// Mkdir creates a directory
+func (r *SandboxInstanceFSService) Mkdir(ctx context.Context, path string, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
+	if permissions == "" {
+		permissions = "0755"
+	}
+	return r.service.Write(ctx, path, SandboxFilesystemWriteParams{
+		FilesystemWriteRequest: FilesystemWriteRequestParam{
+			IsDirectory: Bool(true),
+			Permissions: String(permissions),
+		},
+	}, opts...)
+}
+
+// LS returns the listing of a directory
+func (r *SandboxInstanceFSService) LS(ctx context.Context, path string, opts ...option.RequestOption) (Directory, error) {
+	res, err := r.service.Get(ctx, path, SandboxFilesystemGetParams{}, opts...)
+	if err != nil {
+		return Directory{}, err
+	}
+	return res.AsDirectory(), nil
+}
+
+// RM deletes a file or directory
+func (r *SandboxInstanceFSService) RM(ctx context.Context, path string, recursive bool, opts ...option.RequestOption) (*SandboxFilesystemDeleteResponse, error) {
+	return r.service.Delete(ctx, path, SandboxFilesystemDeleteParams{
+		Recursive: Bool(recursive),
+	}, opts...)
+}
+
+// Search performs fuzzy search on filesystem paths
+func (r *SandboxInstanceFSService) Search(ctx context.Context, path string, query SandboxFilesystemSearchParams, opts ...option.RequestOption) (*FuzzySearchResponse, error) {
+	return r.service.Search(ctx, path, query, opts...)
+}
+
+// Find finds files and directories using the find command
+func (r *SandboxInstanceFSService) Find(ctx context.Context, path string, query SandboxFilesystemFindParams, opts ...option.RequestOption) (*FindResponse, error) {
+	return r.service.Find(ctx, path, query, opts...)
+}
+
+// Grep searches for text content inside files
+func (r *SandboxInstanceFSService) Grep(ctx context.Context, path string, query SandboxFilesystemContentSearchParams, opts ...option.RequestOption) (*ContentSearchResponse, error) {
+	return r.service.ContentSearch(ctx, path, query, opts...)
+}
+
+// CP copies files using the process service
+func (r *SandboxInstanceFSService) CP(ctx context.Context, source string, destination string, processService *SandboxInstanceProcessService) error {
+	resp, err := processService.New(ctx, ProcessRequestParam{
+		Command:           fmt.Sprintf("cp -r %s %s", source, destination),
+		WaitForCompletion: Bool(true),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to copy: %w", err)
+	}
+	if resp.Status == ProcessResponseStatusFailed {
+		return fmt.Errorf("copy failed: %s", resp.Logs)
+	}
+	return nil
+}
+
+// SandboxInstanceCodegenService provides code generation operations for a specific sandbox
+type SandboxInstanceCodegenService struct {
+	sandboxName string
+	options     []option.RequestOption
+	service     *SandboxCodegenService
+}
+
+// Fastapply uses the configured LLM provider to apply a code edit to a file
+func (r *SandboxInstanceCodegenService) Fastapply(ctx context.Context, path string, body ApplyEditRequestParam, opts ...option.RequestOption) (*ApplyEditResponse, error) {
+	return r.service.Fastapply(ctx, path, SandboxCodegenFastapplyParams{ApplyEditRequest: body}, opts...)
+}
+
+// Reranking uses Relace's code reranking model to find the most relevant files for a query
+func (r *SandboxInstanceCodegenService) Reranking(ctx context.Context, path string, query SandboxCodegenRerankingParams, opts ...option.RequestOption) (*RerankingResponse, error) {
+	return r.service.Reranking(ctx, path, query, opts...)
 }
 
 // SandboxInstancePreviewService provides preview operations for a specific sandbox
@@ -214,16 +502,18 @@ func newPreviewInstance(preview *Preview, sandboxName string, opts []option.Requ
 }
 
 // newSandboxInstance creates a SandboxInstance from a Sandbox response
-func newSandboxInstance(sandbox *Sandbox, opts []option.RequestOption) *SandboxInstance {
+func newSandboxInstance(sandbox *Sandbox, sandboxService *SandboxService, opts []option.RequestOption) *SandboxInstance {
 	sandboxName := sandbox.Metadata.Name
 
-	// Use the sandbox's URL as the base URL for process/preview services
+	// Use the sandbox's URL as the base URL for sandbox-specific services
 	sandboxOpts := opts
 	if sandbox.Metadata.URL != "" {
 		sandboxOpts = append([]option.RequestOption{option.WithBaseURL(sandbox.Metadata.URL)}, opts...)
 	}
 
 	processService := NewSandboxProcessService(sandboxOpts...)
+	fsService := NewSandboxFilesystemService(sandboxOpts...)
+	codegenService := NewSandboxCodegenService(sandboxOpts...)
 	previewService := NewSandboxPreviewService(opts...)
 
 	return &SandboxInstance{
@@ -233,10 +523,22 @@ func newSandboxInstance(sandbox *Sandbox, opts []option.RequestOption) *SandboxI
 			options:     sandboxOpts,
 			service:     &processService,
 		},
+		FS: &SandboxInstanceFSService{
+			sandboxName: sandboxName,
+			options:     sandboxOpts,
+			service:     &fsService,
+		},
+		Codegen: &SandboxInstanceCodegenService{
+			sandboxName: sandboxName,
+			options:     sandboxOpts,
+			service:     &codegenService,
+		},
 		Previews: &SandboxInstancePreviewService{
 			sandboxName: sandboxName,
 			options:     opts,
 			service:     &previewService,
 		},
+		sandboxService: sandboxService,
+		options:        opts,
 	}
 }
