@@ -91,7 +91,7 @@ func (r *SandboxFilesystemService) Delete(ctx context.Context, filePath string, 
 }
 
 type FilesystemDirectory struct {
-	Files []FilesystemFile `json:"files,required"`
+	Files []FilesystemRead `json:"files,required"`
 	Name  string           `json:"name,required"`
 	Path  string           `json:"path,required"`
 	// @name Subdirectories
@@ -113,7 +113,7 @@ func (r *FilesystemDirectory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FilesystemFile struct {
+type FilesystemRead struct {
 	Group        string `json:"group,required"`
 	LastModified string `json:"lastModified,required"`
 	Name         string `json:"name,required"`
@@ -136,23 +136,8 @@ type FilesystemFile struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FilesystemFile) RawJSON() string { return r.JSON.raw }
-func (r *FilesystemFile) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FilesystemFileRequestParam struct {
-	Content     param.Opt[string] `json:"content,omitzero"`
-	IsDirectory param.Opt[bool]   `json:"isDirectory,omitzero"`
-	Permissions param.Opt[string] `json:"permissions,omitzero"`
-	paramObj
-}
-
-func (r FilesystemFileRequestParam) MarshalJSON() (data []byte, err error) {
-	type shadow FilesystemFileRequestParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FilesystemFileRequestParam) UnmarshalJSON(data []byte) error {
+func (r FilesystemRead) RawJSON() string { return r.JSON.raw }
+func (r *FilesystemRead) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -174,6 +159,21 @@ func (r *FilesystemSubdirectory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FilesystemWriteParam struct {
+	Content     param.Opt[string] `json:"content,omitzero"`
+	IsDirectory param.Opt[bool]   `json:"isDirectory,omitzero"`
+	Permissions param.Opt[string] `json:"permissions,omitzero"`
+	paramObj
+}
+
+func (r FilesystemWriteParam) MarshalJSON() (data []byte, err error) {
+	type shadow FilesystemWriteParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FilesystemWriteParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // SandboxFilesystemGetResponseUnion contains all possible properties and values
 // from [FilesystemDirectory], [SandboxFilesystemGetResponseFileWithContent],
 // [io.Reader].
@@ -186,7 +186,7 @@ type SandboxFilesystemGetResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
 	// This field is from variant [FilesystemDirectory].
-	Files []FilesystemFile `json:"files"`
+	Files []FilesystemRead `json:"files"`
 	Name  string           `json:"name"`
 	Path  string           `json:"path"`
 	// This field is from variant [FilesystemDirectory].
@@ -301,7 +301,7 @@ type SandboxFilesystemListResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
 	// This field is from variant [FilesystemDirectory].
-	Files []FilesystemFile `json:"files"`
+	Files []FilesystemRead `json:"files"`
 	Name  string           `json:"name"`
 	Path  string           `json:"path"`
 	// This field is from variant [FilesystemDirectory].
@@ -420,15 +420,15 @@ func (r SandboxFilesystemGetParams) URLQuery() (v url.Values, err error) {
 }
 
 type SandboxFilesystemUpdateParams struct {
-	FilesystemFileRequest FilesystemFileRequestParam
+	FilesystemWrite FilesystemWriteParam
 	paramObj
 }
 
 func (r SandboxFilesystemUpdateParams) MarshalJSON() (data []byte, err error) {
-	return shimjson.Marshal(r.FilesystemFileRequest)
+	return shimjson.Marshal(r.FilesystemWrite)
 }
 func (r *SandboxFilesystemUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.FilesystemFileRequest)
+	return json.Unmarshal(data, &r.FilesystemWrite)
 }
 
 type SandboxFilesystemListParams struct {
