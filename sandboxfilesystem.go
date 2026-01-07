@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"slices"
@@ -494,15 +493,10 @@ func (r *SandboxFilesystemGetResponseUnion) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemGetTreeResponseUnion contains all possible properties and
-// values from [Directory], [FilesystemReadWithContent], [io.Reader].
+// values from [Directory], [FilesystemReadWithContent].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-//
-// If the underlying value is not a json object, one of the following properties
-// will be valid: OfFile]
 type SandboxFilesystemGetTreeResponseUnion struct {
-	// This field will be present if the value is a [io.Reader] instead of an object.
-	OfFile io.Reader `json:",inline"`
 	// This field is from variant [Directory].
 	Files []FilesystemRead `json:"files"`
 	Name  string           `json:"name"`
@@ -522,7 +516,6 @@ type SandboxFilesystemGetTreeResponseUnion struct {
 	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
-		OfFile         respjson.Field
 		Files          respjson.Field
 		Name           respjson.Field
 		Path           respjson.Field
@@ -543,11 +536,6 @@ func (u SandboxFilesystemGetTreeResponseUnion) AsDirectory() (v Directory) {
 }
 
 func (u SandboxFilesystemGetTreeResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u SandboxFilesystemGetTreeResponseUnion) AsFile() (v io.Reader) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -578,15 +566,10 @@ func (r *SandboxFilesystemWriteResponse) UnmarshalJSON(data []byte) error {
 }
 
 // SandboxFilesystemWriteTreeResponseUnion contains all possible properties and
-// values from [Directory], [FilesystemReadWithContent], [io.Reader].
+// values from [Directory], [FilesystemReadWithContent].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-//
-// If the underlying value is not a json object, one of the following properties
-// will be valid: OfFile]
 type SandboxFilesystemWriteTreeResponseUnion struct {
-	// This field will be present if the value is a [io.Reader] instead of an object.
-	OfFile io.Reader `json:",inline"`
 	// This field is from variant [Directory].
 	Files []FilesystemRead `json:"files"`
 	Name  string           `json:"name"`
@@ -606,7 +589,6 @@ type SandboxFilesystemWriteTreeResponseUnion struct {
 	// This field is from variant [FilesystemReadWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
-		OfFile         respjson.Field
 		Files          respjson.Field
 		Name           respjson.Field
 		Path           respjson.Field
@@ -627,11 +609,6 @@ func (u SandboxFilesystemWriteTreeResponseUnion) AsDirectory() (v Directory) {
 }
 
 func (u SandboxFilesystemWriteTreeResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u SandboxFilesystemWriteTreeResponseUnion) AsFile() (v io.Reader) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
