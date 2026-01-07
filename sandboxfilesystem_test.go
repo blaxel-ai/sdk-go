@@ -13,7 +13,7 @@ import (
 	"github.com/stainless-sdks/blaxel-go/option"
 )
 
-func TestSandboxFGetWithOptionalParams(t *testing.T) {
+func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -27,10 +27,10 @@ func TestSandboxFGetWithOptionalParams(t *testing.T) {
 		option.WithClientID("My Client ID"),
 		option.WithClientSecret("My Client Secret"),
 	)
-	_, err := client.Sandboxes.Fs.Get(
+	_, err := client.Sandboxes.Filesystem.Get(
 		context.TODO(),
 		"path",
-		blaxel.SandboxFGetParams{
+		blaxel.SandboxFilesystemGetParams{
 			Download: blaxel.Bool(true),
 		},
 	)
@@ -43,7 +43,7 @@ func TestSandboxFGetWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxFUpdateWithOptionalParams(t *testing.T) {
+func TestSandboxFilesystemUpdateWithOptionalParams(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -57,10 +57,10 @@ func TestSandboxFUpdateWithOptionalParams(t *testing.T) {
 		option.WithClientID("My Client ID"),
 		option.WithClientSecret("My Client Secret"),
 	)
-	_, err := client.Sandboxes.Fs.Update(
+	_, err := client.Sandboxes.Filesystem.Update(
 		context.TODO(),
 		"path",
-		blaxel.SandboxFUpdateParams{
+		blaxel.SandboxFilesystemUpdateParams{
 			FileRequest: blaxel.FileRequestParam{
 				Content:     blaxel.String("file contents here"),
 				IsDirectory: blaxel.Bool(false),
@@ -77,7 +77,7 @@ func TestSandboxFUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxFListWithOptionalParams(t *testing.T) {
+func TestSandboxFilesystemListWithOptionalParams(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -91,10 +91,10 @@ func TestSandboxFListWithOptionalParams(t *testing.T) {
 		option.WithClientID("My Client ID"),
 		option.WithClientSecret("My Client Secret"),
 	)
-	_, err := client.Sandboxes.Fs.List(
+	_, err := client.Sandboxes.Filesystem.List(
 		context.TODO(),
 		"path",
-		blaxel.SandboxFListParams{
+		blaxel.SandboxFilesystemListParams{
 			Download: blaxel.Bool(true),
 		},
 	)
@@ -107,7 +107,7 @@ func TestSandboxFListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxFDeleteWithOptionalParams(t *testing.T) {
+func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -121,10 +121,10 @@ func TestSandboxFDeleteWithOptionalParams(t *testing.T) {
 		option.WithClientID("My Client ID"),
 		option.WithClientSecret("My Client Secret"),
 	)
-	_, err := client.Sandboxes.Fs.Delete(
+	_, err := client.Sandboxes.Filesystem.Delete(
 		context.TODO(),
 		"path",
-		blaxel.SandboxFDeleteParams{
+		blaxel.SandboxFilesystemDeleteParams{
 			Recursive: blaxel.Bool(true),
 		},
 	)

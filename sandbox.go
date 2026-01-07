@@ -27,11 +27,11 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewSandboxService] method instead.
 type SandboxService struct {
-	Options  []option.RequestOption
-	Process  SandboxProcessService
-	Fs       SandboxFService
-	Codegen  SandboxCodegenService
-	Previews SandboxPreviewService
+	Options    []option.RequestOption
+	Process    SandboxProcessService
+	Filesystem SandboxFilesystemService
+	Codegen    SandboxCodegenService
+	Previews   SandboxPreviewService
 }
 
 // NewSandboxService generates a new service that applies the given options to each
@@ -41,7 +41,7 @@ func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 	r = SandboxService{}
 	r.Options = opts
 	r.Process = NewSandboxProcessService(opts...)
-	r.Fs = NewSandboxFService(opts...)
+	r.Filesystem = NewSandboxFilesystemService(opts...)
 	r.Codegen = NewSandboxCodegenService(opts...)
 	r.Previews = NewSandboxPreviewService(opts...)
 	return
