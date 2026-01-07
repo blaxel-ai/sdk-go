@@ -42,12 +42,16 @@ type Client struct {
 }
 
 // DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_CREDENTIALS,
-// BL_WORKSPACE, BLAXEL_BASE_URL). This should be used to initialize new clients.
+// BL_WORKSPACE, BL_ENV). This should be used to initialize new clients.
 func DefaultClientOptions() []option.RequestOption {
-	defaults := []option.RequestOption{option.WithEnvironmentProduction()}
-	if o, ok := os.LookupEnv("BLAXEL_BASE_URL"); ok {
-		defaults = append(defaults, option.WithBaseURL(o))
-	}
+	// Set up save callback for automatic credential persistence on token refresh
+	setupOAuth2RefreshSaveCallback()
+
+	// Initialize environment from workspace config and apply env var overrides
+	workspace := GetDefaultWorkspace()
+	InitializeEnvironment(workspace)
+
+	defaults := []option.RequestOption{option.WithBaseURL(GetBaseURL())}
 	if o, ok := os.LookupEnv("BL_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
 	}
@@ -57,7 +61,7 @@ func DefaultClientOptions() []option.RequestOption {
 		defaults = append(defaults, option.WithClientCredentials(o))
 	}
 	// Add workspace header if specified
-	if workspace := getDefaultWorkspace(); workspace != "" {
+	if workspace != "" {
 		defaults = append(defaults, option.WithWorkspace(workspace))
 	}
 	return defaults
@@ -165,8 +169,8 @@ func (r *Client) Delete(ctx context.Context, path string, params any, res any, o
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
 }
 
-// getDefaultWorkspace returns the workspace from environment or config file
-func getDefaultWorkspace() string {
+// GetDefaultWorkspace returns the workspace from environment or config file
+func GetDefaultWorkspace() string {
 	// First check environment variable
 	if workspace := os.Getenv("BL_WORKSPACE"); workspace != "" {
 		return workspace
@@ -194,21 +198,17 @@ func getDefaultWorkspace() string {
 // When using access token authentication with a refresh token, this client
 // automatically refreshes tokens when they are about to expire (at 20% remaining lifetime).
 func NewDefaultClient(opts ...option.RequestOption) (Client, error) {
-	// Set up save callback for automatic credential persistence
-	setupOAuth2RefreshSaveCallback()
+	// Determine workspace
+	workspace := GetDefaultWorkspace()
+
+	// Initialize environment from workspace config and apply env var overrides
+	InitializeEnvironment(workspace)
 
 	// Start with provided options
 	clientOpts := make([]option.RequestOption, 0, len(opts)+4)
 
-	// Add base URL if specified
-	if baseURL := os.Getenv("BLAXEL_BASE_URL"); baseURL != "" {
-		clientOpts = append(clientOpts, option.WithBaseURL(baseURL))
-	} else {
-		clientOpts = append(clientOpts, option.WithEnvironmentProduction())
-	}
-
-	// Determine workspace
-	workspace := getDefaultWorkspace()
+	// Add base URL from environment configuration
+	clientOpts = append(clientOpts, option.WithBaseURL(GetBaseURL()))
 
 	// Check for BL_API_KEY first
 	if apiKey := os.Getenv("BL_API_KEY"); apiKey != "" {
@@ -298,8 +298,8 @@ func setupOAuth2RefreshSaveCallback() {
 // for the specified workspace. It supports automatic token refresh when using
 // access tokens with refresh tokens.
 func NewClientFromConfig(workspaceName string, opts ...option.RequestOption) (*Client, error) {
-	// Set up save callback for automatic credential persistence
-	setupOAuth2RefreshSaveCallback()
+	// Initialize environment from workspace config and apply env var overrides
+	InitializeEnvironment(workspaceName)
 
 	creds, err := LoadCredentials(workspaceName)
 	if err != nil {
@@ -307,7 +307,7 @@ func NewClientFromConfig(workspaceName string, opts ...option.RequestOption) (*C
 	}
 
 	clientOpts := make([]option.RequestOption, 0, len(opts)+6)
-	clientOpts = append(clientOpts, option.WithEnvironmentProduction())
+	clientOpts = append(clientOpts, option.WithBaseURL(GetBaseURL()))
 
 	if creds.APIKey != "" {
 		clientOpts = append(clientOpts, option.WithAPIKey(creds.APIKey))
@@ -347,4 +347,45 @@ func NewClientFromConfig(workspaceName string, opts ...option.RequestOption) (*C
 
 	client := NewClient(clientOpts...)
 	return &client, nil
+}
+
+// NewClientFromCredentials creates a client using the provided Credentials struct.
+// This encapsulates the pattern of checking APIKey/AccessToken/ClientCredentials.
+func NewClientFromCredentials(credentials Credentials, opts ...option.RequestOption) Client {
+	clientOpts := make([]option.RequestOption, 0, len(opts)+6)
+	clientOpts = append(clientOpts, option.WithBaseURL(GetBaseURL()))
+
+	if credentials.APIKey != "" {
+		clientOpts = append(clientOpts, option.WithAPIKey(credentials.APIKey))
+	} else if credentials.AccessToken != "" {
+		clientOpts = append(clientOpts, option.WithAccessToken(credentials.AccessToken))
+		if credentials.RefreshToken != "" {
+			clientOpts = append(clientOpts, option.WithRefreshToken(credentials.RefreshToken))
+		}
+		if credentials.DeviceCode != "" {
+			clientOpts = append(clientOpts, option.WithDeviceCode(credentials.DeviceCode))
+		}
+		if credentials.ExpiresIn > 0 {
+			clientOpts = append(clientOpts, option.WithExpires(credentials.ExpiresIn))
+		}
+	} else if credentials.ClientCredentials != "" {
+		// Decode base64 client credentials
+		decoded, err := base64.StdEncoding.DecodeString(credentials.ClientCredentials)
+		if err != nil {
+			decoded = []byte(credentials.ClientCredentials)
+		}
+
+		parts := strings.SplitN(string(decoded), ":", 2)
+		if len(parts) == 2 {
+			clientOpts = append(clientOpts,
+				option.WithClientID(parts[0]),
+				option.WithClientSecret(parts[1]),
+			)
+		}
+	}
+
+	// Add user-provided options last (they override defaults)
+	clientOpts = append(clientOpts, opts...)
+
+	return NewClient(clientOpts...)
 }

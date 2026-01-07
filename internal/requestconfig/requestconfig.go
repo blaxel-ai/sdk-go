@@ -435,6 +435,9 @@ func (cfg *RequestConfig) Execute() (err error) {
 			return err
 		}
 		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		// Handle direct access token usage (without OAuth2 state machinery)
+		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
 	}
 
 	handler := cfg.HTTPClient.Do

@@ -4,11 +4,16 @@ package blaxel
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
 	"gopkg.in/yaml.v3"
 )
 
@@ -44,6 +49,69 @@ type Credentials struct {
 // IsValid returns true if any credential is set
 func (c Credentials) IsValid() bool {
 	return c.APIKey != "" || c.AccessToken != "" || c.RefreshToken != "" || c.ClientCredentials != ""
+}
+
+// AuthHeaders returns the authentication headers for HTTP requests.
+// It handles token refresh and client credentials exchange as needed.
+func (c Credentials) AuthHeaders(ctx context.Context, workspace string) (map[string]string, error) {
+	headers := make(map[string]string)
+
+	if c.APIKey != "" {
+		headers["X-Blaxel-Authorization"] = "Bearer " + c.APIKey
+	} else if c.AccessToken != "" && c.RefreshToken != "" {
+		// Access token with refresh token - check if refresh needed
+		baseURL, _ := url.Parse(GetBaseURL())
+		cfg := &requestconfig.RequestConfig{
+			Context:            ctx,
+			Workspace:          workspace,
+			AccessToken:        c.AccessToken,
+			RefreshToken:       c.RefreshToken,
+			DeviceCode:         c.DeviceCode,
+			ExpiresIn:          c.ExpiresIn,
+			BaseURL:            baseURL,
+			HTTPClient:         http.DefaultClient,
+			OAuth2RefreshState: requestconfig.OAuth2RefreshCache,
+		}
+		token, err := requestconfig.OAuth2RefreshCache.GetToken(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to refresh token: %w", err)
+		}
+		headers["X-Blaxel-Authorization"] = "Bearer " + token
+	} else if c.AccessToken != "" {
+		headers["X-Blaxel-Authorization"] = "Bearer " + c.AccessToken
+	} else if c.ClientCredentials != "" {
+		// Decode and exchange client credentials for token
+		decoded, err := base64.StdEncoding.DecodeString(c.ClientCredentials)
+		if err != nil {
+			decoded = []byte(c.ClientCredentials)
+		}
+		parts := strings.SplitN(string(decoded), ":", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid client credentials format")
+		}
+
+		baseURL, _ := url.Parse(GetBaseURL())
+		oauthState := requestconfig.OAuth2Cache["/oauth/token"]
+		cfg := &requestconfig.RequestConfig{
+			Context:      ctx,
+			ClientID:     parts[0],
+			ClientSecret: parts[1],
+			BaseURL:      baseURL,
+			HTTPClient:   http.DefaultClient,
+			OAuth2State:  oauthState,
+		}
+		token, err := oauthState.GetToken(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get client credentials token: %w", err)
+		}
+		headers["X-Blaxel-Authorization"] = "Bearer " + token
+	}
+
+	if workspace != "" {
+		headers["X-Blaxel-Workspace"] = workspace
+	}
+
+	return headers, nil
 }
 
 // LoadConfig loads the configuration from ~/.blaxel/config.yaml
@@ -110,17 +178,33 @@ func SaveCredentials(workspaceName string, creds Credentials) error {
 
 	// If workspace not found, add it
 	if !found {
-		config.Workspaces = append(config.Workspaces, WorkspaceConfig{
+		configWorkspace := WorkspaceConfig{
 			Name:        workspaceName,
 			Credentials: creds,
-		})
+		}
+		environment := GetEnvironment()
+		if environment != "prod" {
+			configWorkspace.Env = string(environment)
+		}
+		config.Workspaces = append(config.Workspaces, configWorkspace)
 	}
 
-	return writeConfig(config)
+	return WriteConfig(config)
 }
 
-// writeConfig writes the config to file
-func writeConfig(config Config) error {
+// SetCurrentWorkspace sets the current workspace in the config
+func SetCurrentWorkspace(workspaceName string) error {
+	config, err := LoadConfig()
+	if err != nil {
+		config = Config{}
+	}
+
+	config.Context.Workspace = workspaceName
+	return WriteConfig(config)
+}
+
+// WriteConfig writes the config to file
+func WriteConfig(config Config) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -213,7 +297,7 @@ func IsTrackingConfigured() bool {
 	return strings.Contains(content, "tracking:")
 }
 
-// SetTracking saves the tracking preference (placeholder - would need config file update)
+// SetTracking saves the tracking preference
 func SetTracking(enabled bool) {
 	// Set environment variable for this session
 	if !enabled {
@@ -229,48 +313,7 @@ func SetTracking(enabled bool) {
 		}
 	}
 
-	// Write config with tracking setting
-	if err := writeConfigWithTracking(config, enabled); err != nil {
-		// Silently fail - tracking preference is not critical
-		return
-	}
-}
-
-// writeConfigWithTracking writes the config to file with the tracking setting
-func writeConfigWithTracking(config Config, tracking bool) error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-	configPath := filepath.Join(home, ".blaxel")
-
-	// Ensure directory exists
-	if err := os.MkdirAll(configPath, 0755); err != nil {
-		return err
-	}
-
-	var buf bytes.Buffer
-
-	// Write context
-	buf.WriteString("context:\n")
-	buf.WriteString(fmt.Sprintf("  workspace: %s\n", config.Context.Workspace))
-
-	// Write workspaces
-	buf.WriteString("workspaces:\n")
-	for _, ws := range config.Workspaces {
-		buf.WriteString(fmt.Sprintf("- name: %s\n", ws.Name))
-		buf.WriteString("  credentials:\n")
-		buf.WriteString(fmt.Sprintf("    apiKey: \"%s\"\n", ws.Credentials.APIKey))
-		buf.WriteString(fmt.Sprintf("    access_token: %s\n", ws.Credentials.AccessToken))
-		buf.WriteString(fmt.Sprintf("    refresh_token: %s\n", ws.Credentials.RefreshToken))
-		buf.WriteString(fmt.Sprintf("    expires_in: %d\n", ws.Credentials.ExpiresIn))
-		buf.WriteString(fmt.Sprintf("    device_code: %s\n", ws.Credentials.DeviceCode))
-		buf.WriteString(fmt.Sprintf("    client_credentials: \"%s\"\n", ws.Credentials.ClientCredentials))
-		buf.WriteString(fmt.Sprintf("  env: \"%s\"\n", ws.Env))
-	}
-
-	// Write tracking
-	buf.WriteString(fmt.Sprintf("tracking: %v\n", tracking))
-
-	return os.WriteFile(filepath.Join(configPath, "config.yaml"), buf.Bytes(), 0600)
+	config.Tracking = enabled
+	// Silently fail - tracking preference is not critical
+	_ = WriteConfig(config)
 }

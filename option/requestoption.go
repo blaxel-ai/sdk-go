@@ -259,13 +259,6 @@ func WithRequestTimeout(dur time.Duration) RequestOption {
 	})
 }
 
-// WithEnvironmentProduction returns a RequestOption that sets the current
-// environment to be the "production" environment. An environment specifies which base URL
-// to use by default.
-func WithEnvironmentProduction() RequestOption {
-	return requestconfig.WithDefaultBaseURL("https://api.blaxel.ai/v0/")
-}
-
 // WithAPIKey returns a RequestOption that sets the client setting "api_key".
 func WithAPIKey(value string) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
