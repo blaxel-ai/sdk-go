@@ -44,19 +44,6 @@ func NewSandboxFilesystemService(opts ...option.RequestOption) (r SandboxFilesys
 	return
 }
 
-// Get content of a file or listing of a directory. Use Accept header to control
-// response format for files.
-func (r *SandboxFilesystemService) List(ctx context.Context, filePath string, query SandboxFilesystemListParams, opts ...option.RequestOption) (res *SandboxFilesystemListResponseUnion, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if filePath == "" {
-		err = errors.New("missing required filePath parameter")
-		return
-	}
-	path := fmt.Sprintf("filesystem/%s", filePath)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
-}
-
 // Delete a file or directory
 func (r *SandboxFilesystemService) Delete(ctx context.Context, filePath string, body SandboxFilesystemDeleteParams, opts ...option.RequestOption) (res *SandboxFilesystemDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -102,6 +89,19 @@ func (r *SandboxFilesystemService) Find(ctx context.Context, filePath string, qu
 		return
 	}
 	path := fmt.Sprintf("filesystem-find/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return
+}
+
+// Get content of a file or listing of a directory. Use Accept header to control
+// response format for files.
+func (r *SandboxFilesystemService) Get(ctx context.Context, filePath string, query SandboxFilesystemGetParams, opts ...option.RequestOption) (res *SandboxFilesystemGetResponseUnion, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
 }
@@ -402,14 +402,50 @@ func (r *TreeRequestParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// SandboxFilesystemListResponseUnion contains all possible properties and values
+type SandboxFilesystemDeleteResponse struct {
+	Message string `json:"message,required"`
+	Path    string `json:"path"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		Path        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxFilesystemDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxFilesystemDeleteResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type SandboxFilesystemDeleteTreeResponse struct {
+	Message string `json:"message,required"`
+	Path    string `json:"path"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		Path        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxFilesystemDeleteTreeResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxFilesystemDeleteTreeResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// SandboxFilesystemGetResponseUnion contains all possible properties and values
 // from [Directory], [FilesystemReadWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
 // If the underlying value is not a json object, one of the following properties
 // will be valid: OfFile]
-type SandboxFilesystemListResponseUnion struct {
+type SandboxFilesystemGetResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
 	// This field is from variant [Directory].
@@ -446,61 +482,25 @@ type SandboxFilesystemListResponseUnion struct {
 	} `json:"-"`
 }
 
-func (u SandboxFilesystemListResponseUnion) AsDirectory() (v Directory) {
+func (u SandboxFilesystemGetResponseUnion) AsDirectory() (v Directory) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u SandboxFilesystemListResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
+func (u SandboxFilesystemGetResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u SandboxFilesystemListResponseUnion) AsFile() (v io.Reader) {
+func (u SandboxFilesystemGetResponseUnion) AsFile() (v io.Reader) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u SandboxFilesystemListResponseUnion) RawJSON() string { return u.JSON.raw }
+func (u SandboxFilesystemGetResponseUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *SandboxFilesystemListResponseUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type SandboxFilesystemDeleteResponse struct {
-	Message string `json:"message,required"`
-	Path    string `json:"path"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Message     respjson.Field
-		Path        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxFilesystemDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *SandboxFilesystemDeleteResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type SandboxFilesystemDeleteTreeResponse struct {
-	Message string `json:"message,required"`
-	Path    string `json:"path"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Message     respjson.Field
-		Path        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxFilesystemDeleteTreeResponse) RawJSON() string { return r.JSON.raw }
-func (r *SandboxFilesystemDeleteTreeResponse) UnmarshalJSON(data []byte) error {
+func (r *SandboxFilesystemGetResponseUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -654,21 +654,6 @@ func (r *SandboxFilesystemWriteTreeResponseUnion) UnmarshalJSON(data []byte) err
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type SandboxFilesystemListParams struct {
-	// Force download mode for files
-	Download param.Opt[bool] `query:"download,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [SandboxFilesystemListParams]'s query parameters as
-// `url.Values`.
-func (r SandboxFilesystemListParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
 type SandboxFilesystemDeleteParams struct {
 	// Delete directory recursively
 	Recursive param.Opt[bool] `query:"recursive,omitzero" json:"-"`
@@ -743,6 +728,21 @@ type SandboxFilesystemFindParams struct {
 // URLQuery serializes [SandboxFilesystemFindParams]'s query parameters as
 // `url.Values`.
 func (r SandboxFilesystemFindParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SandboxFilesystemGetParams struct {
+	// Force download mode for files
+	Download param.Opt[bool] `query:"download,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxFilesystemGetParams]'s query parameters as
+// `url.Values`.
+func (r SandboxFilesystemGetParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

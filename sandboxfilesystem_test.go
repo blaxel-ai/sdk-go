@@ -13,36 +13,6 @@ import (
 	"github.com/stainless-sdks/blaxel-go/option"
 )
 
-func TestSandboxFilesystemListWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := blaxel.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
-	)
-	_, err := client.Sandboxes.Filesystem.List(
-		context.TODO(),
-		"filePath",
-		blaxel.SandboxFilesystemListParams{
-			Download: blaxel.Bool(true),
-		},
-	)
-	if err != nil {
-		var apierr *blaxel.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
 func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
 	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
@@ -160,6 +130,36 @@ func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
 			MaxResults:    blaxel.Int(0),
 			Patterns:      blaxel.String("patterns"),
 			Type:          blaxel.String("type"),
+		},
+	)
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
+	t.Skip("Prism tests are disabled")
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
+	)
+	_, err := client.Sandboxes.Filesystem.Get(
+		context.TODO(),
+		"filePath",
+		blaxel.SandboxFilesystemGetParams{
+			Download: blaxel.Bool(true),
 		},
 	)
 	if err != nil {
