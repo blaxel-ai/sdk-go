@@ -64,8 +64,47 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 // the sandbox name in API calls.
 type SandboxInstance struct {
 	*Sandbox
+	// Process provides process operations for this sandbox
+	Process *SandboxInstanceProcessService
 	// Previews provides preview operations scoped to this sandbox
 	Previews *SandboxInstancePreviewService
+}
+
+// SandboxInstanceProcessService provides process operations for a specific sandbox
+type SandboxInstanceProcessService struct {
+	sandboxName string
+	options     []option.RequestOption
+	service     *SandboxProcessService
+}
+
+// New executes a command in this sandbox and returns process information
+func (r *SandboxInstanceProcessService) New(ctx context.Context, body ProcessRequestParam, opts ...option.RequestOption) (*ProcessResponse, error) {
+	return r.service.New(ctx, SandboxProcessNewParams{ProcessRequest: body}, opts...)
+}
+
+// Get returns information about a process by its PID or name
+func (r *SandboxInstanceProcessService) Get(ctx context.Context, identifier string, opts ...option.RequestOption) (*ProcessResponse, error) {
+	return r.service.Get(ctx, identifier, opts...)
+}
+
+// List returns all running and completed processes in this sandbox
+func (r *SandboxInstanceProcessService) List(ctx context.Context, opts ...option.RequestOption) (*[]ProcessResponse, error) {
+	return r.service.List(ctx, opts...)
+}
+
+// Kill forcefully kills a running process
+func (r *SandboxInstanceProcessService) Kill(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessKillResponse, error) {
+	return r.service.Kill(ctx, identifier, opts...)
+}
+
+// GetLogs returns the stdout and stderr output of a process
+func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier string, opts ...option.RequestOption) (*ProcessLogs, error) {
+	return r.service.GetLogs(ctx, identifier, opts...)
+}
+
+// Stop gracefully stops a running process
+func (r *SandboxInstanceProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessStopResponse, error) {
+	return r.service.Stop(ctx, identifier, opts...)
 }
 
 // SandboxInstancePreviewService provides preview operations for a specific sandbox
@@ -177,10 +216,23 @@ func newPreviewInstance(preview *Preview, sandboxName string, opts []option.Requ
 // newSandboxInstance creates a SandboxInstance from a Sandbox response
 func newSandboxInstance(sandbox *Sandbox, opts []option.RequestOption) *SandboxInstance {
 	sandboxName := sandbox.Metadata.Name
+
+	// Use the sandbox's URL as the base URL for process/preview services
+	sandboxOpts := opts
+	if sandbox.Metadata.URL != "" {
+		sandboxOpts = append([]option.RequestOption{option.WithBaseURL(sandbox.Metadata.URL)}, opts...)
+	}
+
+	processService := NewSandboxProcessService(sandboxOpts...)
 	previewService := NewSandboxPreviewService(opts...)
 
 	return &SandboxInstance{
 		Sandbox: sandbox,
+		Process: &SandboxInstanceProcessService{
+			sandboxName: sandboxName,
+			options:     sandboxOpts,
+			service:     &processService,
+		},
 		Previews: &SandboxInstancePreviewService{
 			sandboxName: sandboxName,
 			options:     opts,

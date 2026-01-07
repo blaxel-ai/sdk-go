@@ -67,4 +67,14 @@ func main() {
 		return
 	}
 	fmt.Printf("Preview created: %s?bl_preview_token=%s\n", preview.Spec.URL, token.Spec.Token)
+
+	process, err := sbx.Process.New(ctx, blaxel.ProcessRequestParam{
+		Command:           "echo 'Hello, world!'",
+		WaitForCompletion: blaxel.Opt(true),
+	})
+	if err != nil {
+		fmt.Printf("Could not create process: %v", err)
+		return
+	}
+	fmt.Printf("Process logs: %s\n", process.Logs)
 }
