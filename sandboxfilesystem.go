@@ -28,7 +28,9 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewSandboxFilesystemService] method instead.
 type SandboxFilesystemService struct {
-	Options []option.RequestOption
+	Options   []option.RequestOption
+	Watch     SandboxFilesystemWatchService
+	Multipart SandboxFilesystemMultipartService
 }
 
 // NewSandboxFilesystemService generates a new service that applies the given
@@ -37,31 +39,8 @@ type SandboxFilesystemService struct {
 func NewSandboxFilesystemService(opts ...option.RequestOption) (r SandboxFilesystemService) {
 	r = SandboxFilesystemService{}
 	r.Options = opts
-	return
-}
-
-// Get content of a file or listing of a directory. Use Accept header to control
-// response format for files.
-func (r *SandboxFilesystemService) Get(ctx context.Context, filePath string, query SandboxFilesystemGetParams, opts ...option.RequestOption) (res *SandboxFilesystemGetResponseUnion, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if filePath == "" {
-		err = errors.New("missing required filePath parameter")
-		return
-	}
-	path := fmt.Sprintf("filesystem/%s", filePath)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
-}
-
-// Create or update a file or directory
-func (r *SandboxFilesystemService) Update(ctx context.Context, filePath string, body SandboxFilesystemUpdateParams, opts ...option.RequestOption) (res *SandboxFilesystemUpdateResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if filePath == "" {
-		err = errors.New("missing required filePath parameter")
-		return
-	}
-	path := fmt.Sprintf("filesystem/%s", filePath)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
+	r.Watch = NewSandboxFilesystemWatchService(opts...)
+	r.Multipart = NewSandboxFilesystemMultipartService(opts...)
 	return
 }
 
@@ -90,12 +69,142 @@ func (r *SandboxFilesystemService) Delete(ctx context.Context, filePath string, 
 	return
 }
 
-type FilesystemDirectory struct {
-	Files []FilesystemRead `json:"files,required"`
-	Name  string           `json:"name,required"`
-	Path  string           `json:"path,required"`
+// Searches for text content inside files using ripgrep. Returns matching lines
+// with context.
+func (r *SandboxFilesystemService) ContentSearch(ctx context.Context, filePath string, query SandboxFilesystemContentSearchParams, opts ...option.RequestOption) (res *ContentSearchResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem-content-search/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return
+}
+
+// Delete a directory tree recursively
+func (r *SandboxFilesystemService) DeleteTree(ctx context.Context, filePath string, body SandboxFilesystemDeleteTreeParams, opts ...option.RequestOption) (res *SandboxFilesystemDeleteTreeResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem/tree/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
+	return
+}
+
+// Finds files and directories using the find command.
+func (r *SandboxFilesystemService) Find(ctx context.Context, filePath string, query SandboxFilesystemFindParams, opts ...option.RequestOption) (res *FindResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem-find/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return
+}
+
+// Get a recursive directory tree structure starting from the specified path
+func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string, opts ...option.RequestOption) (res *SandboxFilesystemGetTreeResponseUnion, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem/tree/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Performs fuzzy search on filesystem paths using fuzzy matching algorithm.
+// Optimized alternative to find and grep commands.
+func (r *SandboxFilesystemService) Search(ctx context.Context, filePath string, query SandboxFilesystemSearchParams, opts ...option.RequestOption) (res *FuzzySearchResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem-search/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return
+}
+
+// Create or update a file or directory
+func (r *SandboxFilesystemService) Write(ctx context.Context, filePath string, body SandboxFilesystemWriteParams, opts ...option.RequestOption) (res *SandboxFilesystemWriteResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
+	return
+}
+
+// Create or update multiple files within a directory tree structure
+func (r *SandboxFilesystemService) WriteTree(ctx context.Context, filePath string, body SandboxFilesystemWriteTreeParams, opts ...option.RequestOption) (res *SandboxFilesystemWriteTreeResponseUnion, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if filePath == "" {
+		err = errors.New("missing required filePath parameter")
+		return
+	}
+	path := fmt.Sprintf("filesystem/tree/%s", filePath)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
+	return
+}
+
+type ContentSearchMatch struct {
+	Column  int64  `json:"column"`
+	Context string `json:"context"`
+	Line    int64  `json:"line"`
+	Path    string `json:"path"`
+	Text    string `json:"text"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Column      respjson.Field
+		Context     respjson.Field
+		Line        respjson.Field
+		Path        respjson.Field
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ContentSearchMatch) RawJSON() string { return r.JSON.raw }
+func (r *ContentSearchMatch) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ContentSearchResponse struct {
+	Matches []ContentSearchMatch `json:"matches"`
+	Query   string               `json:"query"`
+	Total   int64                `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Matches     respjson.Field
+		Query       respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ContentSearchResponse) RawJSON() string { return r.JSON.raw }
+func (r *ContentSearchResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type Directory struct {
+	Files []File `json:"files,required"`
+	Name  string `json:"name,required"`
+	Path  string `json:"path,required"`
 	// @name Subdirectories
-	Subdirectories []FilesystemSubdirectory `json:"subdirectories,required"`
+	Subdirectories []Subdirectory `json:"subdirectories,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Files          respjson.Field
@@ -108,12 +217,12 @@ type FilesystemDirectory struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FilesystemDirectory) RawJSON() string { return r.JSON.raw }
-func (r *FilesystemDirectory) UnmarshalJSON(data []byte) error {
+func (r Directory) RawJSON() string { return r.JSON.raw }
+func (r *Directory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FilesystemRead struct {
+type File struct {
 	Group        string `json:"group,required"`
 	LastModified string `json:"lastModified,required"`
 	Name         string `json:"name,required"`
@@ -136,12 +245,27 @@ type FilesystemRead struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FilesystemRead) RawJSON() string { return r.JSON.raw }
-func (r *FilesystemRead) UnmarshalJSON(data []byte) error {
+func (r File) RawJSON() string { return r.JSON.raw }
+func (r *File) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FilesystemReadWithContent struct {
+type FileRequestParam struct {
+	Content     param.Opt[string] `json:"content,omitzero"`
+	IsDirectory param.Opt[bool]   `json:"isDirectory,omitzero"`
+	Permissions param.Opt[string] `json:"permissions,omitzero"`
+	paramObj
+}
+
+func (r FileRequestParam) MarshalJSON() (data []byte, err error) {
+	type shadow FileRequestParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FileRequestParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FileWithContent struct {
 	Content      string `json:"content,required"`
 	Group        string `json:"group,required"`
 	LastModified string `json:"lastModified,required"`
@@ -166,12 +290,88 @@ type FilesystemReadWithContent struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FilesystemReadWithContent) RawJSON() string { return r.JSON.raw }
-func (r *FilesystemReadWithContent) UnmarshalJSON(data []byte) error {
+func (r FileWithContent) RawJSON() string { return r.JSON.raw }
+func (r *FileWithContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FilesystemSubdirectory struct {
+type FindMatch struct {
+	Path string `json:"path"`
+	// "file" or "directory"
+	Type string `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Path        respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FindMatch) RawJSON() string { return r.JSON.raw }
+func (r *FindMatch) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FindResponse struct {
+	Matches []FindMatch `json:"matches"`
+	Total   int64       `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Matches     respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FindResponse) RawJSON() string { return r.JSON.raw }
+func (r *FindResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FuzzySearchMatch struct {
+	Path  string `json:"path"`
+	Score int64  `json:"score"`
+	// "file" or "directory"
+	Type string `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Path        respjson.Field
+		Score       respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FuzzySearchMatch) RawJSON() string { return r.JSON.raw }
+func (r *FuzzySearchMatch) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FuzzySearchResponse struct {
+	Matches []FuzzySearchMatch `json:"matches"`
+	Total   int64              `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Matches     respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FuzzySearchResponse) RawJSON() string { return r.JSON.raw }
+func (r *FuzzySearchResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type Subdirectory struct {
 	Name string `json:"name,required"`
 	Path string `json:"path,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -184,112 +384,26 @@ type FilesystemSubdirectory struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FilesystemSubdirectory) RawJSON() string { return r.JSON.raw }
-func (r *FilesystemSubdirectory) UnmarshalJSON(data []byte) error {
+func (r Subdirectory) RawJSON() string { return r.JSON.raw }
+func (r *Subdirectory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FilesystemWriteParam struct {
-	Content     param.Opt[string] `json:"content,omitzero"`
-	IsDirectory param.Opt[bool]   `json:"isDirectory,omitzero"`
-	Permissions param.Opt[string] `json:"permissions,omitzero"`
+type TreeRequestParam struct {
+	Files map[string]string `json:"files,omitzero"`
 	paramObj
 }
 
-func (r FilesystemWriteParam) MarshalJSON() (data []byte, err error) {
-	type shadow FilesystemWriteParam
+func (r TreeRequestParam) MarshalJSON() (data []byte, err error) {
+	type shadow TreeRequestParam
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *FilesystemWriteParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// SandboxFilesystemGetResponseUnion contains all possible properties and values
-// from [FilesystemDirectory], [FilesystemReadWithContent], [io.Reader].
-//
-// Use the methods beginning with 'As' to cast the union to one of its variants.
-//
-// If the underlying value is not a json object, one of the following properties
-// will be valid: OfFile]
-type SandboxFilesystemGetResponseUnion struct {
-	// This field will be present if the value is a [io.Reader] instead of an object.
-	OfFile io.Reader `json:",inline"`
-	// This field is from variant [FilesystemDirectory].
-	Files []FilesystemRead `json:"files"`
-	Name  string           `json:"name"`
-	Path  string           `json:"path"`
-	// This field is from variant [FilesystemDirectory].
-	Subdirectories []FilesystemSubdirectory `json:"subdirectories"`
-	// This field is from variant [FilesystemReadWithContent].
-	Content string `json:"content"`
-	// This field is from variant [FilesystemReadWithContent].
-	Group string `json:"group"`
-	// This field is from variant [FilesystemReadWithContent].
-	LastModified string `json:"lastModified"`
-	// This field is from variant [FilesystemReadWithContent].
-	Owner string `json:"owner"`
-	// This field is from variant [FilesystemReadWithContent].
-	Permissions string `json:"permissions"`
-	// This field is from variant [FilesystemReadWithContent].
-	Size int64 `json:"size"`
-	JSON struct {
-		OfFile         respjson.Field
-		Files          respjson.Field
-		Name           respjson.Field
-		Path           respjson.Field
-		Subdirectories respjson.Field
-		Content        respjson.Field
-		Group          respjson.Field
-		LastModified   respjson.Field
-		Owner          respjson.Field
-		Permissions    respjson.Field
-		Size           respjson.Field
-		raw            string
-	} `json:"-"`
-}
-
-func (u SandboxFilesystemGetResponseUnion) AsFilesystemDirectory() (v FilesystemDirectory) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u SandboxFilesystemGetResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u SandboxFilesystemGetResponseUnion) AsFile() (v io.Reader) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-// Returns the unmodified JSON received from the API
-func (u SandboxFilesystemGetResponseUnion) RawJSON() string { return u.JSON.raw }
-
-func (r *SandboxFilesystemGetResponseUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type SandboxFilesystemUpdateResponse struct {
-	Message string `json:"message,required"`
-	Path    string `json:"path"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Message     respjson.Field
-		Path        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxFilesystemUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *SandboxFilesystemUpdateResponse) UnmarshalJSON(data []byte) error {
+func (r *TreeRequestParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // SandboxFilesystemListResponseUnion contains all possible properties and values
-// from [FilesystemDirectory], [FilesystemReadWithContent], [io.Reader].
+// from [Directory], [FileWithContent], [io.Reader].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
@@ -298,23 +412,23 @@ func (r *SandboxFilesystemUpdateResponse) UnmarshalJSON(data []byte) error {
 type SandboxFilesystemListResponseUnion struct {
 	// This field will be present if the value is a [io.Reader] instead of an object.
 	OfFile io.Reader `json:",inline"`
-	// This field is from variant [FilesystemDirectory].
-	Files []FilesystemRead `json:"files"`
-	Name  string           `json:"name"`
-	Path  string           `json:"path"`
-	// This field is from variant [FilesystemDirectory].
-	Subdirectories []FilesystemSubdirectory `json:"subdirectories"`
-	// This field is from variant [FilesystemReadWithContent].
+	// This field is from variant [Directory].
+	Files []File `json:"files"`
+	Name  string `json:"name"`
+	Path  string `json:"path"`
+	// This field is from variant [Directory].
+	Subdirectories []Subdirectory `json:"subdirectories"`
+	// This field is from variant [FileWithContent].
 	Content string `json:"content"`
-	// This field is from variant [FilesystemReadWithContent].
+	// This field is from variant [FileWithContent].
 	Group string `json:"group"`
-	// This field is from variant [FilesystemReadWithContent].
+	// This field is from variant [FileWithContent].
 	LastModified string `json:"lastModified"`
-	// This field is from variant [FilesystemReadWithContent].
+	// This field is from variant [FileWithContent].
 	Owner string `json:"owner"`
-	// This field is from variant [FilesystemReadWithContent].
+	// This field is from variant [FileWithContent].
 	Permissions string `json:"permissions"`
-	// This field is from variant [FilesystemReadWithContent].
+	// This field is from variant [FileWithContent].
 	Size int64 `json:"size"`
 	JSON struct {
 		OfFile         respjson.Field
@@ -332,12 +446,12 @@ type SandboxFilesystemListResponseUnion struct {
 	} `json:"-"`
 }
 
-func (u SandboxFilesystemListResponseUnion) AsFilesystemDirectory() (v FilesystemDirectory) {
+func (u SandboxFilesystemListResponseUnion) AsDirectory() (v Directory) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u SandboxFilesystemListResponseUnion) AsFilesystemReadWithContent() (v FilesystemReadWithContent) {
+func (u SandboxFilesystemListResponseUnion) AsFileWithContent() (v FileWithContent) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -372,31 +486,172 @@ func (r *SandboxFilesystemDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type SandboxFilesystemGetParams struct {
-	// Force download mode for files
-	Download param.Opt[bool] `query:"download,omitzero" json:"-"`
-	paramObj
+type SandboxFilesystemDeleteTreeResponse struct {
+	Message string `json:"message,required"`
+	Path    string `json:"path"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		Path        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// URLQuery serializes [SandboxFilesystemGetParams]'s query parameters as
-// `url.Values`.
-func (r SandboxFilesystemGetParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
+// Returns the unmodified JSON received from the API
+func (r SandboxFilesystemDeleteTreeResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxFilesystemDeleteTreeResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
-type SandboxFilesystemUpdateParams struct {
-	FilesystemWrite FilesystemWriteParam
-	paramObj
+// SandboxFilesystemGetTreeResponseUnion contains all possible properties and
+// values from [Directory], [FileWithContent], [io.Reader].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfFile]
+type SandboxFilesystemGetTreeResponseUnion struct {
+	// This field will be present if the value is a [io.Reader] instead of an object.
+	OfFile io.Reader `json:",inline"`
+	// This field is from variant [Directory].
+	Files []File `json:"files"`
+	Name  string `json:"name"`
+	Path  string `json:"path"`
+	// This field is from variant [Directory].
+	Subdirectories []Subdirectory `json:"subdirectories"`
+	// This field is from variant [FileWithContent].
+	Content string `json:"content"`
+	// This field is from variant [FileWithContent].
+	Group string `json:"group"`
+	// This field is from variant [FileWithContent].
+	LastModified string `json:"lastModified"`
+	// This field is from variant [FileWithContent].
+	Owner string `json:"owner"`
+	// This field is from variant [FileWithContent].
+	Permissions string `json:"permissions"`
+	// This field is from variant [FileWithContent].
+	Size int64 `json:"size"`
+	JSON struct {
+		OfFile         respjson.Field
+		Files          respjson.Field
+		Name           respjson.Field
+		Path           respjson.Field
+		Subdirectories respjson.Field
+		Content        respjson.Field
+		Group          respjson.Field
+		LastModified   respjson.Field
+		Owner          respjson.Field
+		Permissions    respjson.Field
+		Size           respjson.Field
+		raw            string
+	} `json:"-"`
 }
 
-func (r SandboxFilesystemUpdateParams) MarshalJSON() (data []byte, err error) {
-	return shimjson.Marshal(r.FilesystemWrite)
+func (u SandboxFilesystemGetTreeResponseUnion) AsDirectory() (v Directory) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
-func (r *SandboxFilesystemUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.FilesystemWrite)
+
+func (u SandboxFilesystemGetTreeResponseUnion) AsFileWithContent() (v FileWithContent) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u SandboxFilesystemGetTreeResponseUnion) AsFile() (v io.Reader) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u SandboxFilesystemGetTreeResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *SandboxFilesystemGetTreeResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type SandboxFilesystemWriteResponse struct {
+	Message string `json:"message,required"`
+	Path    string `json:"path"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		Path        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxFilesystemWriteResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxFilesystemWriteResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// SandboxFilesystemWriteTreeResponseUnion contains all possible properties and
+// values from [Directory], [FileWithContent], [io.Reader].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfFile]
+type SandboxFilesystemWriteTreeResponseUnion struct {
+	// This field will be present if the value is a [io.Reader] instead of an object.
+	OfFile io.Reader `json:",inline"`
+	// This field is from variant [Directory].
+	Files []File `json:"files"`
+	Name  string `json:"name"`
+	Path  string `json:"path"`
+	// This field is from variant [Directory].
+	Subdirectories []Subdirectory `json:"subdirectories"`
+	// This field is from variant [FileWithContent].
+	Content string `json:"content"`
+	// This field is from variant [FileWithContent].
+	Group string `json:"group"`
+	// This field is from variant [FileWithContent].
+	LastModified string `json:"lastModified"`
+	// This field is from variant [FileWithContent].
+	Owner string `json:"owner"`
+	// This field is from variant [FileWithContent].
+	Permissions string `json:"permissions"`
+	// This field is from variant [FileWithContent].
+	Size int64 `json:"size"`
+	JSON struct {
+		OfFile         respjson.Field
+		Files          respjson.Field
+		Name           respjson.Field
+		Path           respjson.Field
+		Subdirectories respjson.Field
+		Content        respjson.Field
+		Group          respjson.Field
+		LastModified   respjson.Field
+		Owner          respjson.Field
+		Permissions    respjson.Field
+		Size           respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+func (u SandboxFilesystemWriteTreeResponseUnion) AsDirectory() (v Directory) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u SandboxFilesystemWriteTreeResponseUnion) AsFileWithContent() (v FileWithContent) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u SandboxFilesystemWriteTreeResponseUnion) AsFile() (v io.Reader) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u SandboxFilesystemWriteTreeResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *SandboxFilesystemWriteTreeResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxFilesystemListParams struct {
@@ -427,4 +682,116 @@ func (r SandboxFilesystemDeleteParams) URLQuery() (v url.Values, err error) {
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
+}
+
+type SandboxFilesystemContentSearchParams struct {
+	// Text to search for
+	Query string `query:"query,required" json:"-"`
+	// Case sensitive search (default: false)
+	CaseSensitive param.Opt[bool] `query:"caseSensitive,omitzero" json:"-"`
+	// Comma-separated directory names to skip (default:
+	// node_modules,vendor,.git,dist,build,target,**pycache**,.venv,.next,coverage)
+	ExcludeDirs param.Opt[string] `query:"excludeDirs,omitzero" json:"-"`
+	// File pattern to include (e.g., \*.go)
+	FilePattern param.Opt[string] `query:"filePattern,omitzero" json:"-"`
+	// Maximum number of results to return (default: 100)
+	MaxResults param.Opt[int64] `query:"maxResults,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxFilesystemContentSearchParams]'s query parameters as
+// `url.Values`.
+func (r SandboxFilesystemContentSearchParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SandboxFilesystemDeleteTreeParams struct {
+	// Delete directory recursively
+	Recursive param.Opt[bool] `query:"recursive,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxFilesystemDeleteTreeParams]'s query parameters as
+// `url.Values`.
+func (r SandboxFilesystemDeleteTreeParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SandboxFilesystemFindParams struct {
+	// Comma-separated directory names to skip (default:
+	// node_modules,vendor,.git,dist,build,target,**pycache**,.venv,.next,coverage).
+	// Use empty string to skip no directories.
+	ExcludeDirs param.Opt[string] `query:"excludeDirs,omitzero" json:"-"`
+	// Exclude hidden files and directories (default: true)
+	ExcludeHidden param.Opt[bool] `query:"excludeHidden,omitzero" json:"-"`
+	// Maximum number of results to return (default: 20). If set to 0, all results will
+	// be returned.
+	MaxResults param.Opt[int64] `query:"maxResults,omitzero" json:"-"`
+	// Comma-separated file patterns to include (e.g., _.go,_.js)
+	Patterns param.Opt[string] `query:"patterns,omitzero" json:"-"`
+	// Type of search (file or directory)
+	Type param.Opt[string] `query:"type,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxFilesystemFindParams]'s query parameters as
+// `url.Values`.
+func (r SandboxFilesystemFindParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SandboxFilesystemSearchParams struct {
+	// Comma-separated directory names to skip (default:
+	// node_modules,vendor,.git,dist,build,target,**pycache**,.venv,.next,coverage).
+	// Use empty string to skip no directories.
+	ExcludeDirs param.Opt[string] `query:"excludeDirs,omitzero" json:"-"`
+	// Exclude hidden files and directories (default: true)
+	ExcludeHidden param.Opt[bool] `query:"excludeHidden,omitzero" json:"-"`
+	// Maximum number of results to return (default: 20)
+	MaxResults param.Opt[int64] `query:"maxResults,omitzero" json:"-"`
+	// Comma-separated file patterns to include (e.g., _.go,_.js)
+	Patterns param.Opt[string] `query:"patterns,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxFilesystemSearchParams]'s query parameters as
+// `url.Values`.
+func (r SandboxFilesystemSearchParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type SandboxFilesystemWriteParams struct {
+	FileRequest FileRequestParam
+	paramObj
+}
+
+func (r SandboxFilesystemWriteParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.FileRequest)
+}
+func (r *SandboxFilesystemWriteParams) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &r.FileRequest)
+}
+
+type SandboxFilesystemWriteTreeParams struct {
+	TreeRequest TreeRequestParam
+	paramObj
+}
+
+func (r SandboxFilesystemWriteTreeParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.TreeRequest)
+}
+func (r *SandboxFilesystemWriteTreeParams) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &r.TreeRequest)
 }
