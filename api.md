@@ -421,6 +421,28 @@ Methods:
 - <code title="delete /sandboxes/{sandboxName}">client.Sandboxes.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, sandboxName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#Sandbox">Sandbox</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /sandbox/hub">client.Sandboxes.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxService.GetHub">GetHub</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxGetHubResponse">SandboxGetHubResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+## Process
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessRequestParam">ProcessRequestParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessLogs">ProcessLogs</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessResponse">ProcessResponse</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessKillResponse">SandboxProcessKillResponse</a>
+- <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessStopResponse">SandboxProcessStopResponse</a>
+
+Methods:
+
+- <code title="post /process">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessNewParams">SandboxProcessNewParams</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessResponse">ProcessResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /process/{identifier}">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, identifier <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessResponse">ProcessResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /process">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessResponse">ProcessResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /process/{identifier}/kill">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.Kill">Kill</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, identifier <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessKillResponse">SandboxProcessKillResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /process/{identifier}/logs">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.GetLogs">GetLogs</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, identifier <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#ProcessLogs">ProcessLogs</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /process/{identifier}">client.Sandboxes.Process.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessService.Stop">Stop</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, identifier <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/stainless-sdks/blaxel-go#SandboxProcessStopResponse">SandboxProcessStopResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 ## Previews
 
 Params Types:
