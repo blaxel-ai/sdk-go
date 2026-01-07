@@ -61,7 +61,7 @@ func TestSandboxFilesystemUpdateWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"filePath",
 		blaxel.SandboxFilesystemUpdateParams{
-			FilesystemFileRequest: blaxel.FilesystemFileRequestParam{
+			FilesystemWrite: blaxel.FilesystemWriteParam{
 				Content:     blaxel.String("file contents here"),
 				IsDirectory: blaxel.Bool(false),
 				Permissions: blaxel.String("0644"),
