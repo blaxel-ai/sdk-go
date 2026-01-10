@@ -3,17 +3,105 @@
 package blaxel
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"slices"
+	"strings"
+	"time"
 
 	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
 	"github.com/stainless-sdks/blaxel-go/option"
 )
+
+// ============================================================================
+// Types
+// ============================================================================
+
+// SandboxInstance wraps a Sandbox with scoped services that automatically use
+// the sandbox name in API calls.
+type SandboxInstance struct {
+	*Sandbox
+
+	// Process provides process operations for this sandbox
+	Process *SandboxInstanceProcessService
+	// FS provides filesystem operations for this sandbox
+	FS *SandboxInstanceFSService
+	// Codegen provides code generation operations for this sandbox
+	Codegen *SandboxInstanceCodegenService
+	// Previews provides preview operations scoped to this sandbox
+	Previews *SandboxInstancePreviewService
+	// Sessions provides session operations scoped to this sandbox
+	Sessions *SandboxInstanceSessionService
+
+	sandboxService *SandboxService
+	options        []option.RequestOption
+}
+
+// SandboxUpdateMetadataParams contains parameters for updating sandbox metadata
+type SandboxUpdateMetadataParams struct {
+	Labels      map[string]string
+	DisplayName string
+}
+
+// SessionWithToken represents a session with its authentication token
+type SessionWithToken struct {
+	Name      string
+	URL       string
+	Token     string
+	ExpiresAt time.Time
+}
+
+// SessionCreateOptions contains options for creating a session
+type SessionCreateOptions struct {
+	ExpiresAt       *time.Time
+	RequestHeaders  map[string]string
+	ResponseHeaders map[string]string
+}
+
+// ProcessStreamOptions contains options for streaming process logs
+type ProcessStreamOptions struct {
+	OnLog    func(log string)
+	OnStdout func(stdout string)
+	OnStderr func(stderr string)
+	OnError  func(err error)
+}
+
+// StreamControl provides control over a streaming operation
+type StreamControl struct {
+	Close func()
+}
+
+// WatchEvent represents a filesystem change event
+type WatchEvent struct {
+	Op      string `json:"op"`
+	Path    string `json:"path"`
+	Name    string `json:"name"`
+	Content string `json:"content,omitempty"`
+}
+
+// WatchOptions contains options for watching filesystem changes
+type WatchOptions struct {
+	OnError     func(err error)
+	WithContent bool
+	Ignore      []string
+}
+
+// SandboxInstancePreviewUpdateParams is used for updating previews via SandboxInstance
+type SandboxInstancePreviewUpdateParams struct {
+	Preview PreviewParam
+	paramObj
+}
+
+// ============================================================================
+// SandboxService Instance Methods
+// ============================================================================
 
 // NewInstance creates a new sandbox and returns a SandboxInstance with scoped services.
 // This allows fluent access to sub-resources like previews:
@@ -23,6 +111,16 @@ import (
 //	token, err := preview.Tokens.New(ctx, tokenParams)
 func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
+	if !body.Sandbox.Spec.Runtime.Image.Valid() || body.Sandbox.Spec.Runtime.Image.Value == "" {
+		body.Sandbox.Spec.Runtime.Image = String("blaxel/base-image:latest")
+	}
+	if body.Sandbox.Metadata.Name == "" {
+		body.Sandbox.Metadata.Name = fmt.Sprintf("sandbox-%s", generateShortID())
+	}
+	if !body.Sandbox.Spec.Runtime.Memory.Valid() || body.Sandbox.Spec.Runtime.Memory.Value == 0 {
+		body.Sandbox.Spec.Runtime.Memory = Int(4096)
+	}
+
 	sandbox, err := r.New(ctx, body, opts...)
 	if err != nil {
 		return nil, err
@@ -66,31 +164,100 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 	return newSandboxInstance(sandbox, r, opts), nil
 }
 
-// SandboxInstance wraps a Sandbox with scoped services that automatically use
-// the sandbox name in API calls.
-type SandboxInstance struct {
-	*Sandbox
-	// Process provides process operations for this sandbox
-	Process *SandboxInstanceProcessService
-	// FS provides filesystem operations for this sandbox
-	FS *SandboxInstanceFSService
-	// Codegen provides code generation operations for this sandbox
-	Codegen *SandboxInstanceCodegenService
-	// Previews provides preview operations scoped to this sandbox
-	Previews *SandboxInstancePreviewService
-
-	sandboxService *SandboxService
-	options        []option.RequestOption
+// CreateInstanceIfNotExists creates a new sandbox if it doesn't exist, or returns the existing one.
+// If the existing sandbox is TERMINATED, it creates a new one.
+func (r *SandboxService) CreateInstanceIfNotExists(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
+	instance, err := r.NewInstance(ctx, body, opts...)
+	if err != nil {
+		// Check if error indicates sandbox already exists (409 conflict)
+		if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "already exists") {
+			sandboxName := body.Sandbox.Metadata.Name
+			if sandboxName == "" {
+				return nil, err
+			}
+			// Get the existing sandbox
+			existingInstance, getErr := r.GetInstance(ctx, sandboxName, opts...)
+			if getErr != nil {
+				return nil, err // Return original error
+			}
+			// If terminated, try to create again (backend should handle cleanup)
+			if existingInstance.Status == StatusTerminated {
+				return r.NewInstance(ctx, body, opts...)
+			}
+			return existingInstance, nil
+		}
+		return nil, err
+	}
+	return instance, nil
 }
+
+// UpdateInstanceMetadata updates only the metadata of a sandbox
+func (r *SandboxService) UpdateInstanceMetadata(ctx context.Context, sandboxName string, metadata SandboxUpdateMetadataParams, opts ...option.RequestOption) (*SandboxInstance, error) {
+	// Get current sandbox first
+	instance, err := r.GetInstance(ctx, sandboxName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the raw JSON into SandboxParam so fields are populated and modifiable
+	// (ToParam() uses param.Override which stores data as raw JSON with empty struct fields)
+	var sandboxParam SandboxParam
+	if err := json.Unmarshal([]byte(instance.Sandbox.RawJSON()), &sandboxParam); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal sandbox: %w", err)
+	}
+
+	// Update metadata fields
+	if metadata.Labels != nil {
+		sandboxParam.Metadata.Labels = metadata.Labels
+	}
+	if metadata.DisplayName != "" {
+		sandboxParam.Metadata.DisplayName = String(metadata.DisplayName)
+	}
+
+	updateParams := SandboxUpdateParams{
+		Sandbox: sandboxParam,
+	}
+
+	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
+}
+
+// FromSession creates a SandboxInstance from a session token for preview-based access
+func (r *SandboxService) FromSession(session SessionWithToken, opts ...option.RequestOption) *SandboxInstance {
+	// Extract sandbox name from session name if it contains a separator
+	sandboxName := session.Name
+	if idx := strings.Index(session.Name, "-"); idx > 0 {
+		sandboxName = session.Name[:idx]
+	}
+
+	// Create a minimal sandbox configuration for session-based access
+	sandbox := &Sandbox{
+		Metadata: Metadata{
+			Name: sandboxName,
+			URL:  session.URL,
+		},
+	}
+
+	// Add session headers to the options
+	sessionOpts := append([]option.RequestOption{
+		option.WithHeader("X-Blaxel-Preview-Token", session.Token),
+	}, opts...)
+
+	return newSandboxInstance(sandbox, r, sessionOpts)
+}
+
+// ============================================================================
+// SandboxInstance Methods
+// ============================================================================
 
 // Delete permanently deletes this sandbox. This action cannot be undone.
 func (r *SandboxInstance) Delete(ctx context.Context, opts ...option.RequestOption) error {
 	_, err := r.sandboxService.Delete(ctx, r.Metadata.Name, opts...)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
+
+// ============================================================================
+// Process Service
+// ============================================================================
 
 // SandboxInstanceProcessService provides process operations for a specific sandbox
 type SandboxInstanceProcessService struct {
@@ -119,15 +286,140 @@ func (r *SandboxInstanceProcessService) Kill(ctx context.Context, identifier str
 	return r.service.Kill(ctx, identifier, opts...)
 }
 
+// Stop gracefully stops a running process
+func (r *SandboxInstanceProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessStopResponse, error) {
+	return r.service.Stop(ctx, identifier, opts...)
+}
+
 // GetLogs returns the stdout and stderr output of a process
 func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier string, opts ...option.RequestOption) (*ProcessLogs, error) {
 	return r.service.GetLogs(ctx, identifier, opts...)
 }
 
-// Stop gracefully stops a running process
-func (r *SandboxInstanceProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessStopResponse, error) {
-	return r.service.Stop(ctx, identifier, opts...)
+// Wait waits for a process to complete
+func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier string, maxWait time.Duration, interval time.Duration) (*ProcessResponse, error) {
+	if maxWait == 0 {
+		maxWait = 60 * time.Second
+	}
+	if interval == 0 {
+		interval = time.Second
+	}
+
+	deadline := time.Now().Add(maxWait)
+
+	for {
+		process, err := r.Get(ctx, identifier)
+		if err != nil {
+			return nil, err
+		}
+
+		if process.Status != ProcessResponseStatusRunning {
+			return process, nil
+		}
+
+		if time.Now().After(deadline) {
+			return nil, fmt.Errorf("process did not finish in time")
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(interval):
+			// Continue polling
+		}
+	}
 }
+
+// StreamLogs streams logs for a process in real-time.
+// Note: Uses PrepareRequest() for streaming - the generated service methods
+// expect to parse the full response, which doesn't work for streaming.
+func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifier string, opts ProcessStreamOptions) *StreamControl {
+	ctx, cancel := context.WithCancel(ctx)
+
+	go func() {
+		defer cancel()
+
+		path := fmt.Sprintf("process/%s/logs/stream", identifier)
+
+		// Create config and prepare request (resolves URL, applies auth)
+		cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, nil, nil, r.options...)
+		if err != nil {
+			if opts.OnError != nil {
+				opts.OnError(err)
+			}
+			return
+		}
+
+		req, client, err := cfg.PrepareRequest()
+		if err != nil {
+			if opts.OnError != nil {
+				opts.OnError(err)
+			}
+			return
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			if opts.OnError != nil && ctx.Err() == nil {
+				opts.OnError(err)
+			}
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			if opts.OnError != nil {
+				body, _ := io.ReadAll(resp.Body)
+				opts.OnError(fmt.Errorf("failed to stream logs: %s", string(body)))
+			}
+			return
+		}
+
+		scanner := bufio.NewScanner(resp.Body)
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			// Skip keepalive messages
+			if strings.HasPrefix(line, "[keepalive]") {
+				continue
+			}
+
+			if strings.HasPrefix(line, "stdout:") {
+				content := strings.TrimPrefix(line, "stdout:")
+				if opts.OnStdout != nil {
+					opts.OnStdout(content)
+				}
+				if opts.OnLog != nil {
+					opts.OnLog(content)
+				}
+			} else if strings.HasPrefix(line, "stderr:") {
+				content := strings.TrimPrefix(line, "stderr:")
+				if opts.OnStderr != nil {
+					opts.OnStderr(content)
+				}
+				if opts.OnLog != nil {
+					opts.OnLog(content)
+				}
+			} else if opts.OnLog != nil {
+				opts.OnLog(line)
+			}
+		}
+
+		if err := scanner.Err(); err != nil && ctx.Err() == nil {
+			if opts.OnError != nil {
+				opts.OnError(err)
+			}
+		}
+	}()
+
+	return &StreamControl{
+		Close: cancel,
+	}
+}
+
+// ============================================================================
+// Filesystem Service
+// ============================================================================
 
 // SandboxInstanceFSService provides filesystem operations for a specific sandbox
 type SandboxInstanceFSService struct {
@@ -135,6 +427,8 @@ type SandboxInstanceFSService struct {
 	options     []option.RequestOption
 	service     *SandboxFilesystemService
 }
+
+// --- Basic File Operations ---
 
 // Read returns the content of a file as a string
 func (r *SandboxInstanceFSService) Read(ctx context.Context, path string, opts ...option.RequestOption) (string, error) {
@@ -149,10 +443,8 @@ func (r *SandboxInstanceFSService) Read(ctx context.Context, path string, opts .
 // This is useful for binary files like images, PDFs, etc.
 func (r *SandboxInstanceFSService) ReadBinary(ctx context.Context, path string, opts ...option.RequestOption) ([]byte, error) {
 	opts = slices.Concat(r.options, opts)
-	// Set Accept header for binary response
 	opts = append(opts, option.WithHeader("Accept", "application/octet-stream"))
 
-	// Use the SDK's built-in support for []byte responses
 	var result []byte
 	requestPath := fmt.Sprintf("filesystem/%s", path)
 	err := requestconfig.ExecuteNewRequest(ctx, http.MethodGet, requestPath, nil, &result, opts...)
@@ -180,14 +472,209 @@ func (r *SandboxInstanceFSService) WriteBinary(ctx context.Context, path string,
 		permissions = "0644"
 	}
 
-	// Use multipart upload for large files
 	if len(data) > multipartThreshold {
 		return r.writeBinaryMultipart(ctx, path, data, permissions, opts...)
 	}
 
-	// Use regular multipart form upload for small files
 	return r.writeBinaryForm(ctx, path, data, permissions, opts...)
 }
+
+// WriteTree writes multiple files at once
+func (r *SandboxInstanceFSService) WriteTree(ctx context.Context, files map[string]string, destinationPath string, opts ...option.RequestOption) error {
+	opts = slices.Concat(r.options, opts)
+
+	body := SandboxFilesystemWriteTreeParams{
+		TreeRequest: TreeRequestParam{
+			Files: files,
+		},
+	}
+	_, err := r.service.WriteTree(ctx, destinationPath, body, opts...)
+	return err
+}
+
+// Download downloads a file from the sandbox to the local filesystem
+func (r *SandboxInstanceFSService) Download(ctx context.Context, remotePath string, localPath string, opts ...option.RequestOption) error {
+	data, err := r.ReadBinary(ctx, remotePath, opts...)
+	if err != nil {
+		return fmt.Errorf("failed to read remote file: %w", err)
+	}
+
+	if err := os.WriteFile(localPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write local file: %w", err)
+	}
+
+	return nil
+}
+
+// --- Directory Operations ---
+
+// Mkdir creates a directory
+func (r *SandboxInstanceFSService) Mkdir(ctx context.Context, path string, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
+	if permissions == "" {
+		permissions = "0755"
+	}
+	return r.service.Write(ctx, path, SandboxFilesystemWriteParams{
+		FilesystemWriteRequest: FilesystemWriteRequestParam{
+			IsDirectory: Bool(true),
+			Permissions: String(permissions),
+		},
+	}, opts...)
+}
+
+// LS returns the listing of a directory
+func (r *SandboxInstanceFSService) LS(ctx context.Context, path string, opts ...option.RequestOption) (Directory, error) {
+	res, err := r.service.Get(ctx, path, SandboxFilesystemGetParams{}, opts...)
+	if err != nil {
+		return Directory{}, err
+	}
+	return res.AsDirectory(), nil
+}
+
+// RM deletes a file or directory
+func (r *SandboxInstanceFSService) RM(ctx context.Context, path string, recursive bool, opts ...option.RequestOption) (*SandboxFilesystemDeleteResponse, error) {
+	return r.service.Delete(ctx, path, SandboxFilesystemDeleteParams{
+		Recursive: Bool(recursive),
+	}, opts...)
+}
+
+// CP copies files using the process service
+func (r *SandboxInstanceFSService) CP(ctx context.Context, source string, destination string, processService *SandboxInstanceProcessService) error {
+	resp, err := processService.New(ctx, ProcessRequestParam{
+		Command:           fmt.Sprintf("cp -r %s %s", source, destination),
+		WaitForCompletion: Bool(true),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to copy: %w", err)
+	}
+	if resp.Status == ProcessResponseStatusFailed {
+		return fmt.Errorf("copy failed: %s", resp.Logs)
+	}
+	return nil
+}
+
+// --- Search Operations ---
+
+// Search performs fuzzy search on filesystem paths
+func (r *SandboxInstanceFSService) Search(ctx context.Context, path string, query SandboxFilesystemSearchParams, opts ...option.RequestOption) (*FuzzySearchResponse, error) {
+	return r.service.Search(ctx, path, query, opts...)
+}
+
+// Find finds files and directories using the find command
+func (r *SandboxInstanceFSService) Find(ctx context.Context, path string, query SandboxFilesystemFindParams, opts ...option.RequestOption) (*FindResponse, error) {
+	return r.service.Find(ctx, path, query, opts...)
+}
+
+// Grep searches for text content inside files
+func (r *SandboxInstanceFSService) Grep(ctx context.Context, path string, query SandboxFilesystemContentSearchParams, opts ...option.RequestOption) (*ContentSearchResponse, error) {
+	return r.service.ContentSearch(ctx, path, query, opts...)
+}
+
+// --- Watch Operations ---
+
+// Watch watches for filesystem changes in a directory.
+// Note: Uses PrepareRequest() for streaming - the generated service returns
+// the full response, but this endpoint streams events continuously.
+func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callback func(event WatchEvent), opts *WatchOptions) *StreamControl {
+	if opts == nil {
+		opts = &WatchOptions{}
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+
+	go func() {
+		defer cancel()
+
+		urlPath := fmt.Sprintf("watch/filesystem/%s", path)
+
+		// Build query params
+		queryParams := ""
+		if len(opts.Ignore) > 0 {
+			queryParams = "?ignore=" + strings.Join(opts.Ignore, ",")
+		}
+
+		// Create config and prepare request (resolves URL, applies auth)
+		cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, urlPath+queryParams, nil, nil, r.options...)
+		if err != nil {
+			if opts.OnError != nil {
+				opts.OnError(err)
+			}
+			return
+		}
+
+		req, client, err := cfg.PrepareRequest()
+		if err != nil {
+			if opts.OnError != nil {
+				opts.OnError(err)
+			}
+			return
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			if opts.OnError != nil && ctx.Err() == nil {
+				opts.OnError(err)
+			}
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			if opts.OnError != nil {
+				body, _ := io.ReadAll(resp.Body)
+				opts.OnError(fmt.Errorf("failed to watch: %s", string(body)))
+			}
+			return
+		}
+
+		scanner := bufio.NewScanner(resp.Body)
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			// Skip keepalive messages
+			if strings.HasPrefix(line, "[keepalive]") {
+				continue
+			}
+
+			// Skip empty lines
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
+
+			var event WatchEvent
+			if err := json.Unmarshal([]byte(line), &event); err != nil {
+				continue
+			}
+
+			// If withContent is enabled and it's a CREATE or WRITE event, fetch content
+			if opts.WithContent && (event.Op == "CREATE" || event.Op == "WRITE") {
+				filePath := event.Path
+				if !strings.HasSuffix(filePath, "/") {
+					filePath += "/"
+				}
+				filePath += event.Name
+
+				content, err := r.Read(ctx, filePath)
+				if err == nil {
+					event.Content = content
+				}
+			}
+
+			callback(event)
+		}
+
+		if err := scanner.Err(); err != nil && ctx.Err() == nil {
+			if opts.OnError != nil {
+				opts.OnError(err)
+			}
+		}
+	}()
+
+	return &StreamControl{
+		Close: cancel,
+	}
+}
+
+// --- Binary Upload Helpers ---
 
 // binaryUploadBody implements the multipart marshaler interface for binary file uploads
 type binaryUploadBody struct {
@@ -199,7 +686,6 @@ func (b binaryUploadBody) MarshalMultipart() ([]byte, string, error) {
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
 
-	// Add file field
 	part, err := writer.CreateFormFile("file", "file")
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create form file: %w", err)
@@ -208,7 +694,6 @@ func (b binaryUploadBody) MarshalMultipart() ([]byte, string, error) {
 		return nil, "", fmt.Errorf("failed to write file data: %w", err)
 	}
 
-	// Add permissions field
 	if err := writer.WriteField("permissions", b.permissions); err != nil {
 		return nil, "", fmt.Errorf("failed to write permissions: %w", err)
 	}
@@ -241,7 +726,6 @@ func (r *SandboxInstanceFSService) writeBinaryForm(ctx context.Context, path str
 // writeBinaryMultipart uploads a large file using chunked multipart upload
 func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, path string, data []byte, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
 	const chunkSize = 5 * 1024 * 1024 // 5MB per part
-	const maxParallelUploads = 20
 
 	// Initiate multipart upload
 	initResp, err := r.service.Multipart.Initiate(ctx, path, SandboxFilesystemMultipartInitiateParams{
@@ -276,7 +760,6 @@ func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, pat
 			File:       bytes.NewReader(chunk),
 		}, opts...)
 		if err != nil {
-			// Abort on failure
 			_, _ = r.service.Multipart.Abort(ctx, uploadID, opts...)
 			return nil, fmt.Errorf("failed to upload part %d: %w", partNumber, err)
 		}
@@ -294,7 +777,6 @@ func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, pat
 		},
 	}, opts...)
 	if err != nil {
-		// Abort on failure
 		_, _ = r.service.Multipart.Abort(ctx, uploadID, opts...)
 		return nil, fmt.Errorf("failed to complete multipart upload: %w", err)
 	}
@@ -305,78 +787,9 @@ func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, pat
 	}, nil
 }
 
-// Download downloads a file from the sandbox to the local filesystem
-func (r *SandboxInstanceFSService) Download(ctx context.Context, remotePath string, localPath string, opts ...option.RequestOption) error {
-	data, err := r.ReadBinary(ctx, remotePath, opts...)
-	if err != nil {
-		return fmt.Errorf("failed to read remote file: %w", err)
-	}
-
-	if err := os.WriteFile(localPath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write local file: %w", err)
-	}
-
-	return nil
-}
-
-// Mkdir creates a directory
-func (r *SandboxInstanceFSService) Mkdir(ctx context.Context, path string, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
-	if permissions == "" {
-		permissions = "0755"
-	}
-	return r.service.Write(ctx, path, SandboxFilesystemWriteParams{
-		FilesystemWriteRequest: FilesystemWriteRequestParam{
-			IsDirectory: Bool(true),
-			Permissions: String(permissions),
-		},
-	}, opts...)
-}
-
-// LS returns the listing of a directory
-func (r *SandboxInstanceFSService) LS(ctx context.Context, path string, opts ...option.RequestOption) (Directory, error) {
-	res, err := r.service.Get(ctx, path, SandboxFilesystemGetParams{}, opts...)
-	if err != nil {
-		return Directory{}, err
-	}
-	return res.AsDirectory(), nil
-}
-
-// RM deletes a file or directory
-func (r *SandboxInstanceFSService) RM(ctx context.Context, path string, recursive bool, opts ...option.RequestOption) (*SandboxFilesystemDeleteResponse, error) {
-	return r.service.Delete(ctx, path, SandboxFilesystemDeleteParams{
-		Recursive: Bool(recursive),
-	}, opts...)
-}
-
-// Search performs fuzzy search on filesystem paths
-func (r *SandboxInstanceFSService) Search(ctx context.Context, path string, query SandboxFilesystemSearchParams, opts ...option.RequestOption) (*FuzzySearchResponse, error) {
-	return r.service.Search(ctx, path, query, opts...)
-}
-
-// Find finds files and directories using the find command
-func (r *SandboxInstanceFSService) Find(ctx context.Context, path string, query SandboxFilesystemFindParams, opts ...option.RequestOption) (*FindResponse, error) {
-	return r.service.Find(ctx, path, query, opts...)
-}
-
-// Grep searches for text content inside files
-func (r *SandboxInstanceFSService) Grep(ctx context.Context, path string, query SandboxFilesystemContentSearchParams, opts ...option.RequestOption) (*ContentSearchResponse, error) {
-	return r.service.ContentSearch(ctx, path, query, opts...)
-}
-
-// CP copies files using the process service
-func (r *SandboxInstanceFSService) CP(ctx context.Context, source string, destination string, processService *SandboxInstanceProcessService) error {
-	resp, err := processService.New(ctx, ProcessRequestParam{
-		Command:           fmt.Sprintf("cp -r %s %s", source, destination),
-		WaitForCompletion: Bool(true),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to copy: %w", err)
-	}
-	if resp.Status == ProcessResponseStatusFailed {
-		return fmt.Errorf("copy failed: %s", resp.Logs)
-	}
-	return nil
-}
+// ============================================================================
+// Codegen Service
+// ============================================================================
 
 // SandboxInstanceCodegenService provides code generation operations for a specific sandbox
 type SandboxInstanceCodegenService struct {
@@ -395,6 +808,10 @@ func (r *SandboxInstanceCodegenService) Reranking(ctx context.Context, path stri
 	return r.service.Reranking(ctx, path, query, opts...)
 }
 
+// ============================================================================
+// Preview Service
+// ============================================================================
+
 // SandboxInstancePreviewService provides preview operations for a specific sandbox
 type SandboxInstancePreviewService struct {
 	sandboxName string
@@ -409,6 +826,19 @@ func (r *SandboxInstancePreviewService) New(ctx context.Context, body SandboxPre
 		return nil, err
 	}
 	return newPreviewInstance(preview, r.sandboxName, r.options), nil
+}
+
+// NewIfNotExists creates a preview if it doesn't exist, or returns the existing one
+func (r *SandboxInstancePreviewService) NewIfNotExists(ctx context.Context, body SandboxPreviewNewParams, opts ...option.RequestOption) (*PreviewInstance, error) {
+	// Try to get the existing preview first
+	name := body.Preview.Metadata.Name
+	existing, err := r.Get(ctx, name, opts...)
+	if err == nil {
+		return existing, nil
+	}
+
+	// Create new preview if it doesn't exist
+	return r.New(ctx, body, opts...)
 }
 
 // Get returns a preview by name for this sandbox as a PreviewInstance
@@ -442,11 +872,35 @@ func (r *SandboxInstancePreviewService) Delete(ctx context.Context, previewName 
 	return r.service.Delete(ctx, previewName, SandboxPreviewDeleteParams{SandboxName: r.sandboxName}, opts...)
 }
 
-// SandboxInstancePreviewUpdateParams is used for updating previews via SandboxInstance
-type SandboxInstancePreviewUpdateParams struct {
-	Preview PreviewParam
-	paramObj
+// NewToken creates a token for a preview in this sandbox
+func (r *SandboxInstancePreviewService) NewToken(ctx context.Context, previewName string, expiresAt time.Time, opts ...option.RequestOption) (*PreviewToken, error) {
+	return r.service.Tokens.New(ctx, previewName, SandboxPreviewTokenNewParams{
+		SandboxName: r.sandboxName,
+		PreviewToken: PreviewTokenParam{
+			Metadata: PreviewTokenMetadataParam{
+				Name: fmt.Sprintf("token-%d", time.Now().UnixMilli()),
+			},
+			Spec: PreviewTokenSpecParam{
+				ExpiresAt: String(expiresAt.Format(time.RFC3339)),
+			},
+		},
+	}, opts...)
 }
+
+// ListTokens returns all tokens for a preview in this sandbox
+func (r *SandboxInstancePreviewService) ListTokens(ctx context.Context, previewName string, opts ...option.RequestOption) (*[]PreviewToken, error) {
+	return r.service.Tokens.Get(ctx, previewName, SandboxPreviewTokenGetParams{SandboxName: r.sandboxName}, opts...)
+}
+
+// DeleteToken deletes a token for a preview in this sandbox
+func (r *SandboxInstancePreviewService) DeleteToken(ctx context.Context, previewName string, tokenName string, opts ...option.RequestOption) (*SandboxPreviewTokenDeleteResponse, error) {
+	return r.service.Tokens.Delete(ctx, tokenName, SandboxPreviewTokenDeleteParams{
+		SandboxName: r.sandboxName,
+		PreviewName: previewName,
+	}, opts...)
+}
+
+// --- PreviewInstance ---
 
 // PreviewInstance wraps a Preview with scoped token service that automatically uses
 // the sandbox name and preview name in API calls.
@@ -485,30 +939,202 @@ func (r *PreviewInstanceTokenService) Delete(ctx context.Context, tokenName stri
 	}, opts...)
 }
 
-// newPreviewInstance creates a PreviewInstance from a Preview response
-func newPreviewInstance(preview *Preview, sandboxName string, opts []option.RequestOption) *PreviewInstance {
-	previewName := preview.Metadata.Name
-	tokenService := NewSandboxPreviewTokenService(opts...)
+// ============================================================================
+// Session Service
+// ============================================================================
 
-	return &PreviewInstance{
-		Preview: preview,
-		Tokens: &PreviewInstanceTokenService{
-			sandboxName: sandboxName,
-			previewName: previewName,
-			options:     opts,
-			service:     &tokenService,
-		},
-	}
+// SandboxInstanceSessionService provides session operations for a specific sandbox
+type SandboxInstanceSessionService struct {
+	sandboxName string
+	options     []option.RequestOption
+	service     *SandboxPreviewService
 }
+
+// Create creates a new session for this sandbox
+func (r *SandboxInstanceSessionService) Create(ctx context.Context, opts *SessionCreateOptions) (*SessionWithToken, error) {
+	if opts == nil {
+		opts = &SessionCreateOptions{}
+	}
+
+	expiresAt := time.Now().Add(24 * time.Hour) // Default: 1 day from now
+	if opts.ExpiresAt != nil {
+		expiresAt = *opts.ExpiresAt
+	}
+
+	sessionName := fmt.Sprintf("session-%d", time.Now().UnixMilli())
+
+	preview, err := r.service.New(ctx, r.sandboxName, SandboxPreviewNewParams{
+		Preview: PreviewParam{
+			Metadata: PreviewMetadataParam{
+				Name: sessionName,
+			},
+			Spec: PreviewSpecParam{
+				Port:            Int(443),
+				Public:          Bool(false),
+				Expires:         String(expiresAt.Format(time.RFC3339)),
+				RequestHeaders:  opts.RequestHeaders,
+				ResponseHeaders: opts.ResponseHeaders,
+			},
+		},
+	}, r.options...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a token for the preview
+	tokenService := NewSandboxPreviewTokenService(r.options...)
+	token, err := tokenService.New(ctx, sessionName, SandboxPreviewTokenNewParams{
+		SandboxName: r.sandboxName,
+		PreviewToken: PreviewTokenParam{
+			Metadata: PreviewTokenMetadataParam{
+				Name: fmt.Sprintf("token-%d", time.Now().UnixMilli()),
+			},
+			Spec: PreviewTokenSpecParam{
+				ExpiresAt: String(expiresAt.Format(time.RFC3339)),
+			},
+		},
+	}, r.options...)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenExpiresAt, _ := time.Parse(time.RFC3339, token.Spec.ExpiresAt)
+
+	return &SessionWithToken{
+		Name:      sessionName,
+		URL:       preview.Spec.URL,
+		Token:     token.Spec.Token,
+		ExpiresAt: tokenExpiresAt,
+	}, nil
+}
+
+// CreateIfExpired creates a new session if the current one is expired or about to expire
+func (r *SandboxInstanceSessionService) CreateIfExpired(ctx context.Context, opts *SessionCreateOptions, delta time.Duration) (*SessionWithToken, error) {
+	if delta == 0 {
+		delta = time.Hour // Default: 1 hour threshold
+	}
+
+	// List existing sessions
+	sessions, err := r.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	threshold := now.Add(delta)
+
+	// If we have sessions, check if any are still valid
+	if len(sessions) > 0 {
+		session := sessions[0]
+		if session.ExpiresAt.After(threshold) {
+			return &session, nil
+		}
+		// Session is expired or about to expire, delete it
+		_ = r.Delete(ctx, session.Name)
+	}
+
+	// Create a new session
+	return r.Create(ctx, opts)
+}
+
+// List returns all sessions for this sandbox
+func (r *SandboxInstanceSessionService) List(ctx context.Context) ([]SessionWithToken, error) {
+	previews, err := r.service.List(ctx, r.sandboxName, r.options...)
+	if err != nil {
+		return nil, err
+	}
+
+	if previews == nil {
+		return []SessionWithToken{}, nil
+	}
+
+	var sessions []SessionWithToken
+	tokenService := NewSandboxPreviewTokenService(r.options...)
+
+	for _, preview := range *previews {
+		// Only include previews that are sessions (name starts with "session-")
+		if !strings.HasPrefix(preview.Metadata.Name, "session-") {
+			continue
+		}
+
+		// Get token for this preview
+		tokens, err := tokenService.Get(ctx, preview.Metadata.Name, SandboxPreviewTokenGetParams{
+			SandboxName: r.sandboxName,
+		}, r.options...)
+		if err != nil || tokens == nil || len(*tokens) == 0 {
+			continue
+		}
+
+		token := (*tokens)[0]
+		expiresAt, _ := time.Parse(time.RFC3339, token.Spec.ExpiresAt)
+
+		sessions = append(sessions, SessionWithToken{
+			Name:      preview.Metadata.Name,
+			URL:       preview.Spec.URL,
+			Token:     token.Spec.Token,
+			ExpiresAt: expiresAt,
+		})
+	}
+
+	return sessions, nil
+}
+
+// Get returns a session by name
+func (r *SandboxInstanceSessionService) Get(ctx context.Context, name string) (*SessionWithToken, error) {
+	preview, err := r.service.Get(ctx, name, SandboxPreviewGetParams{
+		SandboxName: r.sandboxName,
+	}, r.options...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get token for this preview
+	tokenService := NewSandboxPreviewTokenService(r.options...)
+	tokens, err := tokenService.Get(ctx, name, SandboxPreviewTokenGetParams{
+		SandboxName: r.sandboxName,
+	}, r.options...)
+	if err != nil {
+		return nil, err
+	}
+
+	var tokenValue string
+	var expiresAt time.Time
+	if tokens != nil && len(*tokens) > 0 {
+		token := (*tokens)[0]
+		tokenValue = token.Spec.Token
+		expiresAt, _ = time.Parse(time.RFC3339, token.Spec.ExpiresAt)
+	}
+
+	return &SessionWithToken{
+		Name:      name,
+		URL:       preview.Spec.URL,
+		Token:     tokenValue,
+		ExpiresAt: expiresAt,
+	}, nil
+}
+
+// Delete deletes a session by name
+func (r *SandboxInstanceSessionService) Delete(ctx context.Context, name string) error {
+	_, err := r.service.Delete(ctx, name, SandboxPreviewDeleteParams{
+		SandboxName: r.sandboxName,
+	}, r.options...)
+	return err
+}
+
+// ============================================================================
+// Constructors
+// ============================================================================
 
 // newSandboxInstance creates a SandboxInstance from a Sandbox response
 func newSandboxInstance(sandbox *Sandbox, sandboxService *SandboxService, opts []option.RequestOption) *SandboxInstance {
 	sandboxName := sandbox.Metadata.Name
 
 	// Use the sandbox's URL as the base URL for sandbox-specific services
+	// The sandbox URL must be appended LAST so it takes precedence over any
+	// base URL that may already be in opts (from the parent client)
 	sandboxOpts := opts
 	if sandbox.Metadata.URL != "" {
-		sandboxOpts = append([]option.RequestOption{option.WithBaseURL(sandbox.Metadata.URL)}, opts...)
+		sandboxOpts = append(opts, option.WithBaseURL(sandbox.Metadata.URL))
 	}
 
 	processService := NewSandboxProcessService(sandboxOpts...)
@@ -538,7 +1164,28 @@ func newSandboxInstance(sandbox *Sandbox, sandboxService *SandboxService, opts [
 			options:     opts,
 			service:     &previewService,
 		},
+		Sessions: &SandboxInstanceSessionService{
+			sandboxName: sandboxName,
+			options:     opts,
+			service:     &previewService,
+		},
 		sandboxService: sandboxService,
-		options:        opts,
+		options:        sandboxOpts,
+	}
+}
+
+// newPreviewInstance creates a PreviewInstance from a Preview response
+func newPreviewInstance(preview *Preview, sandboxName string, opts []option.RequestOption) *PreviewInstance {
+	previewName := preview.Metadata.Name
+	tokenService := NewSandboxPreviewTokenService(opts...)
+
+	return &PreviewInstance{
+		Preview: preview,
+		Tokens: &PreviewInstanceTokenService{
+			sandboxName: sandboxName,
+			previewName: previewName,
+			options:     opts,
+			service:     &tokenService,
+		},
 	}
 }

@@ -26,7 +26,7 @@ func main() {
 					Memory: blaxel.Opt[int64](4096),
 					Ports: []blaxel.PortParam{
 						{
-							Target: blaxel.Opt[int64](3000),
+							Target: 3000,
 						},
 					},
 				},

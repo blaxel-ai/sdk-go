@@ -632,6 +632,82 @@ func (cfg *RequestConfig) Apply(opts ...RequestOption) error {
 	return nil
 }
 
+// PrepareRequest resolves the URL and applies authentication headers, returning
+// a ready-to-use *http.Request and *http.Client. This is useful for streaming
+// endpoints where you need to read the response body incrementally rather than
+// having Execute() parse the entire response.
+//
+// Example usage:
+//
+//	cfg, _ := requestconfig.NewRequestConfig(ctx, "GET", "path", nil, nil, opts...)
+//	req, client, err := cfg.PrepareRequest()
+//	if err != nil {
+//	    return err
+//	}
+//	resp, err := client.Do(req)
+//	// ... handle streaming response ...
+func (cfg *RequestConfig) PrepareRequest() (*http.Request, *http.Client, error) {
+	// Resolve base URL
+	if cfg.BaseURL == nil {
+		if cfg.DefaultBaseURL != nil {
+			cfg.BaseURL = cfg.DefaultBaseURL
+		} else {
+			return nil, nil, fmt.Errorf("requestconfig: base url is not set")
+		}
+	}
+
+	var err error
+	cfg.Request.URL, err = cfg.BaseURL.Parse(strings.TrimLeft(cfg.Request.URL.String(), "/"))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Handle body if present
+	if cfg.Body != nil && cfg.Request.Body == nil {
+		switch body := cfg.Body.(type) {
+		case *bytes.Buffer:
+			b := body.Bytes()
+			cfg.Request.ContentLength = int64(body.Len())
+			cfg.Request.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(b)), nil }
+			cfg.Request.Body, _ = cfg.Request.GetBody()
+		case *bytes.Reader:
+			cfg.Request.ContentLength = int64(body.Len())
+			cfg.Request.GetBody = func() (io.ReadCloser, error) {
+				_, err := body.Seek(0, 0)
+				return io.NopCloser(body), err
+			}
+			cfg.Request.Body, _ = cfg.Request.GetBody()
+		default:
+			if rc, ok := body.(io.ReadCloser); ok {
+				cfg.Request.Body = rc
+			} else {
+				cfg.Request.Body = io.NopCloser(body)
+			}
+		}
+	}
+
+	// Handle OAuth2 refresh token flow (access token + refresh token)
+	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		token, err := cfg.OAuth2RefreshState.GetToken(cfg)
+		if err != nil {
+			return nil, nil, err
+		}
+		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		// Handle OAuth2 client credentials flow
+		token, err := cfg.OAuth2State.GetToken(cfg)
+		if err != nil {
+			return nil, nil, err
+		}
+		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		// Handle direct access token usage (without OAuth2 state machinery)
+		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
+	}
+
+	return cfg.Request, cfg.HTTPClient, nil
+}
+
 // PreRequestOptions is used to collect all the options which need to be known before
 // a call to [RequestConfig.ExecuteNewRequest], such as path parameters
 // or global defaults.
