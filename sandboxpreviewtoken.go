@@ -219,10 +219,6 @@ func (r *PreviewTokenMetadataParam) UnmarshalJSON(data []byte) error {
 
 // Spec for a Preview Token
 type PreviewTokenSpecParam struct {
-	// Token
-	Token param.Opt[string] `json:"token,omitzero"`
-	// Whether the token is expired
-	Expired param.Opt[bool] `json:"expired,omitzero"`
 	// Expiration time of the token
 	ExpiresAt param.Opt[string] `json:"expiresAt,omitzero"`
 	paramObj

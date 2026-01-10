@@ -302,13 +302,9 @@ type PreviewSpecParam struct {
 	PrefixURL param.Opt[string] `json:"prefixUrl,omitzero"`
 	// Whether the preview is public
 	Public param.Opt[bool] `json:"public,omitzero"`
-	// Region where the preview is deployed, this is readonly
-	Region param.Opt[string] `json:"region,omitzero"`
 	// Time to live for the preview (e.g., "1h", "24h", "7d"). After this duration, the
 	// preview will be automatically deleted.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
-	// URL of the preview
-	URL param.Opt[string] `json:"url,omitzero"`
 	// Those headers will be set in all requests to your preview. This is especially
 	// useful to set the Authorization header.
 	RequestHeaders map[string]string `json:"requestHeaders,omitzero"`

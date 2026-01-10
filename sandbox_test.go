@@ -56,9 +56,9 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 					Image:   blaxel.String("blaxel/base-image:latest"),
 					Memory:  blaxel.Int(4096),
 					Ports: []blaxel.PortParam{{
+						Target:   8080,
 						Name:     blaxel.String("http"),
 						Protocol: blaxel.PortProtocolHTTP,
-						Target:   blaxel.Int(8080),
 					}},
 					Ttl: blaxel.String("24h"),
 				},
@@ -68,15 +68,6 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 					ReadOnly:  blaxel.Bool(false),
 				}},
 			},
-			Events: []blaxel.CoreEventParam{{
-				CanaryRevision: blaxel.String("canaryRevision"),
-				Message:        blaxel.String("Deployment successful"),
-				Revision:       blaxel.String("rev-abc123"),
-				Status:         blaxel.String("DEPLOYED"),
-				Time:           blaxel.String("2025-01-15T10:30:00Z"),
-				Type:           blaxel.String("deployment"),
-			}},
-			Status: blaxel.StatusDeleting,
 		},
 	})
 	if err != nil {
@@ -164,9 +155,9 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						Image:   blaxel.String("blaxel/base-image:latest"),
 						Memory:  blaxel.Int(4096),
 						Ports: []blaxel.PortParam{{
+							Target:   8080,
 							Name:     blaxel.String("http"),
 							Protocol: blaxel.PortProtocolHTTP,
-							Target:   blaxel.Int(8080),
 						}},
 						Ttl: blaxel.String("24h"),
 					},
@@ -176,15 +167,6 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						ReadOnly:  blaxel.Bool(false),
 					}},
 				},
-				Events: []blaxel.CoreEventParam{{
-					CanaryRevision: blaxel.String("canaryRevision"),
-					Message:        blaxel.String("Deployment successful"),
-					Revision:       blaxel.String("rev-abc123"),
-					Status:         blaxel.String("DEPLOYED"),
-					Time:           blaxel.String("2025-01-15T10:30:00Z"),
-					Type:           blaxel.String("deployment"),
-				}},
-				Status: blaxel.StatusDeleting,
 			},
 		},
 	)

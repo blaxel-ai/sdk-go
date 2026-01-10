@@ -52,15 +52,6 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 				},
 				Sandbox: blaxel.Bool(false),
 			},
-			Events: []blaxel.CoreEventParam{{
-				CanaryRevision: blaxel.String("canaryRevision"),
-				Message:        blaxel.String("Deployment successful"),
-				Revision:       blaxel.String("rev-abc123"),
-				Status:         blaxel.String("DEPLOYED"),
-				Time:           blaxel.String("2025-01-15T10:30:00Z"),
-				Type:           blaxel.String("deployment"),
-			}},
-			Status: blaxel.StatusDeleting,
 		},
 	})
 	if err != nil {
@@ -138,15 +129,6 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 					},
 					Sandbox: blaxel.Bool(false),
 				},
-				Events: []blaxel.CoreEventParam{{
-					CanaryRevision: blaxel.String("canaryRevision"),
-					Message:        blaxel.String("Deployment successful"),
-					Revision:       blaxel.String("rev-abc123"),
-					Status:         blaxel.String("DEPLOYED"),
-					Time:           blaxel.String("2025-01-15T10:30:00Z"),
-					Type:           blaxel.String("deployment"),
-				}},
-				Status: blaxel.StatusDeleting,
 			},
 		},
 	)

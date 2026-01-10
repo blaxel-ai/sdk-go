@@ -166,13 +166,6 @@ type FunctionParam struct {
 	// Configuration for an MCP server function including runtime settings, transport
 	// protocol, and connected integrations
 	Spec FunctionSpecParam `json:"spec,omitzero,required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEventParam `json:"events,omitzero"`
-	// Deployment status of a resource deployed on Blaxel
-	//
-	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
-	Status Status `json:"status,omitzero"`
 	paramObj
 }
 

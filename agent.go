@@ -166,13 +166,6 @@ type AgentParam struct {
 	// Configuration for an AI agent including runtime settings, repository source, and
 	// deployment triggers
 	Spec AgentSpecParam `json:"spec,omitzero,required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEventParam `json:"events,omitzero"`
-	// Deployment status of a resource deployed on Blaxel
-	//
-	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
-	Status Status `json:"status,omitzero"`
 	paramObj
 }
 
@@ -806,8 +799,6 @@ func (r *TriggerParam) UnmarshalJSON(data []byte) error {
 type TriggerConfigurationParam struct {
 	// The authentication type of the trigger
 	AuthenticationType param.Opt[string] `json:"authenticationType,omitzero"`
-	// The callback secret for async triggers (auto-generated, encrypted)
-	CallbackSecret param.Opt[string] `json:"callbackSecret,omitzero"`
 	// The callback URL for async triggers (optional)
 	CallbackURL param.Opt[string] `json:"callbackUrl,omitzero"`
 	// The path of the trigger

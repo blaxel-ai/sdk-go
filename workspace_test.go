@@ -29,7 +29,6 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Workspaces.New(context.TODO(), blaxel.WorkspaceNewParams{
 		Workspace: blaxel.WorkspaceParam{
-			ID:          blaxel.String("id"),
 			AccountID:   blaxel.String("accountId"),
 			DisplayName: blaxel.String("My Workspace"),
 			Labels: map[string]string{
@@ -40,8 +39,6 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 			Runtime: blaxel.WorkspaceRuntimeParam{
 				Generation: blaxel.String("mk3"),
 			},
-			Status:       blaxel.WorkspaceStatusReady,
-			StatusReason: blaxel.String("statusReason"),
 		},
 	})
 	if err != nil {
@@ -96,7 +93,6 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 		"workspaceName",
 		blaxel.WorkspaceUpdateParams{
 			Workspace: blaxel.WorkspaceParam{
-				ID:          blaxel.String("id"),
 				AccountID:   blaxel.String("accountId"),
 				DisplayName: blaxel.String("My Workspace"),
 				Labels: map[string]string{
@@ -107,8 +103,6 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 				Runtime: blaxel.WorkspaceRuntimeParam{
 					Generation: blaxel.String("mk3"),
 				},
-				Status:       blaxel.WorkspaceStatusReady,
-				StatusReason: blaxel.String("statusReason"),
 			},
 		},
 	)

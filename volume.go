@@ -195,10 +195,6 @@ type VolumeParam struct {
 	Status param.Opt[string] `json:"status,omitzero"`
 	// Timestamp when the volume was marked for termination
 	TerminatedAt param.Opt[string] `json:"terminatedAt,omitzero"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEventParam `json:"events,omitzero"`
-	// Current runtime state of the volume including attachment status
-	State VolumeStateParam `json:"state,omitzero"`
 	paramObj
 }
 
@@ -213,8 +209,6 @@ func (r *VolumeParam) UnmarshalJSON(data []byte) error {
 // Immutable volume configuration set at creation time (size and region cannot be
 // changed after creation)
 type VolumeSpecParam struct {
-	// The internal infrastructure resource identifier for this volume
-	InfrastructureID param.Opt[string] `json:"infrastructureId,omitzero"`
 	// Deployment region for the volume (e.g., us-pdx-1, eu-lon-1). Must match the
 	// region of sandboxes it attaches to.
 	Region param.Opt[string] `json:"region,omitzero"`

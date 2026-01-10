@@ -267,16 +267,6 @@ const (
 
 // Volume template state
 type VolumeTemplateStateParam struct {
-	// Timestamp of last version upload
-	LastVersionUploadedAt param.Opt[string] `json:"lastVersionUploadedAt,omitzero"`
-	// Current/latest S3 version ID
-	LatestVersion param.Opt[string] `json:"latestVersion,omitzero"`
-	// Total number of versions for this template
-	VersionCount param.Opt[int64] `json:"versionCount,omitzero"`
-	// Status of the volume template (created, ready, error)
-	//
-	// Any of "created", "ready", "error".
-	Status VolumeTemplateStateStatus `json:"status,omitzero"`
 	paramObj
 }
 
@@ -349,24 +339,10 @@ const (
 
 // Volume template version tracking individual versions of template content
 type VolumeTemplateVersionParam struct {
-	// S3 bucket name where this version is stored
-	Bucket param.Opt[string] `json:"bucket,omitzero"`
-	// Size of the template content in bytes
-	ContentSize param.Opt[int64] `json:"contentSize,omitzero"`
 	// Name of the template version
 	Name param.Opt[string] `json:"name,omitzero"`
-	// AWS region where this version is stored
-	Region param.Opt[string] `json:"region,omitzero"`
 	// Template name this version belongs to
 	TemplateName param.Opt[string] `json:"templateName,omitzero"`
-	// S3 version ID for this template version
-	VersionID param.Opt[string] `json:"versionId,omitzero"`
-	// Workspace name
-	Workspace param.Opt[string] `json:"workspace,omitzero"`
-	// Status of the version (CREATED, READY, FAILED)
-	//
-	// Any of "CREATED", "READY", "FAILED".
-	Status VolumeTemplateVersionStatus `json:"status,omitzero"`
 	paramObj
 }
 
