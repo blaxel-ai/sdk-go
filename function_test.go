@@ -64,7 +64,6 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					ID: blaxel.String("trigger-1"),
 					Configuration: blaxel.TriggerConfigurationParam{
 						AuthenticationType: blaxel.String("blaxel"),
-						CallbackSecret:     blaxel.String("callbackSecret"),
 						CallbackURL:        blaxel.String("https://myapp.com/webhook"),
 						Path:               blaxel.String("/invoke"),
 						Retry:              blaxel.Int(3),
@@ -76,15 +75,6 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					Type:    blaxel.TriggerTypeHTTP,
 				}},
 			},
-			Events: []blaxel.CoreEventParam{{
-				CanaryRevision: blaxel.String("canaryRevision"),
-				Message:        blaxel.String("Deployment successful"),
-				Revision:       blaxel.String("rev-abc123"),
-				Status:         blaxel.String("DEPLOYED"),
-				Time:           blaxel.String("2025-01-15T10:30:00Z"),
-				Type:           blaxel.String("deployment"),
-			}},
-			Status: blaxel.StatusDeleting,
 		},
 	})
 	if err != nil {
@@ -180,7 +170,6 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						ID: blaxel.String("trigger-1"),
 						Configuration: blaxel.TriggerConfigurationParam{
 							AuthenticationType: blaxel.String("blaxel"),
-							CallbackSecret:     blaxel.String("callbackSecret"),
 							CallbackURL:        blaxel.String("https://myapp.com/webhook"),
 							Path:               blaxel.String("/invoke"),
 							Retry:              blaxel.Int(3),
@@ -192,15 +181,6 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						Type:    blaxel.TriggerTypeHTTP,
 					}},
 				},
-				Events: []blaxel.CoreEventParam{{
-					CanaryRevision: blaxel.String("canaryRevision"),
-					Message:        blaxel.String("Deployment successful"),
-					Revision:       blaxel.String("rev-abc123"),
-					Status:         blaxel.String("DEPLOYED"),
-					Time:           blaxel.String("2025-01-15T10:30:00Z"),
-					Type:           blaxel.String("deployment"),
-				}},
-				Status: blaxel.StatusDeleting,
 			},
 		},
 	)

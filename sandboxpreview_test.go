@@ -45,7 +45,6 @@ func TestSandboxPreviewNew(t *testing.T) {
 					Port:         blaxel.Int(0),
 					PrefixURL:    blaxel.String("prefixUrl"),
 					Public:       blaxel.Bool(true),
-					Region:       blaxel.String("region"),
 					RequestHeaders: map[string]string{
 						"foo": "string",
 					},
@@ -53,7 +52,6 @@ func TestSandboxPreviewNew(t *testing.T) {
 						"foo": "string",
 					},
 					Ttl: blaxel.String("ttl"),
-					URL: blaxel.String("url"),
 				},
 			},
 		},
@@ -130,7 +128,6 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 					Port:         blaxel.Int(0),
 					PrefixURL:    blaxel.String("prefixUrl"),
 					Public:       blaxel.Bool(true),
-					Region:       blaxel.String("region"),
 					RequestHeaders: map[string]string{
 						"foo": "string",
 					},
@@ -138,7 +135,6 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 						"foo": "string",
 					},
 					Ttl: blaxel.String("ttl"),
-					URL: blaxel.String("url"),
 				},
 			},
 		},

@@ -59,9 +59,9 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					MaxRetries:         blaxel.Int(3),
 					Memory:             blaxel.Int(2048),
 					Ports: []blaxel.PortParam{{
+						Target:   8080,
 						Name:     blaxel.String("http"),
 						Protocol: blaxel.PortProtocolHTTP,
-						Target:   blaxel.Int(8080),
 					}},
 					Timeout: blaxel.Int(3600),
 				},
@@ -69,7 +69,6 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					ID: blaxel.String("trigger-1"),
 					Configuration: blaxel.TriggerConfigurationParam{
 						AuthenticationType: blaxel.String("blaxel"),
-						CallbackSecret:     blaxel.String("callbackSecret"),
 						CallbackURL:        blaxel.String("https://myapp.com/webhook"),
 						Path:               blaxel.String("/invoke"),
 						Retry:              blaxel.Int(3),
@@ -81,15 +80,6 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					Type:    blaxel.TriggerTypeHTTP,
 				}},
 			},
-			Events: []blaxel.CoreEventParam{{
-				CanaryRevision: blaxel.String("canaryRevision"),
-				Message:        blaxel.String("Deployment successful"),
-				Revision:       blaxel.String("rev-abc123"),
-				Status:         blaxel.String("DEPLOYED"),
-				Time:           blaxel.String("2025-01-15T10:30:00Z"),
-				Type:           blaxel.String("deployment"),
-			}},
-			Status: blaxel.StatusDeleting,
 		},
 	})
 	if err != nil {
@@ -180,9 +170,9 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						MaxRetries:         blaxel.Int(3),
 						Memory:             blaxel.Int(2048),
 						Ports: []blaxel.PortParam{{
+							Target:   8080,
 							Name:     blaxel.String("http"),
 							Protocol: blaxel.PortProtocolHTTP,
-							Target:   blaxel.Int(8080),
 						}},
 						Timeout: blaxel.Int(3600),
 					},
@@ -190,7 +180,6 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						ID: blaxel.String("trigger-1"),
 						Configuration: blaxel.TriggerConfigurationParam{
 							AuthenticationType: blaxel.String("blaxel"),
-							CallbackSecret:     blaxel.String("callbackSecret"),
 							CallbackURL:        blaxel.String("https://myapp.com/webhook"),
 							Path:               blaxel.String("/invoke"),
 							Retry:              blaxel.Int(3),
@@ -202,15 +191,6 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						Type:    blaxel.TriggerTypeHTTP,
 					}},
 				},
-				Events: []blaxel.CoreEventParam{{
-					CanaryRevision: blaxel.String("canaryRevision"),
-					Message:        blaxel.String("Deployment successful"),
-					Revision:       blaxel.String("rev-abc123"),
-					Status:         blaxel.String("DEPLOYED"),
-					Time:           blaxel.String("2025-01-15T10:30:00Z"),
-					Type:           blaxel.String("deployment"),
-				}},
-				Status: blaxel.StatusDeleting,
 			},
 		},
 	)

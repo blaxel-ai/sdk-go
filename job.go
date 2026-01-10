@@ -189,13 +189,6 @@ type JobParam struct {
 	// Configuration for a batch job including execution parameters, parallelism
 	// settings, and deployment region
 	Spec JobSpecParam `json:"spec,omitzero,required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEventParam `json:"events,omitzero"`
-	// Deployment status of a resource deployed on Blaxel
-	//
-	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
-	Status Status `json:"status,omitzero"`
 	paramObj
 }
 
@@ -855,13 +848,6 @@ type ModelParam struct {
 	// Configuration for a model gateway endpoint including provider type, credentials,
 	// and access policies
 	Spec ModelSpecParam `json:"spec,omitzero,required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEventParam `json:"events,omitzero"`
-	// Deployment status of a resource deployed on Blaxel
-	//
-	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
-	Status Status `json:"status,omitzero"`
 	paramObj
 }
 

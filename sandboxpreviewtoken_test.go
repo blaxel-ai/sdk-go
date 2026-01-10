@@ -41,8 +41,6 @@ func TestSandboxPreviewTokenNew(t *testing.T) {
 					Workspace:    blaxel.String("workspace"),
 				},
 				Spec: blaxel.PreviewTokenSpecParam{
-					Token:     blaxel.String("token"),
-					Expired:   blaxel.Bool(true),
 					ExpiresAt: blaxel.String("expiresAt"),
 				},
 			},

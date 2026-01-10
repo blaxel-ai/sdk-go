@@ -57,9 +57,8 @@ func (r *SandboxService) New(ctx context.Context, body SandboxNewParams, opts ..
 	return
 }
 
-// Returns detailed information about a sandbox including its current state
-// (active/standby), configuration, attached volumes, lifecycle policies, and API
-// endpoint URL.
+// Returns detailed information about a sandbox including its configuration,
+// attached volumes, lifecycle policies, and API endpoint URL.
 func (r *SandboxService) Get(ctx context.Context, sandboxName string, query SandboxGetParams, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
@@ -85,9 +84,8 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 	return
 }
 
-// Returns all sandboxes in the workspace. Each sandbox includes its current state
-// (active/standby), configuration, and endpoint URL. Sandboxes resume from standby
-// in under 25ms.
+// Returns all sandboxes in the workspace. Each sandbox includes its configuration,
+// status, and endpoint URL.
 func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
@@ -201,19 +199,19 @@ func (r *ExpirationPolicyParam) UnmarshalJSON(data []byte) error {
 
 // A port for a resource
 type Port struct {
+	// The target port of the port
+	Target int64 `json:"target,required"`
 	// The name of the port
 	Name string `json:"name"`
 	// The protocol of the port
 	//
 	// Any of "HTTP", "TCP", "UDP".
 	Protocol PortProtocol `json:"protocol"`
-	// The target port of the port
-	Target int64 `json:"target"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		Target      respjson.Field
 		Name        respjson.Field
 		Protocol    respjson.Field
-		Target      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -244,11 +242,13 @@ const (
 )
 
 // A port for a resource
+//
+// The property Target is required.
 type PortParam struct {
+	// The target port of the port
+	Target int64 `json:"target,required"`
 	// The name of the port
 	Name param.Opt[string] `json:"name,omitzero"`
-	// The target port of the port
-	Target param.Opt[int64] `json:"target,omitzero"`
 	// The protocol of the port
 	//
 	// Any of "HTTP", "TCP", "UDP".
@@ -322,13 +322,6 @@ type SandboxParam struct {
 	// Configuration for a sandbox including its image, memory, ports, region, and
 	// lifecycle policies
 	Spec SandboxSpecParam `json:"spec,omitzero,required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEventParam `json:"events,omitzero"`
-	// Deployment status of a resource deployed on Blaxel
-	//
-	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
-	Status Status `json:"status,omitzero"`
 	paramObj
 }
 

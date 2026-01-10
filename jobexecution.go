@@ -11,11 +11,13 @@ import (
 	"net/url"
 	"slices"
 
+	"github.com/stainless-sdks/blaxel-go/internal/apijson"
 	"github.com/stainless-sdks/blaxel-go/internal/apiquery"
 	shimjson "github.com/stainless-sdks/blaxel-go/internal/encoding/json"
 	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
 	"github.com/stainless-sdks/blaxel-go/option"
 	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/stainless-sdks/blaxel-go/packages/respjson"
 )
 
 // JobExecutionService contains methods and other services that help with
@@ -40,7 +42,7 @@ func NewJobExecutionService(opts ...option.RequestOption) (r JobExecutionService
 // Triggers a new execution of the batch job. Each execution runs multiple tasks in
 // parallel according to the job's configured concurrency. Tasks can be
 // parameterized via the request body.
-func (r *JobExecutionService) New(ctx context.Context, jobID string, body JobExecutionNewParams, opts ...option.RequestOption) (res *JobExecution, err error) {
+func (r *JobExecutionService) New(ctx context.Context, jobID string, body JobExecutionNewParams, opts ...option.RequestOption) (res *JobExecutionNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
@@ -97,6 +99,40 @@ func (r *JobExecutionService) Delete(ctx context.Context, executionID string, bo
 	path := fmt.Sprintf("jobs/%s/executions/%s", body.JobID, executionID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return
+}
+
+// Response returned when a job execution is successfully created. Contains
+// identifiers and the tasks that will be executed.
+type JobExecutionNewResponse struct {
+	// Unique identifier for this request, used for idempotency and tracking.
+	// Auto-generated if not provided in the request.
+	ID string `json:"id"`
+	// Unique identifier for the created execution. Use this ID to track execution
+	// status, retrieve logs, or cancel the execution.
+	ExecutionID string `json:"executionId"`
+	// Name of the job that this execution belongs to
+	JobID string `json:"jobId"`
+	// Array of task configurations that will be executed in parallel according to the
+	// job's concurrency settings. Each task can have custom parameters.
+	Tasks []any `json:"tasks"`
+	// Name of the workspace where the job execution was created
+	WorkspaceID string `json:"workspaceId"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		ExecutionID respjson.Field
+		JobID       respjson.Field
+		Tasks       respjson.Field
+		WorkspaceID respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionNewResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type JobExecutionNewParams struct {

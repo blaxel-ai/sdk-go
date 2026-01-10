@@ -38,14 +38,11 @@ func TestCustomdomainNew(t *testing.T) {
 				Workspace: blaxel.String("workspace"),
 			},
 			Spec: blaxel.CustomDomainSpecParam{
-				CnameRecords:   blaxel.String("cnameRecords"),
-				LastVerifiedAt: blaxel.String("lastVerifiedAt"),
-				Region:         blaxel.String("us-pdx-1"),
-				Status:         blaxel.CustomDomainSpecStatusVerified,
+				CnameRecords: blaxel.String("cnameRecords"),
+				Region:       blaxel.String("us-pdx-1"),
 				TxtRecords: map[string]string{
 					"foo": "string",
 				},
-				VerificationError: blaxel.String("verificationError"),
 			},
 		},
 	})
@@ -110,14 +107,11 @@ func TestCustomdomainUpdate(t *testing.T) {
 					Workspace: blaxel.String("workspace"),
 				},
 				Spec: blaxel.CustomDomainSpecParam{
-					CnameRecords:   blaxel.String("cnameRecords"),
-					LastVerifiedAt: blaxel.String("lastVerifiedAt"),
-					Region:         blaxel.String("us-pdx-1"),
-					Status:         blaxel.CustomDomainSpecStatusVerified,
+					CnameRecords: blaxel.String("cnameRecords"),
+					Region:       blaxel.String("us-pdx-1"),
 					TxtRecords: map[string]string{
 						"foo": "string",
 					},
-					VerificationError: blaxel.String("verificationError"),
 				},
 			},
 		},

@@ -285,16 +285,8 @@ const (
 type CustomDomainSpecParam struct {
 	// CNAME target for the domain
 	CnameRecords param.Opt[string] `json:"cnameRecords,omitzero"`
-	// Last verification attempt timestamp
-	LastVerifiedAt param.Opt[string] `json:"lastVerifiedAt,omitzero"`
 	// Region that the custom domain is associated with
 	Region param.Opt[string] `json:"region,omitzero"`
-	// Error message if verification failed
-	VerificationError param.Opt[string] `json:"verificationError,omitzero"`
-	// Current status of the domain (pending, verified, failed)
-	//
-	// Any of "pending", "verified", "failed".
-	Status CustomDomainSpecStatus `json:"status,omitzero"`
 	// Map of TXT record names to values for domain verification
 	TxtRecords map[string]string `json:"txtRecords,omitzero"`
 	paramObj
