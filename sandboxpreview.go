@@ -237,6 +237,7 @@ func (r *PreviewMetadataParam) UnmarshalJSON(data []byte) error {
 type PreviewSpec struct {
 	// Custom domain bound to this preview
 	CustomDomain string `json:"customDomain"`
+	Example      string `json:"example"`
 	// The expiration date for the preview in ISO 8601 format - 2024-12-31T23:59:59Z
 	Expires string `json:"expires"`
 	// Port of the preview
@@ -261,6 +262,7 @@ type PreviewSpec struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CustomDomain    respjson.Field
+		Example         respjson.Field
 		Expires         respjson.Field
 		Port            respjson.Field
 		PrefixURL       respjson.Field
@@ -294,6 +296,7 @@ func (r PreviewSpec) ToParam() PreviewSpecParam {
 type PreviewSpecParam struct {
 	// Custom domain bound to this preview
 	CustomDomain param.Opt[string] `json:"customDomain,omitzero"`
+	Example      param.Opt[string] `json:"example,omitzero"`
 	// The expiration date for the preview in ISO 8601 format - 2024-12-31T23:59:59Z
 	Expires param.Opt[string] `json:"expires,omitzero"`
 	// Port of the preview
