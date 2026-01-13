@@ -41,7 +41,6 @@ func TestSandboxPreviewNew(t *testing.T) {
 				},
 				Spec: blaxel.PreviewSpecParam{
 					CustomDomain: blaxel.String("customDomain"),
-					Example:      blaxel.String("example"),
 					Expires:      blaxel.String("expires"),
 					Port:         blaxel.Int(0),
 					PrefixURL:    blaxel.String("prefixUrl"),
@@ -125,7 +124,6 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 				},
 				Spec: blaxel.PreviewSpecParam{
 					CustomDomain: blaxel.String("customDomain"),
-					Example:      blaxel.String("example"),
 					Expires:      blaxel.String("expires"),
 					Port:         blaxel.Int(0),
 					PrefixURL:    blaxel.String("prefixUrl"),
