@@ -14,7 +14,6 @@ import (
 )
 
 func TestCustomdomainNew(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -56,7 +55,6 @@ func TestCustomdomainNew(t *testing.T) {
 }
 
 func TestCustomdomainGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -80,7 +78,6 @@ func TestCustomdomainGet(t *testing.T) {
 }
 
 func TestCustomdomainUpdate(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -126,7 +123,6 @@ func TestCustomdomainUpdate(t *testing.T) {
 }
 
 func TestCustomdomainList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -150,7 +146,6 @@ func TestCustomdomainList(t *testing.T) {
 }
 
 func TestCustomdomainDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -174,7 +169,6 @@ func TestCustomdomainDelete(t *testing.T) {
 }
 
 func TestCustomdomainVerify(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

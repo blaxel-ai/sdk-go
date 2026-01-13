@@ -25,7 +25,6 @@ func TestUsage(t *testing.T) {
 		option.WithClientID("My Client ID"),
 		option.WithClientSecret("My Client Secret"),
 	)
-	t.Skip("Prism tests are disabled")
 	agents, err := client.Agents.List(context.TODO())
 	if err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())

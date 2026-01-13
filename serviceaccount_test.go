@@ -14,7 +14,6 @@ import (
 )
 
 func TestServiceAccountNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -41,7 +40,6 @@ func TestServiceAccountNewWithOptionalParams(t *testing.T) {
 }
 
 func TestServiceAccountUpdateWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -72,7 +70,6 @@ func TestServiceAccountUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestServiceAccountList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -96,7 +93,6 @@ func TestServiceAccountList(t *testing.T) {
 }
 
 func TestServiceAccountDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

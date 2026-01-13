@@ -14,7 +14,6 @@ import (
 )
 
 func TestFunctionNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -87,7 +86,6 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 }
 
 func TestFunctionGetWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -117,7 +115,6 @@ func TestFunctionGetWithOptionalParams(t *testing.T) {
 }
 
 func TestFunctionUpdateWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -194,7 +191,6 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestFunctionList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -218,7 +214,6 @@ func TestFunctionList(t *testing.T) {
 }
 
 func TestFunctionDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -242,7 +237,6 @@ func TestFunctionDelete(t *testing.T) {
 }
 
 func TestFunctionListRevisions(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

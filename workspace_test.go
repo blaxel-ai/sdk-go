@@ -14,7 +14,6 @@ import (
 )
 
 func TestWorkspaceNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -51,7 +50,6 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 }
 
 func TestWorkspaceGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -75,7 +73,6 @@ func TestWorkspaceGet(t *testing.T) {
 }
 
 func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -116,7 +113,6 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestWorkspaceList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -140,7 +136,6 @@ func TestWorkspaceList(t *testing.T) {
 }
 
 func TestWorkspaceDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -164,7 +159,6 @@ func TestWorkspaceDelete(t *testing.T) {
 }
 
 func TestWorkspaceAcceptInvitation(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -188,7 +182,6 @@ func TestWorkspaceAcceptInvitation(t *testing.T) {
 }
 
 func TestWorkspaceCheckAvailability(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -214,7 +207,6 @@ func TestWorkspaceCheckAvailability(t *testing.T) {
 }
 
 func TestWorkspaceDeclineInvitation(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -238,7 +230,6 @@ func TestWorkspaceDeclineInvitation(t *testing.T) {
 }
 
 func TestWorkspaceLeave(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
