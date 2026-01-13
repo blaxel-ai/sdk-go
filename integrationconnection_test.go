@@ -14,7 +14,6 @@ import (
 )
 
 func TestIntegrationConnectionNew(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestIntegrationConnectionNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Integrations.Connections.New(context.TODO(), blaxel.IntegrationConnectionNewParams{
 		IntegrationConnection: blaxel.IntegrationConnectionParam{
@@ -58,7 +56,6 @@ func TestIntegrationConnectionNew(t *testing.T) {
 }
 
 func TestIntegrationConnectionGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -68,8 +65,7 @@ func TestIntegrationConnectionGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Integrations.Connections.Get(context.TODO(), "connectionName")
 	if err != nil {
@@ -82,7 +78,6 @@ func TestIntegrationConnectionGet(t *testing.T) {
 }
 
 func TestIntegrationConnectionUpdate(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -92,8 +87,7 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Integrations.Connections.Update(
 		context.TODO(),
@@ -130,7 +124,6 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 }
 
 func TestIntegrationConnectionList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -140,8 +133,7 @@ func TestIntegrationConnectionList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Integrations.Connections.List(context.TODO())
 	if err != nil {
@@ -154,7 +146,6 @@ func TestIntegrationConnectionList(t *testing.T) {
 }
 
 func TestIntegrationConnectionDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -164,8 +155,7 @@ func TestIntegrationConnectionDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Integrations.Connections.Delete(context.TODO(), "connectionName")
 	if err != nil {
@@ -178,7 +168,6 @@ func TestIntegrationConnectionDelete(t *testing.T) {
 }
 
 func TestIntegrationConnectionListEndpointConfigurations(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -188,8 +177,7 @@ func TestIntegrationConnectionListEndpointConfigurations(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	err := client.Integrations.Connections.ListEndpointConfigurations(context.TODO(), "connectionName")
 	if err != nil {

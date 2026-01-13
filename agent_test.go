@@ -14,18 +14,17 @@ import (
 )
 
 func TestAgentNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
 	}
+	t.Logf("Checking test server at %s", baseURL)
 	if !testutil.CheckTestServer(t, baseURL) {
 		return
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Agents.New(context.TODO(), blaxel.AgentNewParams{
 		Agent: blaxel.AgentParam{
@@ -89,7 +88,6 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 }
 
 func TestAgentGetWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -99,8 +97,7 @@ func TestAgentGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Agents.Get(
 		context.TODO(),
@@ -119,7 +116,6 @@ func TestAgentGetWithOptionalParams(t *testing.T) {
 }
 
 func TestAgentUpdateWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -129,8 +125,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Agents.Update(
 		context.TODO(),
@@ -198,7 +193,6 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestAgentList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -208,8 +202,7 @@ func TestAgentList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Agents.List(context.TODO())
 	if err != nil {
@@ -222,7 +215,6 @@ func TestAgentList(t *testing.T) {
 }
 
 func TestAgentDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -232,8 +224,7 @@ func TestAgentDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Agents.Delete(context.TODO(), "agentName")
 	if err != nil {
@@ -246,7 +237,6 @@ func TestAgentDelete(t *testing.T) {
 }
 
 func TestAgentListRevisions(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -256,8 +246,7 @@ func TestAgentListRevisions(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Agents.ListRevisions(context.TODO(), "agentName")
 	if err != nil {

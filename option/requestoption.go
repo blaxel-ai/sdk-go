@@ -260,10 +260,15 @@ func WithRequestTimeout(dur time.Duration) RequestOption {
 }
 
 // WithAPIKey returns a RequestOption that sets the client setting "api_key".
-func WithAPIKey(value string) RequestOption {
+// Optionally accepts a custom header name (defaults to "X-Blaxel-Authorization").
+func WithAPIKey(value string, header ...string) RequestOption {
+	headerName := "X-Blaxel-Authorization"
+	if len(header) > 0 && header[0] != "" {
+		headerName = header[0]
+	}
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
 		r.APIKey = value
-		return r.Apply(WithHeader("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", r.APIKey)))
+		return r.Apply(WithHeader(headerName, fmt.Sprintf("Bearer %s", r.APIKey)))
 	})
 }
 

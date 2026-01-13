@@ -14,7 +14,6 @@ import (
 )
 
 func TestUserList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestUserList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Users.List(context.TODO())
 	if err != nil {
@@ -38,7 +36,6 @@ func TestUserList(t *testing.T) {
 }
 
 func TestUserInviteWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -48,8 +45,7 @@ func TestUserInviteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Users.Invite(context.TODO(), blaxel.UserInviteParams{
 		Email: blaxel.String("dev@stainless.com"),
@@ -64,7 +60,6 @@ func TestUserInviteWithOptionalParams(t *testing.T) {
 }
 
 func TestUserRemove(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -74,8 +69,7 @@ func TestUserRemove(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	err := client.Users.Remove(context.TODO(), "subOrEmail")
 	if err != nil {
@@ -88,7 +82,6 @@ func TestUserRemove(t *testing.T) {
 }
 
 func TestUserUpdateRole(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -98,8 +91,7 @@ func TestUserUpdateRole(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Users.UpdateRole(
 		context.TODO(),

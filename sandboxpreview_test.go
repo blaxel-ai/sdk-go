@@ -14,7 +14,6 @@ import (
 )
 
 func TestSandboxPreviewNew(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestSandboxPreviewNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Previews.New(
 		context.TODO(),
@@ -66,7 +64,6 @@ func TestSandboxPreviewNew(t *testing.T) {
 }
 
 func TestSandboxPreviewGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -76,8 +73,7 @@ func TestSandboxPreviewGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Previews.Get(
 		context.TODO(),
@@ -96,7 +92,6 @@ func TestSandboxPreviewGet(t *testing.T) {
 }
 
 func TestSandboxPreviewUpdate(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -106,8 +101,7 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Previews.Update(
 		context.TODO(),
@@ -149,7 +143,6 @@ func TestSandboxPreviewUpdate(t *testing.T) {
 }
 
 func TestSandboxPreviewList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -159,8 +152,7 @@ func TestSandboxPreviewList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Previews.List(context.TODO(), "sandboxName")
 	if err != nil {
@@ -173,7 +165,6 @@ func TestSandboxPreviewList(t *testing.T) {
 }
 
 func TestSandboxPreviewDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -183,8 +174,7 @@ func TestSandboxPreviewDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Previews.Delete(
 		context.TODO(),

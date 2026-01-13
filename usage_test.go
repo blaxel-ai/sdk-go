@@ -22,10 +22,9 @@ func TestUsage(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
-	t.Skip("Prism tests are disabled")
+
 	agents, err := client.Agents.List(context.TODO())
 	if err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())

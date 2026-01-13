@@ -14,7 +14,6 @@ import (
 )
 
 func TestServiceAccountAPIKeyNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestServiceAccountAPIKeyNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.ServiceAccounts.APIKeys.New(
 		context.TODO(),
@@ -45,7 +43,6 @@ func TestServiceAccountAPIKeyNewWithOptionalParams(t *testing.T) {
 }
 
 func TestServiceAccountAPIKeyList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -55,8 +52,7 @@ func TestServiceAccountAPIKeyList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.ServiceAccounts.APIKeys.List(context.TODO(), "clientId")
 	if err != nil {
@@ -69,7 +65,6 @@ func TestServiceAccountAPIKeyList(t *testing.T) {
 }
 
 func TestServiceAccountAPIKeyDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -79,8 +74,7 @@ func TestServiceAccountAPIKeyDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	err := client.ServiceAccounts.APIKeys.Delete(
 		context.TODO(),

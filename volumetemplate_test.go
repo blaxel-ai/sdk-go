@@ -14,7 +14,6 @@ import (
 )
 
 func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.VolumeTemplates.New(context.TODO(), blaxel.VolumeTemplateNewParams{
 		VolumeTemplate: blaxel.VolumeTemplateParam{
@@ -59,7 +57,6 @@ func TestVolumeTemplateNewWithOptionalParams(t *testing.T) {
 }
 
 func TestVolumeTemplateGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -69,8 +66,7 @@ func TestVolumeTemplateGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.VolumeTemplates.Get(context.TODO(), "volumeTemplateName")
 	if err != nil {
@@ -83,7 +79,6 @@ func TestVolumeTemplateGet(t *testing.T) {
 }
 
 func TestVolumeTemplateList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -93,8 +88,7 @@ func TestVolumeTemplateList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.VolumeTemplates.List(context.TODO())
 	if err != nil {
@@ -107,7 +101,6 @@ func TestVolumeTemplateList(t *testing.T) {
 }
 
 func TestVolumeTemplateDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -117,8 +110,7 @@ func TestVolumeTemplateDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.VolumeTemplates.Delete(context.TODO(), "volumeTemplateName")
 	if err != nil {
@@ -131,7 +123,6 @@ func TestVolumeTemplateDelete(t *testing.T) {
 }
 
 func TestVolumeTemplateDeleteVersion(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -141,8 +132,7 @@ func TestVolumeTemplateDeleteVersion(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.VolumeTemplates.DeleteVersion(
 		context.TODO(),
@@ -161,7 +151,6 @@ func TestVolumeTemplateDeleteVersion(t *testing.T) {
 }
 
 func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -171,8 +160,7 @@ func TestVolumeTemplateUpsertWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.VolumeTemplates.Upsert(
 		context.TODO(),

@@ -14,7 +14,6 @@ import (
 )
 
 func TestCustomdomainNew(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestCustomdomainNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Customdomains.New(context.TODO(), blaxel.CustomdomainNewParams{
 		CustomDomain: blaxel.CustomDomainParam{
@@ -56,7 +54,6 @@ func TestCustomdomainNew(t *testing.T) {
 }
 
 func TestCustomdomainGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -66,8 +63,7 @@ func TestCustomdomainGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Customdomains.Get(context.TODO(), "domainName")
 	if err != nil {
@@ -80,7 +76,6 @@ func TestCustomdomainGet(t *testing.T) {
 }
 
 func TestCustomdomainUpdate(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -90,8 +85,7 @@ func TestCustomdomainUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Customdomains.Update(
 		context.TODO(),
@@ -126,7 +120,6 @@ func TestCustomdomainUpdate(t *testing.T) {
 }
 
 func TestCustomdomainList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -136,8 +129,7 @@ func TestCustomdomainList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Customdomains.List(context.TODO())
 	if err != nil {
@@ -150,7 +142,6 @@ func TestCustomdomainList(t *testing.T) {
 }
 
 func TestCustomdomainDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -160,8 +151,7 @@ func TestCustomdomainDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Customdomains.Delete(context.TODO(), "domainName")
 	if err != nil {
@@ -174,7 +164,6 @@ func TestCustomdomainDelete(t *testing.T) {
 }
 
 func TestCustomdomainVerify(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -184,8 +173,7 @@ func TestCustomdomainVerify(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Customdomains.Verify(context.TODO(), "domainName")
 	if err != nil {

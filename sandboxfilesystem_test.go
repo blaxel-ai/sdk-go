@@ -14,7 +14,6 @@ import (
 )
 
 func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Delete(
 		context.TODO(),
@@ -44,7 +42,6 @@ func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -54,8 +51,7 @@ func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.ContentSearch(
 		context.TODO(),
@@ -78,7 +74,6 @@ func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemDeleteTreeWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -88,8 +83,7 @@ func TestSandboxFilesystemDeleteTreeWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.DeleteTree(
 		context.TODO(),
@@ -108,7 +102,6 @@ func TestSandboxFilesystemDeleteTreeWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -118,8 +111,7 @@ func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Find(
 		context.TODO(),
@@ -142,7 +134,6 @@ func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -152,8 +143,7 @@ func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Get(
 		context.TODO(),
@@ -172,7 +162,6 @@ func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemGetTree(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -182,8 +171,7 @@ func TestSandboxFilesystemGetTree(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.GetTree(context.TODO(), "filePath")
 	if err != nil {
@@ -196,7 +184,6 @@ func TestSandboxFilesystemGetTree(t *testing.T) {
 }
 
 func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -206,8 +193,7 @@ func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Search(
 		context.TODO(),
@@ -229,7 +215,6 @@ func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemWriteWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -239,8 +224,7 @@ func TestSandboxFilesystemWriteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Write(
 		context.TODO(),
@@ -263,7 +247,6 @@ func TestSandboxFilesystemWriteWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemWriteTreeWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -273,8 +256,7 @@ func TestSandboxFilesystemWriteTreeWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.WriteTree(
 		context.TODO(),

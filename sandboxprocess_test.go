@@ -14,7 +14,6 @@ import (
 )
 
 func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Process.New(context.TODO(), blaxel.SandboxProcessNewParams{
 		ProcessRequest: blaxel.ProcessRequestParam{
@@ -52,7 +50,6 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxProcessGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -62,8 +59,7 @@ func TestSandboxProcessGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Process.Get(context.TODO(), "identifier")
 	if err != nil {
@@ -76,7 +72,6 @@ func TestSandboxProcessGet(t *testing.T) {
 }
 
 func TestSandboxProcessList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -86,8 +81,7 @@ func TestSandboxProcessList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Process.List(context.TODO())
 	if err != nil {
@@ -100,7 +94,6 @@ func TestSandboxProcessList(t *testing.T) {
 }
 
 func TestSandboxProcessKill(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -110,8 +103,7 @@ func TestSandboxProcessKill(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Process.Kill(context.TODO(), "identifier")
 	if err != nil {
@@ -124,7 +116,6 @@ func TestSandboxProcessKill(t *testing.T) {
 }
 
 func TestSandboxProcessGetLogs(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -134,8 +125,7 @@ func TestSandboxProcessGetLogs(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Process.GetLogs(context.TODO(), "identifier")
 	if err != nil {
@@ -148,7 +138,6 @@ func TestSandboxProcessGetLogs(t *testing.T) {
 }
 
 func TestSandboxProcessStop(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -158,8 +147,7 @@ func TestSandboxProcessStop(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Process.Stop(context.TODO(), "identifier")
 	if err != nil {

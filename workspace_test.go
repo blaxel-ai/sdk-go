@@ -14,7 +14,6 @@ import (
 )
 
 func TestWorkspaceNewWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -24,8 +23,7 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.New(context.TODO(), blaxel.WorkspaceNewParams{
 		Workspace: blaxel.WorkspaceParam{
@@ -51,7 +49,6 @@ func TestWorkspaceNewWithOptionalParams(t *testing.T) {
 }
 
 func TestWorkspaceGet(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -61,8 +58,7 @@ func TestWorkspaceGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.Get(context.TODO(), "workspaceName")
 	if err != nil {
@@ -75,7 +71,6 @@ func TestWorkspaceGet(t *testing.T) {
 }
 
 func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -85,8 +80,7 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.Update(
 		context.TODO(),
@@ -116,7 +110,6 @@ func TestWorkspaceUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestWorkspaceList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -126,8 +119,7 @@ func TestWorkspaceList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.List(context.TODO())
 	if err != nil {
@@ -140,7 +132,6 @@ func TestWorkspaceList(t *testing.T) {
 }
 
 func TestWorkspaceDelete(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -150,8 +141,7 @@ func TestWorkspaceDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.Delete(context.TODO(), "workspaceName")
 	if err != nil {
@@ -164,7 +154,6 @@ func TestWorkspaceDelete(t *testing.T) {
 }
 
 func TestWorkspaceAcceptInvitation(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -174,8 +163,7 @@ func TestWorkspaceAcceptInvitation(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.AcceptInvitation(context.TODO(), "workspaceName")
 	if err != nil {
@@ -188,7 +176,6 @@ func TestWorkspaceAcceptInvitation(t *testing.T) {
 }
 
 func TestWorkspaceCheckAvailability(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -198,8 +185,7 @@ func TestWorkspaceCheckAvailability(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.CheckAvailability(context.TODO(), blaxel.WorkspaceCheckAvailabilityParams{
 		Name: "name",
@@ -214,7 +200,6 @@ func TestWorkspaceCheckAvailability(t *testing.T) {
 }
 
 func TestWorkspaceDeclineInvitation(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -224,8 +209,7 @@ func TestWorkspaceDeclineInvitation(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.DeclineInvitation(context.TODO(), "workspaceName")
 	if err != nil {
@@ -238,7 +222,6 @@ func TestWorkspaceDeclineInvitation(t *testing.T) {
 }
 
 func TestWorkspaceLeave(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -248,8 +231,7 @@ func TestWorkspaceLeave(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Workspaces.Leave(context.TODO(), "workspaceName")
 	if err != nil {

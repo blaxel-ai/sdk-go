@@ -16,7 +16,6 @@ import (
 )
 
 func TestSandboxFilesystemMultipartList(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -26,8 +25,7 @@ func TestSandboxFilesystemMultipartList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.List(context.TODO())
 	if err != nil {
@@ -40,7 +38,6 @@ func TestSandboxFilesystemMultipartList(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartAbort(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -50,8 +47,7 @@ func TestSandboxFilesystemMultipartAbort(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.Abort(context.TODO(), "uploadId")
 	if err != nil {
@@ -64,7 +60,6 @@ func TestSandboxFilesystemMultipartAbort(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartCompleteWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -74,8 +69,7 @@ func TestSandboxFilesystemMultipartCompleteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.Complete(
 		context.TODO(),
@@ -99,7 +93,6 @@ func TestSandboxFilesystemMultipartCompleteWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartInitiateWithOptionalParams(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -109,8 +102,7 @@ func TestSandboxFilesystemMultipartInitiateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.Initiate(
 		context.TODO(),
@@ -131,7 +123,6 @@ func TestSandboxFilesystemMultipartInitiateWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartListParts(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -141,8 +132,7 @@ func TestSandboxFilesystemMultipartListParts(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.ListParts(context.TODO(), "uploadId")
 	if err != nil {
@@ -155,7 +145,6 @@ func TestSandboxFilesystemMultipartListParts(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartUploadPart(t *testing.T) {
-	t.Skip("Prism tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -165,8 +154,7 @@ func TestSandboxFilesystemMultipartUploadPart(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.UploadPart(
 		context.TODO(),
