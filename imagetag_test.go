@@ -23,7 +23,7 @@ func TestImageTagDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.Tags.Delete(
 		context.TODO(),

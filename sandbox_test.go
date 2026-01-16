@@ -23,7 +23,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
 		Sandbox: blaxel.SandboxParam{
@@ -88,7 +88,7 @@ func TestSandboxGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Get(
 		context.TODO(),
@@ -116,7 +116,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Update(
 		context.TODO(),
@@ -184,7 +184,7 @@ func TestSandboxList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.List(context.TODO())
 	if err != nil {
@@ -206,7 +206,7 @@ func TestSandboxDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Delete(context.TODO(), "sandboxName")
 	if err != nil {
@@ -228,7 +228,7 @@ func TestSandboxGetHub(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.GetHub(context.TODO())
 	if err != nil {

@@ -25,7 +25,7 @@ func TestSandboxFilesystemMultipartList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.List(context.TODO())
 	if err != nil {
@@ -47,7 +47,7 @@ func TestSandboxFilesystemMultipartAbort(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.Abort(context.TODO(), "uploadId")
 	if err != nil {
@@ -69,7 +69,7 @@ func TestSandboxFilesystemMultipartCompleteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.Complete(
 		context.TODO(),
@@ -102,7 +102,7 @@ func TestSandboxFilesystemMultipartInitiateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.Initiate(
 		context.TODO(),
@@ -132,7 +132,7 @@ func TestSandboxFilesystemMultipartListParts(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.ListParts(context.TODO(), "uploadId")
 	if err != nil {
@@ -154,7 +154,7 @@ func TestSandboxFilesystemMultipartUploadPart(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Filesystem.Multipart.UploadPart(
 		context.TODO(),

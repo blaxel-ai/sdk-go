@@ -23,7 +23,7 @@ func TestPublicIPListWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.PublicIPs.List(context.TODO(), blaxel.PublicIPListParams{
 		Region: blaxel.String("region"),

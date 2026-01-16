@@ -23,7 +23,7 @@ func TestIntegrationConnectionNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Integrations.Connections.New(context.TODO(), blaxel.IntegrationConnectionNewParams{
 		IntegrationConnection: blaxel.IntegrationConnectionParam{
@@ -65,7 +65,7 @@ func TestIntegrationConnectionGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Integrations.Connections.Get(context.TODO(), "connectionName")
 	if err != nil {
@@ -87,7 +87,7 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Integrations.Connections.Update(
 		context.TODO(),
@@ -133,7 +133,7 @@ func TestIntegrationConnectionList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Integrations.Connections.List(context.TODO())
 	if err != nil {
@@ -155,7 +155,7 @@ func TestIntegrationConnectionDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Integrations.Connections.Delete(context.TODO(), "connectionName")
 	if err != nil {

@@ -23,7 +23,7 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.New(context.TODO(), blaxel.ModelNewParams{
 		Model: blaxel.ModelParam{
@@ -71,7 +71,7 @@ func TestModelGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.Get(context.TODO(), "modelName")
 	if err != nil {
@@ -93,7 +93,7 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.Update(
 		context.TODO(),
@@ -145,7 +145,7 @@ func TestModelList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.List(context.TODO())
 	if err != nil {
@@ -167,7 +167,7 @@ func TestModelDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.Delete(context.TODO(), "modelName")
 	if err != nil {
@@ -189,7 +189,7 @@ func TestModelListRevisions(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.ListRevisions(context.TODO(), "modelName")
 	if err != nil {
