@@ -60,6 +60,18 @@ func (r *VolumeService) Get(ctx context.Context, volumeName string, opts ...opti
 	return
 }
 
+// Updates a volume.
+func (r *VolumeService) Update(ctx context.Context, volumeName string, body VolumeUpdateParams, opts ...option.RequestOption) (res *Volume, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if volumeName == "" {
+		err = errors.New("missing required volumeName parameter")
+		return
+	}
+	path := fmt.Sprintf("volumes/%s", volumeName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
+	return
+}
+
 // Returns all persistent storage volumes in the workspace. Volumes can be attached
 // to sandboxes for durable file storage that persists across sessions and sandbox
 // deletions.
@@ -253,5 +265,20 @@ func (r VolumeNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Volume)
 }
 func (r *VolumeNewParams) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &r.Volume)
+}
+
+type VolumeUpdateParams struct {
+	// Persistent storage volume that can be attached to sandboxes for durable file
+	// storage across sessions. Volumes survive sandbox deletion and can be reattached
+	// to new sandboxes.
+	Volume VolumeParam
+	paramObj
+}
+
+func (r VolumeUpdateParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.Volume)
+}
+func (r *VolumeUpdateParams) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &r.Volume)
 }
