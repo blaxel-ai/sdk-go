@@ -14,7 +14,7 @@ import (
 	"encoding"
 	"encoding/base64"
 	"fmt"
-	"github.com/stainless-sdks/blaxel-go/internal/encoding/json/shims"
+	"github.com/blaxel-ai/sdk-go/internal/encoding/json/shims"
 	"reflect"
 	"strconv"
 	"strings"

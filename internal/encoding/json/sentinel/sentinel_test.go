@@ -1,8 +1,8 @@
 package sentinel_test
 
 import (
-	"github.com/stainless-sdks/blaxel-go/internal/encoding/json/sentinel"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/internal/encoding/json/sentinel"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"reflect"
 	"slices"
 	"testing"

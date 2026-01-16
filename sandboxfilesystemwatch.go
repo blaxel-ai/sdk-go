@@ -10,10 +10,10 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/stainless-sdks/blaxel-go/internal/apiquery"
-	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
-	"github.com/stainless-sdks/blaxel-go/option"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 )
 
 // SandboxFilesystemWatchService contains methods and other services that help with

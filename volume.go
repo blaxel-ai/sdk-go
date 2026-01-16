@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/stainless-sdks/blaxel-go/internal/apijson"
-	shimjson "github.com/stainless-sdks/blaxel-go/internal/encoding/json"
-	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
-	"github.com/stainless-sdks/blaxel-go/option"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
-	"github.com/stainless-sdks/blaxel-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
 // VolumeService contains methods and other services that help with interacting

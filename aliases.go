@@ -3,8 +3,8 @@
 package blaxel
 
 import (
-	"github.com/stainless-sdks/blaxel-go/internal/apierror"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/internal/apierror"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 )
 
 // aliased to make [param.APIUnion] private when embedding
