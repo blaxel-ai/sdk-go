@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 (2026-01-16)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/blaxel-ai/sdk-go/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **api:** manual updates ([eb7ca5d](https://github.com/blaxel-ai/sdk-go/commit/eb7ca5dace7e6af0f5a9858d2a3988fe41b68aa9))
+* **api:** manual updates ([b9cc972](https://github.com/blaxel-ai/sdk-go/commit/b9cc97207710a094783504cf25a0f99758e18596))
+* **api:** manual updates ([1034c4d](https://github.com/blaxel-ai/sdk-go/commit/1034c4d84dfceb75a47a57880ceff84129140efd))
+
 ## 0.2.0 (2026-01-16)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/blaxel-ai/sdk-go/compare/v0.1.0...v0.2.0)
