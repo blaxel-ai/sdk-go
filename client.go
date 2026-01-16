@@ -29,6 +29,7 @@ type Client struct {
 	PublicIPs       PublicIPService
 	VolumeTemplates VolumeTemplateService
 	Volumes         VolumeService
+	Templates       TemplateService
 	Workspaces      WorkspaceService
 	Sandboxes       SandboxService
 }
@@ -78,6 +79,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.PublicIPs = NewPublicIPService(opts...)
 	r.VolumeTemplates = NewVolumeTemplateService(opts...)
 	r.Volumes = NewVolumeService(opts...)
+	r.Templates = NewTemplateService(opts...)
 	r.Workspaces = NewWorkspaceService(opts...)
 	r.Sandboxes = NewSandboxService(opts...)
 

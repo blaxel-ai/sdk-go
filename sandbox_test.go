@@ -67,6 +67,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 				}},
 			},
 		},
+		CreateIfNotExist: blaxel.Bool(true),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
