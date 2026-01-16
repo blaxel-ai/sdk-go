@@ -26,7 +26,6 @@ import (
 // the [NewIntegrationConnectionService] method instead.
 type IntegrationConnectionService struct {
 	Options []option.RequestOption
-	Models  IntegrationConnectionModelService
 }
 
 // NewIntegrationConnectionService generates a new service that applies the given
@@ -35,7 +34,6 @@ type IntegrationConnectionService struct {
 func NewIntegrationConnectionService(opts ...option.RequestOption) (r IntegrationConnectionService) {
 	r = IntegrationConnectionService{}
 	r.Options = opts
-	r.Models = NewIntegrationConnectionModelService(opts...)
 	return
 }
 
@@ -95,19 +93,6 @@ func (r *IntegrationConnectionService) Delete(ctx context.Context, connectionNam
 	}
 	path := fmt.Sprintf("integrations/connections/%s", connectionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
-}
-
-// Returns a list of all endpoint configurations for a model.
-func (r *IntegrationConnectionService) ListEndpointConfigurations(ctx context.Context, connectionName string, opts ...option.RequestOption) (err error) {
-	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
-	if connectionName == "" {
-		err = errors.New("missing required connectionName parameter")
-		return
-	}
-	path := fmt.Sprintf("integrations/connections/%s/endpointConfigurations", connectionName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, nil, opts...)
 	return
 }
 

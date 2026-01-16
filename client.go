@@ -18,21 +18,13 @@ import (
 type Client struct {
 	Options         []option.RequestOption
 	Agents          AgentService
-	Configuration   ConfigurationService
-	Customdomains   CustomdomainService
 	Functions       FunctionService
 	Integrations    IntegrationService
 	Images          ImageService
 	Jobs            JobService
-	Locations       LocationService
-	Mcp             McpService
 	Models          ModelService
 	Policies        PolicyService
-	Profile         ProfileService
 	PublicIPs       PublicIPService
-	ServiceAccounts ServiceAccountService
-	Templates       TemplateService
-	Users           UserService
 	VolumeTemplates VolumeTemplateService
 	Volumes         VolumeService
 	Workspaces      WorkspaceService
@@ -69,21 +61,13 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r = Client{Options: opts}
 
 	r.Agents = NewAgentService(opts...)
-	r.Configuration = NewConfigurationService(opts...)
-	r.Customdomains = NewCustomdomainService(opts...)
 	r.Functions = NewFunctionService(opts...)
 	r.Integrations = NewIntegrationService(opts...)
 	r.Images = NewImageService(opts...)
 	r.Jobs = NewJobService(opts...)
-	r.Locations = NewLocationService(opts...)
-	r.Mcp = NewMcpService(opts...)
 	r.Models = NewModelService(opts...)
 	r.Policies = NewPolicyService(opts...)
-	r.Profile = NewProfileService(opts...)
 	r.PublicIPs = NewPublicIPService(opts...)
-	r.ServiceAccounts = NewServiceAccountService(opts...)
-	r.Templates = NewTemplateService(opts...)
-	r.Users = NewUserService(opts...)
 	r.VolumeTemplates = NewVolumeTemplateService(opts...)
 	r.Volumes = NewVolumeService(opts...)
 	r.Workspaces = NewWorkspaceService(opts...)
