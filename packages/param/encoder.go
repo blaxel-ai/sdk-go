@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	shimjson "github.com/stainless-sdks/blaxel-go/internal/encoding/json"
+	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 
 	"github.com/tidwall/sjson"
 )

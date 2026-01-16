@@ -1,4 +1,4 @@
-module github.com/stainless-sdks/blaxel-go
+module github.com/blaxel-ai/sdk-go
 
 go 1.22
 

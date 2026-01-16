@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/stainless-sdks/blaxel-go/internal/apijson"
-	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
-	"github.com/stainless-sdks/blaxel-go/option"
-	"github.com/stainless-sdks/blaxel-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
 // TemplateService contains methods and other services that help with interacting

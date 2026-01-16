@@ -3,8 +3,8 @@ package respjson_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stainless-sdks/blaxel-go/internal/apijson"
-	rj "github.com/stainless-sdks/blaxel-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	rj "github.com/blaxel-ai/sdk-go/packages/respjson"
 	"reflect"
 	"testing"
 )

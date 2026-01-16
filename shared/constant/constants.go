@@ -3,7 +3,7 @@
 package constant
 
 import (
-	shimjson "github.com/stainless-sdks/blaxel-go/internal/encoding/json"
+	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 )
 
 type Constant[T any] interface {
