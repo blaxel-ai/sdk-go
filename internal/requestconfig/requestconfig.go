@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stainless-sdks/blaxel-go/internal"
-	"github.com/stainless-sdks/blaxel-go/internal/apierror"
-	"github.com/stainless-sdks/blaxel-go/internal/apiform"
-	"github.com/stainless-sdks/blaxel-go/internal/apiquery"
+	"github.com/blaxel-ai/sdk-go/internal"
+	"github.com/blaxel-ai/sdk-go/internal/apierror"
+	"github.com/blaxel-ai/sdk-go/internal/apiform"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 )
 
 func getDefaultHeaders() map[string]string {

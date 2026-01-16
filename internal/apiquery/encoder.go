@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 )
 
 var encoders sync.Map // map[reflect.Type]encoderFunc

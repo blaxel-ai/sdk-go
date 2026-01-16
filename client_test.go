@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stainless-sdks/blaxel-go"
-	"github.com/stainless-sdks/blaxel-go/internal"
-	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go/internal"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 type closureTransport struct {

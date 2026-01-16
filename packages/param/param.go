@@ -2,7 +2,7 @@ package param
 
 import (
 	"encoding/json"
-	"github.com/stainless-sdks/blaxel-go/internal/encoding/json/sentinel"
+	"github.com/blaxel-ai/sdk-go/internal/encoding/json/sentinel"
 	"reflect"
 )
 

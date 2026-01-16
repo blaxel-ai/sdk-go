@@ -10,8 +10,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
-	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 // Client creates a struct with services and top level methods that help with

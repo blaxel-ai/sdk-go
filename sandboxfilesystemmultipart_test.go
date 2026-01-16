@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stainless-sdks/blaxel-go"
-	"github.com/stainless-sdks/blaxel-go/internal/testutil"
-	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go/internal/testutil"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 func TestSandboxFilesystemMultipartList(t *testing.T) {
