@@ -191,10 +191,6 @@ type VolumeParam struct {
 	// Immutable volume configuration set at creation time (size and region cannot be
 	// changed after creation)
 	Spec VolumeSpecParam `json:"spec,omitzero,required"`
-	// Volume status computed from events
-	Status param.Opt[string] `json:"status,omitzero"`
-	// Timestamp when the volume was marked for termination
-	TerminatedAt param.Opt[string] `json:"terminatedAt,omitzero"`
 	paramObj
 }
 

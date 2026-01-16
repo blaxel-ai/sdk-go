@@ -50,10 +50,10 @@ func NewSandboxService(opts ...option.RequestOption) (r SandboxService) {
 // Creates a new sandbox VM for secure AI code execution. Sandboxes automatically
 // scale to zero when idle and resume instantly, preserving memory state including
 // running processes and filesystem.
-func (r *SandboxService) New(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (res *Sandbox, err error) {
+func (r *SandboxService) New(ctx context.Context, params SandboxNewParams, opts ...option.RequestOption) (res *Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return
 }
 
@@ -686,6 +686,9 @@ type SandboxNewParams struct {
 	// standby in under 25ms and automatically scale to zero after inactivity,
 	// preserving memory state including running processes and filesystem.
 	Sandbox SandboxParam
+	// If true, return existing sandbox instead of 409 error when sandbox exists and is
+	// not in FAILED/TERMINATED/TERMINATING state
+	CreateIfNotExist param.Opt[bool] `query:"createIfNotExist,omitzero" json:"-"`
 	paramObj
 }
 
@@ -694,6 +697,14 @@ func (r SandboxNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *SandboxNewParams) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &r.Sandbox)
+}
+
+// URLQuery serializes [SandboxNewParams]'s query parameters as `url.Values`.
+func (r SandboxNewParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type SandboxGetParams struct {

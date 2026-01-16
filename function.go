@@ -199,6 +199,10 @@ type FunctionRuntime struct {
 	// Minimum instances to keep warm. Set to 1+ to eliminate cold starts, 0 for
 	// scale-to-zero.
 	MinScale int64 `json:"minScale"`
+	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+	//
+	// Any of "websocket", "http-stream".
+	Transport FunctionRuntimeTransport `json:"transport"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Envs        respjson.Field
@@ -207,6 +211,7 @@ type FunctionRuntime struct {
 		MaxScale    respjson.Field
 		Memory      respjson.Field
 		MinScale    respjson.Field
+		Transport   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -260,6 +265,14 @@ const (
 	FunctionRuntimeGenerationMk3 FunctionRuntimeGeneration = "mk3"
 )
 
+// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+type FunctionRuntimeTransport string
+
+const (
+	FunctionRuntimeTransportWebsocket  FunctionRuntimeTransport = "websocket"
+	FunctionRuntimeTransportHTTPStream FunctionRuntimeTransport = "http-stream"
+)
+
 // Runtime configuration defining how the MCP server function is deployed and
 // scaled
 type FunctionRuntimeParam struct {
@@ -282,6 +295,10 @@ type FunctionRuntimeParam struct {
 	//
 	// Any of "mk2", "mk3".
 	Generation FunctionRuntimeGeneration `json:"generation,omitzero"`
+	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+	//
+	// Any of "websocket", "http-stream".
+	Transport FunctionRuntimeTransport `json:"transport,omitzero"`
 	paramObj
 }
 
@@ -324,10 +341,6 @@ type FunctionSpec struct {
 	// Runtime configuration defining how the MCP server function is deployed and
 	// scaled
 	Runtime FunctionRuntime `json:"runtime"`
-	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
-	//
-	// Any of "websocket", "http-stream".
-	Transport FunctionSpecTransport `json:"transport"`
 	// Triggers to use your agent
 	Triggers []Trigger `json:"triggers"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -337,7 +350,6 @@ type FunctionSpec struct {
 		Policies               respjson.Field
 		Revision               respjson.Field
 		Runtime                respjson.Field
-		Transport              respjson.Field
 		Triggers               respjson.Field
 		ExtraFields            map[string]respjson.Field
 		raw                    string
@@ -359,14 +371,6 @@ func (r FunctionSpec) ToParam() FunctionSpecParam {
 	return param.Override[FunctionSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Transport compatibility for the MCP, can be "websocket" or "http-stream"
-type FunctionSpecTransport string
-
-const (
-	FunctionSpecTransportWebsocket  FunctionSpecTransport = "websocket"
-	FunctionSpecTransportHTTPStream FunctionSpecTransport = "http-stream"
-)
-
 // Configuration for an MCP server function including runtime settings, transport
 // protocol, and connected integrations
 type FunctionSpecParam struct {
@@ -379,10 +383,6 @@ type FunctionSpecParam struct {
 	// Runtime configuration defining how the MCP server function is deployed and
 	// scaled
 	Runtime FunctionRuntimeParam `json:"runtime,omitzero"`
-	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
-	//
-	// Any of "websocket", "http-stream".
-	Transport FunctionSpecTransport `json:"transport,omitzero"`
 	// Triggers to use your agent
 	Triggers []TriggerParam `json:"triggers,omitzero"`
 	paramObj
