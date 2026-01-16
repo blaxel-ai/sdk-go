@@ -34,39 +34,6 @@ Methods:
 - <code title="delete /agents/{agentName}">client.Agents.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#AgentService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, agentName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Agent">Agent</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /agents/{agentName}/revisions">client.Agents.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#AgentService.ListRevisions">ListRevisions</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, agentName <a href="https://pkg.go.dev/builtin#string">string</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#RevisionMetadata">RevisionMetadata</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
-# Configuration
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ConfigurationListResponse">ConfigurationListResponse</a>
-
-Methods:
-
-- <code title="get /configuration">client.Configuration.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ConfigurationService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ConfigurationListResponse">ConfigurationListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-# Customdomains
-
-Params Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomainParam">CustomDomainParam</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomainMetadataParam">CustomDomainMetadataParam</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomainSpecParam">CustomDomainSpecParam</a>
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomainMetadata">CustomDomainMetadata</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomainSpec">CustomDomainSpec</a>
-
-Methods:
-
-- <code title="post /customdomains">client.Customdomains.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainNewParams">CustomdomainNewParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /customdomains/{domainName}">client.Customdomains.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, domainName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="put /customdomains/{domainName}">client.Customdomains.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, domainName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainUpdateParams">CustomdomainUpdateParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /customdomains">client.Customdomains.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /customdomains/{domainName}">client.Customdomains.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, domainName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /customdomains/{domainName}/verify">client.Customdomains.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomdomainService.Verify">Verify</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, domainName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#CustomDomain">CustomDomain</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # Functions
 
 Params Types:
@@ -119,14 +86,6 @@ Methods:
 - <code title="put /integrations/connections/{connectionName}">client.Integrations.Connections.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, connectionName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionUpdateParams">IntegrationConnectionUpdateParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnection">IntegrationConnection</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /integrations/connections">client.Integrations.Connections.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnection">IntegrationConnection</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /integrations/connections/{connectionName}">client.Integrations.Connections.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, connectionName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnection">IntegrationConnection</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /integrations/connections/{connectionName}/endpointConfigurations">client.Integrations.Connections.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionService.ListEndpointConfigurations">ListEndpointConfigurations</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, connectionName <a href="https://pkg.go.dev/builtin#string">string</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
-
-### Models
-
-Methods:
-
-- <code title="get /integrations/connections/{connectionName}/models/{modelId}">client.Integrations.Connections.Models.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionModelService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, modelID <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionModelGetParams">IntegrationConnectionModelGetParams</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
-- <code title="get /integrations/connections/{connectionName}/models">client.Integrations.Connections.Models.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#IntegrationConnectionModelService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, connectionName <a href="https://pkg.go.dev/builtin#string">string</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
 
 # Images
 
@@ -192,31 +151,6 @@ Methods:
 - <code title="get /jobs/{jobId}/executions">client.Jobs.Executions.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#JobExecutionService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, jobID <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#JobExecutionListParams">JobExecutionListParams</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#JobExecution">JobExecution</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /jobs/{jobId}/executions/{executionId}">client.Jobs.Executions.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#JobExecutionService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, executionID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#JobExecutionDeleteParams">JobExecutionDeleteParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#JobExecution">JobExecution</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
-# Locations
-
-Params Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FlavorParam">FlavorParam</a>
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Flavor">Flavor</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#LocationListResponse">LocationListResponse</a>
-
-Methods:
-
-- <code title="get /locations">client.Locations.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#LocationService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#LocationListResponse">LocationListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-# Mcp
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#McpGetHubResponse">McpGetHubResponse</a>
-
-Methods:
-
-- <code title="get /mcp/hub">client.Mcp.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#McpService.GetHub">GetHub</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#McpGetHubResponse">McpGetHubResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # Models
 
 Methods:
@@ -252,16 +186,6 @@ Methods:
 - <code title="get /policies">client.Policies.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PolicyService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Policy">Policy</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /policies/{policyName}">client.Policies.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PolicyService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, policyName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Policy">Policy</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
-# Profile
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ProfileListInvitationsResponse">ProfileListInvitationsResponse</a>
-
-Methods:
-
-- <code title="get /profile/invitations">client.Profile.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ProfileService.ListInvitations">ListInvitations</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ProfileListInvitationsResponse">ProfileListInvitationsResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # PublicIPs
 
 Response Types:
@@ -271,59 +195,6 @@ Response Types:
 Methods:
 
 - <code title="get /publicIps">client.PublicIPs.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PublicIPService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PublicIPListParams">PublicIPListParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PublicIPListResponse">PublicIPListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-# ServiceAccounts
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountNewResponse">ServiceAccountNewResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountUpdateResponse">ServiceAccountUpdateResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountListResponse">ServiceAccountListResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountDeleteResponse">ServiceAccountDeleteResponse</a>
-
-Methods:
-
-- <code title="post /service_accounts">client.ServiceAccounts.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountNewParams">ServiceAccountNewParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountNewResponse">ServiceAccountNewResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="put /service_accounts/{clientId}">client.ServiceAccounts.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, clientID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountUpdateParams">ServiceAccountUpdateParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountUpdateResponse">ServiceAccountUpdateResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /service_accounts">client.ServiceAccounts.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountListResponse">ServiceAccountListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /service_accounts/{clientId}">client.ServiceAccounts.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, clientID <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountDeleteResponse">ServiceAccountDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-## APIKeys
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#APIKey">APIKey</a>
-
-Methods:
-
-- <code title="post /service_accounts/{clientId}/api_keys">client.ServiceAccounts.APIKeys.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountAPIKeyService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, clientID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountAPIKeyNewParams">ServiceAccountAPIKeyNewParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#APIKey">APIKey</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /service_accounts/{clientId}/api_keys">client.ServiceAccounts.APIKeys.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountAPIKeyService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, clientID <a href="https://pkg.go.dev/builtin#string">string</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#APIKey">APIKey</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /service_accounts/{clientId}/api_keys/{apiKeyId}">client.ServiceAccounts.APIKeys.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountAPIKeyService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, apiKeyID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ServiceAccountAPIKeyDeleteParams">ServiceAccountAPIKeyDeleteParams</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
-
-# Templates
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Template">Template</a>
-
-Methods:
-
-- <code title="get /templates/{templateName}">client.Templates.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#TemplateService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, templateName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Template">Template</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /templates">client.Templates.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#TemplateService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Template">Template</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-# Users
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingInvitation">PendingInvitation</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceUser">WorkspaceUser</a>
-
-Methods:
-
-- <code title="get /users">client.Users.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UserService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceUser">WorkspaceUser</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /users">client.Users.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UserService.Invite">Invite</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UserInviteParams">UserInviteParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingInvitation">PendingInvitation</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /users/{subOrEmail}">client.Users.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UserService.Remove">Remove</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, subOrEmail <a href="https://pkg.go.dev/builtin#string">string</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
-- <code title="put /users/{subOrEmail}">client.Users.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UserService.UpdateRole">UpdateRole</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, subOrEmail <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UserUpdateRoleParams">UserUpdateRoleParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceUser">WorkspaceUser</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # VolumeTemplates
 
@@ -370,28 +241,15 @@ Methods:
 
 # Workspaces
 
-Params Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceParam">WorkspaceParam</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceRuntimeParam">WorkspaceRuntimeParam</a>
-
 Response Types:
 
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceRuntime">WorkspaceRuntime</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceAcceptInvitationResponse">WorkspaceAcceptInvitationResponse</a>
 
 Methods:
 
-- <code title="post /workspaces">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceNewParams">WorkspaceNewParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /workspaces/{workspaceName}">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="put /workspaces/{workspaceName}">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceUpdateParams">WorkspaceUpdateParams</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /workspaces">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) ([]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /workspaces/{workspaceName}">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /workspaces/{workspaceName}/join">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.AcceptInvitation">AcceptInvitation</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceAcceptInvitationResponse">WorkspaceAcceptInvitationResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /workspaces/availability">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.CheckAvailability">CheckAvailability</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceCheckAvailabilityParams">WorkspaceCheckAvailabilityParams</a>) (<a href="https://pkg.go.dev/builtin#bool">bool</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /workspaces/{workspaceName}/decline">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.DeclineInvitation">DeclineInvitation</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingInvitation">PendingInvitation</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /workspaces/{workspaceName}/leave">client.Workspaces.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#WorkspaceService.Leave">Leave</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, workspaceName <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Workspace">Workspace</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # Sandboxes
 

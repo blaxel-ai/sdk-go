@@ -963,9 +963,9 @@ type ModelSpec struct {
 	// requests
 	Enabled bool `json:"enabled"`
 	// Types of hardware available for deployments
-	Flavors                []Flavor `json:"flavors"`
-	IntegrationConnections []string `json:"integrationConnections"`
-	Policies               []string `json:"policies"`
+	Flavors                []ModelSpecFlavor `json:"flavors"`
+	IntegrationConnections []string          `json:"integrationConnections"`
+	Policies               []string          `json:"policies"`
 	// Configuration identifying which external LLM provider and model this gateway
 	// endpoint proxies to
 	Runtime ModelRuntime `json:"runtime"`
@@ -999,6 +999,29 @@ func (r ModelSpec) ToParam() ModelSpecParam {
 	return param.Override[ModelSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// A type of hardware available for deployments
+type ModelSpecFlavor struct {
+	// Flavor name (e.g. t4)
+	Name string `json:"name"`
+	// Flavor type (e.g. cpu, gpu)
+	//
+	// Any of "cpu", "gpu".
+	Type string `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name        respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ModelSpecFlavor) RawJSON() string { return r.JSON.raw }
+func (r *ModelSpecFlavor) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Configuration for a model gateway endpoint including provider type, credentials,
 // and access policies
 type ModelSpecParam struct {
@@ -1008,9 +1031,9 @@ type ModelSpecParam struct {
 	// When true, uses sandbox/test credentials from the integration connection
 	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
 	// Types of hardware available for deployments
-	Flavors                []FlavorParam `json:"flavors,omitzero"`
-	IntegrationConnections []string      `json:"integrationConnections,omitzero"`
-	Policies               []string      `json:"policies,omitzero"`
+	Flavors                []ModelSpecFlavorParam `json:"flavors,omitzero"`
+	IntegrationConnections []string               `json:"integrationConnections,omitzero"`
+	Policies               []string               `json:"policies,omitzero"`
 	// Configuration identifying which external LLM provider and model this gateway
 	// endpoint proxies to
 	Runtime ModelRuntimeParam `json:"runtime,omitzero"`
@@ -1023,6 +1046,31 @@ func (r ModelSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *ModelSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// A type of hardware available for deployments
+type ModelSpecFlavorParam struct {
+	// Flavor name (e.g. t4)
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Flavor type (e.g. cpu, gpu)
+	//
+	// Any of "cpu", "gpu".
+	Type string `json:"type,omitzero"`
+	paramObj
+}
+
+func (r ModelSpecFlavorParam) MarshalJSON() (data []byte, err error) {
+	type shadow ModelSpecFlavorParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ModelSpecFlavorParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ModelSpecFlavorParam](
+		"type", "cpu", "gpu",
+	)
 }
 
 type JobNewParams struct {

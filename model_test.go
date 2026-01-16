@@ -36,9 +36,9 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 			},
 			Spec: blaxel.ModelSpecParam{
 				Enabled: blaxel.Bool(true),
-				Flavors: []blaxel.FlavorParam{{
+				Flavors: []blaxel.ModelSpecFlavorParam{{
 					Name: blaxel.String("t4"),
-					Type: blaxel.FlavorTypeCPU,
+					Type: "cpu",
 				}},
 				IntegrationConnections: []string{"string"},
 				Policies:               []string{"string"},
@@ -109,9 +109,9 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 				},
 				Spec: blaxel.ModelSpecParam{
 					Enabled: blaxel.Bool(true),
-					Flavors: []blaxel.FlavorParam{{
+					Flavors: []blaxel.ModelSpecFlavorParam{{
 						Name: blaxel.String("t4"),
-						Type: blaxel.FlavorTypeCPU,
+						Type: "cpu",
 					}},
 					IntegrationConnections: []string{"string"},
 					Policies:               []string{"string"},
