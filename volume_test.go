@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blaxel-ai/sdk-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
 )
@@ -82,8 +82,7 @@ func TestVolumeUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Volumes.Update(
 		context.TODO(),
