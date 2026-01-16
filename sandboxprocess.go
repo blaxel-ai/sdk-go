@@ -79,18 +79,6 @@ func (r *SandboxProcessService) Kill(ctx context.Context, identifier string, opt
 	return
 }
 
-// Get the stdout and stderr output of a process
-func (r *SandboxProcessService) GetLogs(ctx context.Context, identifier string, opts ...option.RequestOption) (res *ProcessLogs, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if identifier == "" {
-		err = errors.New("missing required identifier parameter")
-		return
-	}
-	path := fmt.Sprintf("process/%s/logs", identifier)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
-}
-
 // Gracefully stop a running process
 func (r *SandboxProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (res *SandboxProcessStopResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -101,26 +89,6 @@ func (r *SandboxProcessService) Stop(ctx context.Context, identifier string, opt
 	path := fmt.Sprintf("process/%s", identifier)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return
-}
-
-type ProcessLogs struct {
-	Logs   string `json:"logs,required"`
-	Stderr string `json:"stderr,required"`
-	Stdout string `json:"stdout,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Logs        respjson.Field
-		Stderr      respjson.Field
-		Stdout      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ProcessLogs) RawJSON() string { return r.JSON.raw }
-func (r *ProcessLogs) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
 }
 
 // The property Command is required.

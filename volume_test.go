@@ -40,8 +40,6 @@ func TestVolumeNewWithOptionalParams(t *testing.T) {
 				Size:     blaxel.Int(1024),
 				Template: blaxel.String("mytemplate:latest"),
 			},
-			Status:       blaxel.String("status"),
-			TerminatedAt: blaxel.String("terminatedAt"),
 		},
 	})
 	if err != nil {

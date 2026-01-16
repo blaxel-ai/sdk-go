@@ -57,8 +57,8 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					MaxScale:   blaxel.Int(10),
 					Memory:     blaxel.Int(2048),
 					MinScale:   blaxel.Int(0),
+					Transport:  blaxel.FunctionRuntimeTransportHTTPStream,
 				},
-				Transport: blaxel.FunctionSpecTransportHTTPStream,
 				Triggers: []blaxel.TriggerParam{{
 					ID: blaxel.String("trigger-1"),
 					Configuration: blaxel.TriggerConfigurationParam{
@@ -161,8 +161,8 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						MaxScale:   blaxel.Int(10),
 						Memory:     blaxel.Int(2048),
 						MinScale:   blaxel.Int(0),
+						Transport:  blaxel.FunctionRuntimeTransportHTTPStream,
 					},
-					Transport: blaxel.FunctionSpecTransportHTTPStream,
 					Triggers: []blaxel.TriggerParam{{
 						ID: blaxel.String("trigger-1"),
 						Configuration: blaxel.TriggerConfigurationParam{
