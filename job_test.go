@@ -23,8 +23,7 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.New(context.TODO(), blaxel.JobNewParams{
 		Job: blaxel.JobParam{
@@ -100,8 +99,7 @@ func TestJobGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.Get(
 		context.TODO(),
@@ -129,8 +127,7 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.Update(
 		context.TODO(),
@@ -210,8 +207,7 @@ func TestJobList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.List(context.TODO())
 	if err != nil {
@@ -233,8 +229,7 @@ func TestJobDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.Delete(context.TODO(), "jobId")
 	if err != nil {
@@ -256,8 +251,7 @@ func TestJobListRevisions(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.ListRevisions(context.TODO(), "jobId")
 	if err != nil {
