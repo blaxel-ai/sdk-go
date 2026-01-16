@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	blaxel "github.com/stainless-sdks/blaxel-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 )
 
 func TestSandboxProcess(t *testing.T) {

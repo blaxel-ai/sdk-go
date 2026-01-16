@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 // ResourceType represents a resource type with singular and plural forms

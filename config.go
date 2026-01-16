@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"gopkg.in/yaml.v3"
 )
 

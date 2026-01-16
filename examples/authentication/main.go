@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/stainless-sdks/blaxel-go"
-	"github.com/stainless-sdks/blaxel-go/option"
+	blaxel "github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 func main() {
