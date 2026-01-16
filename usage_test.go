@@ -22,7 +22,7 @@ func TestUsage(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 
 	agents, err := client.Agents.List(context.TODO())

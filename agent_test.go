@@ -24,7 +24,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.New(context.TODO(), blaxel.AgentNewParams{
 		Agent: blaxel.AgentParam{
@@ -97,7 +97,7 @@ func TestAgentGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.Get(
 		context.TODO(),
@@ -125,7 +125,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.Update(
 		context.TODO(),
@@ -202,7 +202,7 @@ func TestAgentList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.List(context.TODO())
 	if err != nil {
@@ -224,7 +224,7 @@ func TestAgentDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.Delete(context.TODO(), "agentName")
 	if err != nil {
@@ -246,7 +246,7 @@ func TestAgentListRevisions(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Agents.ListRevisions(context.TODO(), "agentName")
 	if err != nil {
