@@ -24,9 +24,16 @@ func TestUsage(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	agents, err := client.Agents.List(context.TODO())
+	sandbox, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
+		Sandbox: blaxel.SandboxParam{
+			Metadata: blaxel.MetadataParam{
+				Name: "my-resource",
+			},
+			Spec: blaxel.SandboxSpecParam{},
+		},
+	})
 	if err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())
 	}
-	t.Logf("%+v\n", agents)
+	t.Logf("%+v\n", sandbox.Metadata)
 }
