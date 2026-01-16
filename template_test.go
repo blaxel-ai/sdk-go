@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blaxel-ai/sdk-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
 )
@@ -23,8 +23,7 @@ func TestTemplateGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Templates.Get(context.TODO(), "templateName")
 	if err != nil {
@@ -46,8 +45,7 @@ func TestTemplateList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Templates.List(context.TODO())
 	if err != nil {
