@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blaxel-ai/sdk-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
 )
@@ -158,28 +158,6 @@ func TestIntegrationConnectionDelete(t *testing.T) {
 		option.WithAPIKey("My API Key", "Authorization"),
 	)
 	_, err := client.Integrations.Connections.Delete(context.TODO(), "connectionName")
-	if err != nil {
-		var apierr *blaxel.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestIntegrationConnectionListEndpointConfigurations(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := blaxel.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key", "Authorization"),
-	)
-	err := client.Integrations.Connections.ListEndpointConfigurations(context.TODO(), "connectionName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {

@@ -35,9 +35,9 @@ func TestPolicyNew(t *testing.T) {
 				},
 			},
 			Spec: blaxel.PolicySpecParam{
-				Flavors: []blaxel.FlavorParam{{
+				Flavors: []blaxel.PolicySpecFlavorParam{{
 					Name: blaxel.String("t4"),
-					Type: blaxel.FlavorTypeCPU,
+					Type: "cpu",
 				}},
 				Locations: []blaxel.PolicyLocationParam{{
 					Name: blaxel.String("EU"),
@@ -113,9 +113,9 @@ func TestPolicyUpdate(t *testing.T) {
 					},
 				},
 				Spec: blaxel.PolicySpecParam{
-					Flavors: []blaxel.FlavorParam{{
+					Flavors: []blaxel.PolicySpecFlavorParam{{
 						Name: blaxel.String("t4"),
-						Type: blaxel.FlavorTypeCPU,
+						Type: "cpu",
 					}},
 					Locations: []blaxel.PolicyLocationParam{{
 						Name: blaxel.String("EU"),
