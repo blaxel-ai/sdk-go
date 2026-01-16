@@ -7,7 +7,7 @@ package apijson
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"reflect"
 	"strconv"
 	"sync"

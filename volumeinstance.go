@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/stainless-sdks/blaxel-go/option"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 // VolumeCreateConfiguration contains options for creating a volume

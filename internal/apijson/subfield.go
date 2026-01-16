@@ -1,7 +1,7 @@
 package apijson
 
 import (
-	"github.com/stainless-sdks/blaxel-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/packages/respjson"
 	"reflect"
 )
 

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	blaxel "github.com/stainless-sdks/blaxel-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 )
 
 func TestVolumes(t *testing.T) {

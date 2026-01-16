@@ -1,7 +1,7 @@
 package apiquery
 
 import (
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"net/url"
 	"testing"
 	"time"

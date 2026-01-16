@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/stainless-sdks/blaxel-go/internal/apijson"
-	"github.com/stainless-sdks/blaxel-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
 // Error represents an error that originates from the API, i.e. when a request is

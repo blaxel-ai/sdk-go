@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/stainless-sdks/blaxel-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 )
 
 func main() {

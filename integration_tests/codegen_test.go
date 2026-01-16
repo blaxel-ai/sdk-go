@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	blaxel "github.com/stainless-sdks/blaxel-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 )
 
 func TestSandboxCodegen(t *testing.T) {

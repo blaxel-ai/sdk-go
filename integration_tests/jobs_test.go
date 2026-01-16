@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	blaxel "github.com/stainless-sdks/blaxel-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 )
 
 // TEST_JOB_NAME is the name of an existing job in the workspace

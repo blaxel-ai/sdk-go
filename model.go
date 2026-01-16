@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"slices"
 
-	shimjson "github.com/stainless-sdks/blaxel-go/internal/encoding/json"
-	"github.com/stainless-sdks/blaxel-go/internal/requestconfig"
-	"github.com/stainless-sdks/blaxel-go/option"
+	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 // ModelService contains methods and other services that help with interacting with

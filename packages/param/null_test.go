@@ -2,7 +2,7 @@ package param_test
 
 import (
 	"encoding/json"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"testing"
 )
 

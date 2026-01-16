@@ -3,8 +3,8 @@ package apijson_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stainless-sdks/blaxel-go/internal/apijson"
-	"github.com/stainless-sdks/blaxel-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"reflect"
 	"testing"
 )
