@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.1 (2026-01-17)
+
+Full Changelog: [v0.5.0...v0.5.1](https://github.com/blaxel-ai/sdk-go/compare/v0.5.0...v0.5.1)
+
+### Bug Fixes
+
+* **docs:** add missing pointer prefix to api.md return types ([ebf3d61](https://github.com/blaxel-ai/sdk-go/commit/ebf3d619ec5ab5437a0fd73d3e4f4c8d4010cf05))
+
+
+### Chores
+
+* **internal:** update `actions/checkout` version ([84fd614](https://github.com/blaxel-ai/sdk-go/commit/84fd61415f9c1c32b71beb3fe807a037ebbf1923))
+
 ## 0.5.0 (2026-01-16)
 
 Full Changelog: [v0.4.0...v0.5.0](https://github.com/blaxel-ai/sdk-go/compare/v0.4.0...v0.5.0)
