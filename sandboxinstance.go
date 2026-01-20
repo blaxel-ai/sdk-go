@@ -465,6 +465,152 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 	}
 }
 
+// ExecWithStreaming executes a command and streams logs in real-time, returning the final result.
+// This combines process execution with log streaming in a single request using NDJSON streaming.
+// The server must support the text/event-stream accept header for this to work with streaming;
+// otherwise it falls back to regular execution.
+func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, body ProcessRequestParam, opts ProcessStreamOptions) (*ProcessResponse, error) {
+	// Serialize the request body
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	// Create config and prepare request
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodPost, "process", bytes.NewReader(bodyBytes), nil, r.options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request config: %w", err)
+	}
+
+	req, client, err := cfg.PrepareRequest()
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare request: %w", err)
+	}
+
+	// Set headers for streaming
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to execute process: %s", string(bodyBytes))
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	isStreaming := strings.Contains(contentType, "application/x-ndjson")
+
+	// If server doesn't support streaming, fall back to regular JSON response
+	if !isStreaming {
+		var result ProcessResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, fmt.Errorf("failed to decode response: %w", err)
+		}
+
+		// Emit any captured logs through callbacks
+		if result.Stdout != "" && opts.OnStdout != nil {
+			for _, line := range strings.Split(result.Stdout, "\n") {
+				if line != "" {
+					opts.OnStdout(line)
+					if opts.OnLog != nil {
+						opts.OnLog(line)
+					}
+				}
+			}
+		}
+		if result.Stderr != "" && opts.OnStderr != nil {
+			for _, line := range strings.Split(result.Stderr, "\n") {
+				if line != "" {
+					opts.OnStderr(line)
+					if opts.OnLog != nil {
+						opts.OnLog(line)
+					}
+				}
+			}
+		}
+		if result.Logs != "" && opts.OnLog != nil {
+			for _, line := range strings.Split(result.Logs, "\n") {
+				if line != "" {
+					opts.OnLog(line)
+				}
+			}
+		}
+
+		return &result, nil
+	}
+
+	// Streaming response handling
+	scanner := bufio.NewScanner(resp.Body)
+	var result *ProcessResponse
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+
+		// Parse NDJSON line
+		var streamLine struct {
+			Type string `json:"type"`
+			Data string `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(line), &streamLine); err != nil {
+			// Try to parse as raw result if it's not a stream line
+			var rawResult ProcessResponse
+			if json.Unmarshal([]byte(line), &rawResult) == nil && rawResult.Name != "" {
+				result = &rawResult
+				continue
+			}
+			continue
+		}
+
+		switch streamLine.Type {
+		case "stdout":
+			if streamLine.Data != "" {
+				if opts.OnStdout != nil {
+					opts.OnStdout(streamLine.Data)
+				}
+				if opts.OnLog != nil {
+					opts.OnLog(streamLine.Data)
+				}
+			}
+		case "stderr":
+			if streamLine.Data != "" {
+				if opts.OnStderr != nil {
+					opts.OnStderr(streamLine.Data)
+				}
+				if opts.OnLog != nil {
+					opts.OnLog(streamLine.Data)
+				}
+			}
+		case "result":
+			var processResult ProcessResponse
+			if err := json.Unmarshal([]byte(streamLine.Data), &processResult); err != nil {
+				if opts.OnError != nil {
+					opts.OnError(fmt.Errorf("failed to parse result: %w", err))
+				}
+				continue
+			}
+			result = &processResult
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading stream: %w", err)
+	}
+
+	if result == nil {
+		return nil, fmt.Errorf("no result received from streaming response")
+	}
+
+	return result, nil
+}
+
 // ============================================================================
 // Filesystem Service
 // ============================================================================
