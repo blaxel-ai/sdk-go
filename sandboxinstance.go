@@ -164,9 +164,9 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 	return newSandboxInstance(sandbox, r, opts), nil
 }
 
-// CreateInstanceIfNotExists creates a new sandbox if it doesn't exist, or returns the existing one.
+// NewInstanceIfNotExists creates a new sandbox if it doesn't exist, or returns the existing one.
 // If the existing sandbox is TERMINATED, it creates a new one.
-func (r *SandboxService) CreateInstanceIfNotExists(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
+func (r *SandboxService) NewInstanceIfNotExists(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	instance, err := r.NewInstance(ctx, body, opts...)
 	if err != nil {
 		// Check if error indicates sandbox already exists (409 conflict)
@@ -189,6 +189,54 @@ func (r *SandboxService) CreateInstanceIfNotExists(ctx context.Context, body San
 		return nil, err
 	}
 	return instance, nil
+}
+
+// UpdateInstanceTTL updates only the TTL of a sandbox without recreating it
+func (r *SandboxService) UpdateInstanceTTL(ctx context.Context, sandboxName string, ttl string, opts ...option.RequestOption) (*SandboxInstance, error) {
+	// Get current sandbox first
+	instance, err := r.GetInstance(ctx, sandboxName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the raw JSON into SandboxParam so fields are populated and modifiable
+	var sandboxParam SandboxParam
+	if err := json.Unmarshal([]byte(instance.Sandbox.RawJSON()), &sandboxParam); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal sandbox: %w", err)
+	}
+
+	// Update TTL
+	sandboxParam.Spec.Runtime.Ttl = String(ttl)
+
+	updateParams := SandboxUpdateParams{
+		Sandbox: sandboxParam,
+	}
+
+	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
+}
+
+// UpdateInstanceLifecycle updates only the lifecycle configuration of a sandbox without recreating it
+func (r *SandboxService) UpdateInstanceLifecycle(ctx context.Context, sandboxName string, lifecycle SandboxLifecycleParam, opts ...option.RequestOption) (*SandboxInstance, error) {
+	// Get current sandbox first
+	instance, err := r.GetInstance(ctx, sandboxName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the raw JSON into SandboxParam so fields are populated and modifiable
+	var sandboxParam SandboxParam
+	if err := json.Unmarshal([]byte(instance.Sandbox.RawJSON()), &sandboxParam); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal sandbox: %w", err)
+	}
+
+	// Update lifecycle
+	sandboxParam.Spec.Lifecycle = lifecycle
+
+	updateParams := SandboxUpdateParams{
+		Sandbox: sandboxParam,
+	}
+
+	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
 }
 
 // UpdateInstanceMetadata updates only the metadata of a sandbox
