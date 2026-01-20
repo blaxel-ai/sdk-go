@@ -250,7 +250,7 @@ func TestSandboxCRUD(t *testing.T) {
 	t.Run("CreateIfNotExists", func(t *testing.T) {
 		t.Run("creates a new sandbox if it does not exist", func(t *testing.T) {
 			name := uniqueName("cine")
-			sandbox, err := client.Sandboxes.CreateInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
+			sandbox, err := client.Sandboxes.NewInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
 				Sandbox: blaxel.SandboxParam{
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
@@ -285,7 +285,7 @@ func TestSandboxCRUD(t *testing.T) {
 			trackSandbox(name)
 
 			// createIfNotExists should return the same sandbox
-			second, err := client.Sandboxes.CreateInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
+			second, err := client.Sandboxes.NewInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
 				Sandbox: blaxel.SandboxParam{
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
@@ -312,7 +312,7 @@ func TestSandboxCRUD(t *testing.T) {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					sandbox, err := client.Sandboxes.CreateInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
+					sandbox, err := client.Sandboxes.NewInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
 						Sandbox: blaxel.SandboxParam{
 							Metadata: blaxel.MetadataParam{
 								Name:   name,
