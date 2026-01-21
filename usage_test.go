@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blaxel-ai/sdk-go"
+	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
 )
@@ -30,7 +30,11 @@ func TestUsage(t *testing.T) {
 			Metadata: blaxel.MetadataParam{
 				Name: "my-resource",
 			},
-			Spec: blaxel.SandboxSpecParam{},
+			Spec: blaxel.SandboxSpecParam{
+				Runtime: blaxel.SandboxRuntimeParam{
+					Image: blaxel.String("blaxel/base-image:latest"),
+				},
+			},
 		},
 	})
 	if err != nil {
