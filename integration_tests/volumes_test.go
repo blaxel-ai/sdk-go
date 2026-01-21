@@ -44,7 +44,7 @@ func TestVolumes(t *testing.T) {
 	t.Run("VolumeInstanceCRUD", func(t *testing.T) {
 		t.Run("creates a volume", func(t *testing.T) {
 			name := uniqueName("volume")
-			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:   name,
 				Labels: defaultLabels,
 				Size:   1024, // 1GB
@@ -62,7 +62,7 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("creates a volume with display name", func(t *testing.T) {
 			name := uniqueName("volume-display")
-			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:        name,
 				DisplayName: "My Test Volume",
 				Labels:      defaultLabels,
@@ -81,7 +81,7 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("gets a volume", func(t *testing.T) {
 			name := uniqueName("volume-get")
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:   name,
 				Labels: defaultLabels,
 				Size:   1024,
@@ -103,7 +103,7 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("lists volumes", func(t *testing.T) {
 			name := uniqueName("volume-list")
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:   name,
 				Labels: defaultLabels,
 				Size:   1024,
@@ -133,7 +133,7 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("deletes a volume", func(t *testing.T) {
 			name := uniqueName("volume-delete")
-			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:   name,
 				Labels: defaultLabels,
 				Size:   1024,
@@ -162,7 +162,7 @@ func TestVolumes(t *testing.T) {
 			volumeName := uniqueName("mount-vol")
 			sandboxName := uniqueName("mount-sandbox")
 
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:   volumeName,
 				Labels: defaultLabels,
 				Size:   1024,
@@ -223,12 +223,222 @@ func TestVolumes(t *testing.T) {
 		})
 	})
 
+	t.Run("VolumeResize", func(t *testing.T) {
+		t.Run("resizes volume and preserves data", func(t *testing.T) {
+			volumeName := uniqueName("resize-vol")
+			sandbox1Name := uniqueName("resize-sandbox-1")
+			sandbox2Name := uniqueName("resize-sandbox-2")
+
+			// Create a 512MB volume
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
+				Name:   volumeName,
+				Labels: defaultLabels,
+				Size:   512,
+				Region: defaultRegion,
+			})
+			if err != nil {
+				t.Fatalf("failed to create volume: %v", err)
+			}
+			trackVolume(volumeName)
+
+			// Create first sandbox with volume attached
+			sandbox1, err := client.Sandboxes.NewInstance(ctx, blaxel.SandboxNewParams{
+				Sandbox: blaxel.SandboxParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   sandbox1Name,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+						Runtime: blaxel.SandboxRuntimeParam{
+							Image:  blaxel.String(defaultImage),
+							Memory: blaxel.Int(4096),
+						},
+						Volumes: []blaxel.VolumeAttachmentParam{
+							{
+								Name:      blaxel.String(volumeName),
+								MountPath: blaxel.String("/data"),
+								ReadOnly:  blaxel.Bool(false),
+							},
+						},
+					},
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to create sandbox1: %v", err)
+			}
+
+			// Write ~400MB of data to the volume
+			_, err = sandbox1.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "dd if=/dev/urandom of=/data/large-file-1.bin bs=1M count=400",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to write to volume: %v", err)
+			}
+
+			// Verify file was created
+			checkResult1, err := sandbox1.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "ls -lh /data/large-file-1.bin",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to check file: %v", err)
+			}
+			if !strings.Contains(checkResult1.Logs, "large-file-1.bin") {
+				t.Errorf("expected logs to contain 'large-file-1.bin', got %s", checkResult1.Logs)
+			}
+
+			// Delete first sandbox
+			_, _ = client.Sandboxes.Delete(ctx, sandbox1Name)
+			waitForSandboxDeletion(ctx, client, sandbox1Name, 15)
+
+			// Resize volume to 1GB
+			updatedVolume, err := client.Volumes.UpdateInstance(ctx, volumeName, blaxel.VolumeConfiguration{
+				Size: 1024,
+			})
+			if err != nil {
+				t.Fatalf("failed to update volume: %v", err)
+			}
+			if updatedVolume.Size() != 1024 {
+				t.Errorf("expected size 1024, got %d", updatedVolume.Size())
+			}
+
+			// Create second sandbox with the resized volume
+			sandbox2, err := client.Sandboxes.NewInstance(ctx, blaxel.SandboxNewParams{
+				Sandbox: blaxel.SandboxParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   sandbox2Name,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+						Runtime: blaxel.SandboxRuntimeParam{
+							Image:  blaxel.String(defaultImage),
+							Memory: blaxel.Int(4096),
+						},
+						Volumes: []blaxel.VolumeAttachmentParam{
+							{
+								Name:      blaxel.String(volumeName),
+								MountPath: blaxel.String("/data"),
+								ReadOnly:  blaxel.Bool(false),
+							},
+						},
+					},
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to create sandbox2: %v", err)
+			}
+			trackSandbox(sandbox2Name)
+
+			// Verify previous data still exists
+			checkResult2, err := sandbox2.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "ls -lh /data/large-file-1.bin",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to check file: %v", err)
+			}
+			if !strings.Contains(checkResult2.Logs, "large-file-1.bin") {
+				t.Errorf("expected logs to contain 'large-file-1.bin', got %s", checkResult2.Logs)
+			}
+
+			// Write another ~400MB file (would fail if volume wasn't resized)
+			writeResult, err := sandbox2.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "dd if=/dev/urandom of=/data/large-file-2.bin bs=1M count=400 && echo 'WRITE_SUCCESS'",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to write second file: %v", err)
+			}
+			if !strings.Contains(writeResult.Logs, "WRITE_SUCCESS") {
+				t.Errorf("expected logs to contain 'WRITE_SUCCESS', got %s", writeResult.Logs)
+			}
+
+			// Verify both files exist
+			finalCheck, err := sandbox2.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "ls -lh /data/",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to list files: %v", err)
+			}
+			if !strings.Contains(finalCheck.Logs, "large-file-1.bin") {
+				t.Errorf("expected logs to contain 'large-file-1.bin', got %s", finalCheck.Logs)
+			}
+			if !strings.Contains(finalCheck.Logs, "large-file-2.bin") {
+				t.Errorf("expected logs to contain 'large-file-2.bin', got %s", finalCheck.Logs)
+			}
+		})
+
+		t.Run("fails when writing more data than volume capacity", func(t *testing.T) {
+			volumeName := uniqueName("overflow-vol")
+			sandboxName := uniqueName("overflow-sandbox")
+
+			// Create a small 512MB volume
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
+				Name:   volumeName,
+				Labels: defaultLabels,
+				Size:   512,
+				Region: defaultRegion,
+			})
+			if err != nil {
+				t.Fatalf("failed to create volume: %v", err)
+			}
+			trackVolume(volumeName)
+
+			// Create sandbox with volume attached
+			sandbox, err := client.Sandboxes.NewInstance(ctx, blaxel.SandboxNewParams{
+				Sandbox: blaxel.SandboxParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   sandboxName,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+						Runtime: blaxel.SandboxRuntimeParam{
+							Image:  blaxel.String(defaultImage),
+							Memory: blaxel.Int(4096),
+						},
+						Volumes: []blaxel.VolumeAttachmentParam{
+							{
+								Name:      blaxel.String(volumeName),
+								MountPath: blaxel.String("/data"),
+								ReadOnly:  blaxel.Bool(false),
+							},
+						},
+					},
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to create sandbox: %v", err)
+			}
+			trackSandbox(sandboxName)
+
+			// Try to write more data than the volume can hold (600MB > 512MB)
+			// dd will fail when disk is full, so we check for failure
+			writeResult, err := sandbox.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "(dd if=/dev/urandom of=/data/too-large.bin bs=1M count=600 2>&1 && echo 'WRITE_SUCCESS') || echo 'WRITE_FAILED'",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to execute write command: %v", err)
+			}
+
+			// The write should fail due to insufficient space
+			if !strings.Contains(writeResult.Logs, "WRITE_FAILED") && !strings.Contains(writeResult.Logs, "No space left on device") {
+				t.Errorf("expected write to fail with 'WRITE_FAILED' or 'No space left on device', got %s", writeResult.Logs)
+			}
+		})
+	})
+
 	t.Run("VolumePersistence", func(t *testing.T) {
 		t.Run("data persists across sandbox recreations", func(t *testing.T) {
 			volumeName := uniqueName("persist-vol")
 			fileContent := "persistent data " + uniqueName("")
 
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeCreateConfiguration{
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
 				Name:   volumeName,
 				Labels: defaultLabels,
 				Size:   1024,

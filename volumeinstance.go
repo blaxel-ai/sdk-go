@@ -11,8 +11,8 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-// VolumeCreateConfiguration contains options for creating a volume
-type VolumeCreateConfiguration struct {
+// VolumeConfiguration contains options for creating a volume
+type VolumeConfiguration struct {
 	Name        string
 	DisplayName string
 	Labels      map[string]string
@@ -55,8 +55,14 @@ func (v *VolumeInstance) Delete(ctx context.Context, opts ...option.RequestOptio
 	return err
 }
 
+// Update updates this volume with the given configuration
+func (v *VolumeInstance) Update(ctx context.Context, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+	opts = slices.Concat(v.options, opts)
+	return v.service.UpdateInstance(ctx, v.Metadata.Name, config, opts...)
+}
+
 // NewVolumeInstance creates a new volume and returns a VolumeInstance
-func (r *VolumeService) NewInstance(ctx context.Context, config VolumeCreateConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+func (r *VolumeService) NewInstance(ctx context.Context, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 
 	// Generate default name if not provided
@@ -148,8 +154,69 @@ func (r *VolumeService) DeleteInstance(ctx context.Context, volumeName string, o
 	return err
 }
 
+// UpdateInstance updates a volume and returns a VolumeInstance
+func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+	opts = slices.Concat(r.Options, opts)
+
+	// Get the current volume
+	currentInstance, err := r.GetInstance(ctx, volumeName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the update params by merging current values with updates
+	displayName := config.DisplayName
+	if displayName == "" {
+		displayName = currentInstance.Metadata.DisplayName
+	}
+
+	labels := config.Labels
+	if labels == nil {
+		labels = currentInstance.Metadata.Labels
+	}
+
+	size := config.Size
+	if size == 0 {
+		size = currentInstance.Spec.Size
+	}
+
+	region := config.Region
+	if region == "" {
+		region = currentInstance.Spec.Region
+	}
+
+	template := config.Template
+	if template == "" {
+		template = currentInstance.Spec.Template
+	}
+
+	volume, err := r.Update(ctx, volumeName, VolumeUpdateParams{
+		Volume: VolumeParam{
+			Metadata: MetadataParam{
+				Name:        volumeName,
+				DisplayName: String(displayName),
+				Labels:      labels,
+			},
+			Spec: VolumeSpecParam{
+				Size:     Int(size),
+				Region:   String(region),
+				Template: String(template),
+			},
+		},
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VolumeInstance{
+		Volume:  volume,
+		service: r,
+		options: opts,
+	}, nil
+}
+
 // CreateInstanceIfNotExists creates a volume if it doesn't exist, or returns the existing one
-func (r *VolumeService) CreateInstanceIfNotExists(ctx context.Context, config VolumeCreateConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+func (r *VolumeService) CreateInstanceIfNotExists(ctx context.Context, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
 	instance, err := r.NewInstance(ctx, config, opts...)
 	if err != nil {
 		// Check if error indicates volume already exists (409 conflict)
