@@ -28,7 +28,7 @@ Or to pin the version:
 <!-- x-release-please-start-version -->
 
 ```sh
-go get -u 'github.com/blaxel-ai/sdk-go@v0.6.0'
+go get -u 'github.com/blaxel-ai/sdk-go@v0.7.0'
 ```
 
 <!-- x-release-please-end -->
@@ -54,8 +54,7 @@ import (
 
 func main() {
 	client := blaxel.NewClient(
-		option.WithClientID("My Client ID"),         // defaults to os.LookupEnv("BL_CLIENT_ID")
-		option.WithClientSecret("My Client Secret"), // defaults to os.LookupEnv("BL_CLIENT_SECRET")
+		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("BL_API_KEY")
 	)
 	sandbox, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
 		Sandbox: blaxel.SandboxParam{
