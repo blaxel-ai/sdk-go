@@ -20,7 +20,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup go
         uses: actions/setup-go@v5
@@ -29,13 +29,14 @@ jobs:
 
       - name: Run lints
         run: ./scripts/lint
+
   test:
     timeout-minutes: 10
     name: test
     runs-on: ${{ github.repository == 'stainless-sdks/blaxel-go' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup go
         uses: actions/setup-go@v5
@@ -47,3 +48,22 @@ jobs:
 
       - name: Run tests
         run: ./scripts/test
+
+  integration-test:
+    timeout-minutes: 30
+    name: integration-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'release-')
+    env:
+      BL_API_KEY: ${{ secrets.BL_API_KEY }}
+      BL_WORKSPACE: ${{ secrets.BL_WORKSPACE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ./go.mod
+
+      - name: Run integration tests
+        run: go test -v -timeout 30m ./integration_tests/...

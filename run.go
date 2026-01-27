@@ -26,9 +26,34 @@ var resourceTypes = []ResourceType{
 	{Singular: "sandbox", Plural: "sandboxes"},
 }
 
+// getResourceMetadataURL fetches the metadata URL for a resource if available.
+// Returns empty string if metadata URL is not available or on error.
+func (r *Client) getResourceMetadataURL(ctx context.Context, resourceType string, resourceName string, opts ...option.RequestOption) string {
+	rt := strings.ToLower(resourceType)
+	switch rt {
+	case "agent", "agents":
+		agent, err := r.Agents.Get(ctx, resourceName, AgentGetParams{}, opts...)
+		if err == nil && agent != nil && agent.Metadata.URL != "" {
+			return agent.Metadata.URL
+		}
+	case "function", "functions":
+		function, err := r.Functions.Get(ctx, resourceName, FunctionGetParams{}, opts...)
+		if err == nil && function != nil && function.Metadata.URL != "" {
+			return function.Metadata.URL
+		}
+	case "model", "models":
+		model, err := r.Models.Get(ctx, resourceName, opts...)
+		if err == nil && model != nil && model.Metadata.URL != "" {
+			return model.Metadata.URL
+		}
+	}
+	return ""
+}
+
 // Run makes an HTTP request to the run endpoint for a resource.
 // It uses the existing client infrastructure with the run base URL,
 // handling all authentication (API key, access token with refresh, client credentials).
+// Note: This function does NOT check for Metadata.URL. Use RunWithMetadata for that.
 func (r *Client) Run(
 	ctx context.Context,
 	workspace string,
@@ -40,6 +65,35 @@ func (r *Client) Run(
 	opts ...option.RequestOption,
 ) (res *http.Response, err error) {
 	baseURL := GetRunURL() + "/" + workspace + "/" + pluralizeResourceType(resourceType) + "/" + resourceName
+	opts = append(opts, option.WithBaseURL(baseURL))
+	opts = append(opts, option.WithResponseBodyInto(&res))
+	// Set workspace for token refresh save callback
+	if workspace != "" {
+		opts = append(opts, option.WithWorkspace(workspace))
+	}
+	err = r.Execute(ctx, method, path, body, nil, opts...)
+	return
+}
+
+// RunWithMetadata makes an HTTP request to the run endpoint for a resource,
+// fetching the resource metadata first to use Metadata.URL if available.
+// This is the recommended method for calling agents, functions, and models.
+func (r *Client) RunWithMetadata(
+	ctx context.Context,
+	workspace string,
+	resourceType string,
+	resourceName string,
+	method string,
+	path string,
+	body any,
+	opts ...option.RequestOption,
+) (res *http.Response, err error) {
+	// Try to get metadata URL first
+	baseURL := r.getResourceMetadataURL(ctx, resourceType, resourceName, opts...)
+	if baseURL == "" {
+		// Fall back to constructed URL
+		baseURL = GetRunURL() + "/" + workspace + "/" + pluralizeResourceType(resourceType) + "/" + resourceName
+	}
 	opts = append(opts, option.WithBaseURL(baseURL))
 	opts = append(opts, option.WithResponseBodyInto(&res))
 	// Set workspace for token refresh save callback

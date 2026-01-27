@@ -483,4 +483,142 @@ func TestSandboxProcess(t *testing.T) {
 			}
 		})
 	})
+
+	t.Run("ExecWithStreaming", func(t *testing.T) {
+		t.Run("executes command and streams stdout", func(t *testing.T) {
+			var stdoutLines []string
+			var mu sync.Mutex
+
+			result, err := sandbox.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{
+				Command:           "for i in 1 2 3 4 5; do echo \"tick $i\"; done",
+				WaitForCompletion: blaxel.Bool(true),
+			}, blaxel.ProcessStreamOptions{
+				OnStdout: func(line string) {
+					mu.Lock()
+					stdoutLines = append(stdoutLines, line)
+					mu.Unlock()
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to exec with streaming: %v", err)
+			}
+
+			if result.Status != "completed" {
+				t.Errorf("expected status completed, got %s", result.Status)
+			}
+			if result.ExitCode != 0 {
+				t.Errorf("expected exit code 0, got %d", result.ExitCode)
+			}
+
+			mu.Lock()
+			lineCount := len(stdoutLines)
+			mu.Unlock()
+
+			// Should receive tick lines (either via streaming or fallback)
+			if lineCount == 0 {
+				// Check if logs contain expected output (fallback mode)
+				if !strings.Contains(result.Logs, "tick") {
+					t.Error("expected to receive tick output")
+				}
+			}
+		})
+
+		t.Run("executes command and streams stderr", func(t *testing.T) {
+			var stderrLines []string
+			var mu sync.Mutex
+
+			result, err := sandbox.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{
+				Command:           "for i in 1 2 3; do echo \"error $i\" >&2; done",
+				WaitForCompletion: blaxel.Bool(true),
+			}, blaxel.ProcessStreamOptions{
+				OnStderr: func(line string) {
+					mu.Lock()
+					stderrLines = append(stderrLines, line)
+					mu.Unlock()
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to exec with streaming: %v", err)
+			}
+
+			if result.Status != "completed" {
+				t.Errorf("expected status completed, got %s", result.Status)
+			}
+
+			mu.Lock()
+			lineCount := len(stderrLines)
+			mu.Unlock()
+
+			// Should receive error lines (either via streaming or fallback)
+			if lineCount == 0 {
+				// Check if logs contain expected output (fallback mode)
+				if !strings.Contains(result.Logs, "error") {
+					t.Error("expected to receive error output")
+				}
+			}
+		})
+
+		t.Run("streams both stdout and stderr with OnLog", func(t *testing.T) {
+			var allLogs []string
+			var mu sync.Mutex
+
+			result, err := sandbox.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{
+				Command:           "echo 'stdout line' && echo 'stderr line' >&2",
+				WaitForCompletion: blaxel.Bool(true),
+			}, blaxel.ProcessStreamOptions{
+				OnLog: func(line string) {
+					mu.Lock()
+					allLogs = append(allLogs, line)
+					mu.Unlock()
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to exec with streaming: %v", err)
+			}
+
+			if result.Status != "completed" {
+				t.Errorf("expected status completed, got %s", result.Status)
+			}
+
+			mu.Lock()
+			logCount := len(allLogs)
+			mu.Unlock()
+
+			if logCount == 0 {
+				// Check fallback logs
+				if !strings.Contains(result.Logs, "stdout line") && !strings.Contains(result.Logs, "stderr line") {
+					t.Error("expected to receive log output")
+				}
+			}
+		})
+
+		t.Run("returns correct exit code on failure", func(t *testing.T) {
+			result, err := sandbox.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{
+				Command:           "exit 42",
+				WaitForCompletion: blaxel.Bool(true),
+			}, blaxel.ProcessStreamOptions{})
+			if err != nil {
+				t.Fatalf("failed to exec with streaming: %v", err)
+			}
+
+			if result.ExitCode != 42 {
+				t.Errorf("expected exit code 42, got %d", result.ExitCode)
+			}
+		})
+
+		t.Run("executes with custom name", func(t *testing.T) {
+			result, err := sandbox.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{
+				Name:              blaxel.String("streaming-named-process"),
+				Command:           "echo 'named'",
+				WaitForCompletion: blaxel.Bool(true),
+			}, blaxel.ProcessStreamOptions{})
+			if err != nil {
+				t.Fatalf("failed to exec with streaming: %v", err)
+			}
+
+			if result.Name != "streaming-named-process" {
+				t.Errorf("expected name 'streaming-named-process', got %s", result.Name)
+			}
+		})
+	})
 }
