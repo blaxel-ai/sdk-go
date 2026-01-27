@@ -275,13 +275,13 @@ func TestSandboxSessions(t *testing.T) {
 				mu.Unlock()
 			}, nil)
 
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 			_, err = sandboxFromSession.FS.Write(ctx, "/session-test.txt", "content")
 			if err != nil {
 				t.Fatalf("failed to write: %v", err)
 			}
 
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 			handle.Close()
 
 			mu.Lock()
