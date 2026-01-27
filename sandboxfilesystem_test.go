@@ -23,7 +23,8 @@ func TestSandboxFilesystemDeleteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.Delete(
 		context.TODO(),
@@ -51,7 +52,8 @@ func TestSandboxFilesystemContentSearchWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.ContentSearch(
 		context.TODO(),
@@ -83,7 +85,8 @@ func TestSandboxFilesystemDeleteTreeWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.DeleteTree(
 		context.TODO(),
@@ -111,7 +114,8 @@ func TestSandboxFilesystemFindWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.Find(
 		context.TODO(),
@@ -143,7 +147,8 @@ func TestSandboxFilesystemGetWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.Get(
 		context.TODO(),
@@ -171,7 +176,8 @@ func TestSandboxFilesystemGetTree(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.GetTree(context.TODO(), "filePath")
 	if err != nil {
@@ -193,7 +199,8 @@ func TestSandboxFilesystemSearchWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.Search(
 		context.TODO(),
@@ -224,7 +231,8 @@ func TestSandboxFilesystemWriteWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.Write(
 		context.TODO(),
@@ -256,7 +264,8 @@ func TestSandboxFilesystemWriteTreeWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.WriteTree(
 		context.TODO(),

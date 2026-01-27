@@ -119,8 +119,14 @@ type CreateJobExecutionRequestParam struct {
 	ExecutionID param.Opt[string] `json:"executionId,omitzero"`
 	// Job ID
 	JobID param.Opt[string] `json:"jobId,omitzero"`
+	// Memory override in megabytes (optional, must be lower than or equal to job's
+	// configured memory)
+	Memory param.Opt[int64] `json:"memory,omitzero"`
 	// Workspace ID
 	WorkspaceID param.Opt[string] `json:"workspaceId,omitzero"`
+	// Environment variable overrides (optional, will merge with job's environment
+	// variables)
+	Env any `json:"env,omitzero"`
 	// Array of task parameters for parallel execution
 	Tasks []any `json:"tasks,omitzero"`
 	paramObj
@@ -280,6 +286,11 @@ func (r *JobExecutionMetadata) UnmarshalJSON(data []byte) error {
 
 // Job execution specification
 type JobExecutionSpec struct {
+	// Environment variable overrides (if provided for this execution, values are
+	// masked with \*\*\*)
+	EnvOverride any `json:"envOverride"`
+	// Memory override in megabytes (if provided for this execution)
+	MemoryOverride int64 `json:"memoryOverride"`
 	// Number of parallel tasks
 	Parallelism int64 `json:"parallelism"`
 	// List of execution tasks
@@ -288,11 +299,13 @@ type JobExecutionSpec struct {
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Parallelism respjson.Field
-		Tasks       respjson.Field
-		Timeout     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		EnvOverride    respjson.Field
+		MemoryOverride respjson.Field
+		Parallelism    respjson.Field
+		Tasks          respjson.Field
+		Timeout        respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 

@@ -23,7 +23,8 @@ func TestJobExecutionNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Jobs.Executions.New(
 		context.TODO(),
@@ -31,8 +32,10 @@ func TestJobExecutionNewWithOptionalParams(t *testing.T) {
 		blaxel.JobExecutionNewParams{
 			CreateJobExecutionRequest: blaxel.CreateJobExecutionRequestParam{
 				ID:          blaxel.String("id"),
+				Env:         `{"MY_VAR": "custom_value", "BATCH_SIZE": "100"}`,
 				ExecutionID: blaxel.String("executionId"),
 				JobID:       blaxel.String("data-processing-job"),
+				Memory:      blaxel.Int(2048),
 				Tasks:       []any{map[string]any{}},
 				WorkspaceID: blaxel.String("workspaceId"),
 			},
@@ -57,7 +60,8 @@ func TestJobExecutionGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Jobs.Executions.Get(
 		context.TODO(),
@@ -85,7 +89,8 @@ func TestJobExecutionListWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Jobs.Executions.List(
 		context.TODO(),
@@ -114,7 +119,8 @@ func TestJobExecutionDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Jobs.Executions.Delete(
 		context.TODO(),

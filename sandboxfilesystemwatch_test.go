@@ -23,7 +23,8 @@ func TestSandboxFilesystemWatchStartWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Filesystem.Watch.Start(
 		context.TODO(),

@@ -23,7 +23,8 @@ func TestIntegrationGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Integrations.Get(context.TODO(), "integrationName")
 	if err != nil {
