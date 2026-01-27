@@ -4,9 +4,11 @@ package blaxel
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/blaxel-ai/sdk-go/option"
 )
@@ -233,7 +235,11 @@ func (r *VolumeService) CreateInstanceIfNotExists(ctx context.Context, config Vo
 
 // generateShortID generates a short random ID for default names
 func generateShortID() string {
-	// Use a simple timestamp-based ID
-	// In production, you might want to use a UUID library
-	return fmt.Sprintf("%x", int64(1234567890123)%0xFFFFFFFF)[:8]
+	// Use crypto/rand for secure random ID generation
+	bytes := make([]byte, 4)
+	if _, err := rand.Read(bytes); err != nil {
+		// Fallback to timestamp if crypto/rand fails
+		return fmt.Sprintf("%x", time.Now().UnixNano()%0xFFFFFFFF)[:8]
+	}
+	return fmt.Sprintf("%x", bytes)
 }
