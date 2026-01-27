@@ -23,8 +23,7 @@ func TestVolumeNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.New(context.TODO(), blaxel.VolumeNewParams{
 		Volume: blaxel.VolumeParam{
@@ -61,8 +60,7 @@ func TestVolumeGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.Get(context.TODO(), "volumeName")
 	if err != nil {
@@ -84,8 +82,7 @@ func TestVolumeUpdateWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.Update(
 		context.TODO(),
@@ -126,8 +123,7 @@ func TestVolumeList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.List(context.TODO())
 	if err != nil {
@@ -149,8 +145,7 @@ func TestVolumeDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.Delete(context.TODO(), "volumeName")
 	if err != nil {

@@ -22,8 +22,7 @@ func TestUsage(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 
 	sandbox, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
