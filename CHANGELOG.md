@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0 (2026-01-27)
+
+Full Changelog: [v0.5.0...v0.6.0](https://github.com/blaxel-ai/sdk-go/compare/v0.5.0...v0.6.0)
+
+### Features
+
+* **client:** add a convenient param.SetJSON helper ([b8bf4c8](https://github.com/blaxel-ai/sdk-go/commit/b8bf4c87904265e387197373eac73ea05fe21635))
+
+
+### Bug Fixes
+
+* **docs:** add missing pointer prefix to api.md return types ([2bfb9da](https://github.com/blaxel-ai/sdk-go/commit/2bfb9da8db85e48d1be51e3c0a37191cfe8695ae))
+
+
+### Chores
+
+* **internal:** update `actions/checkout` version ([965b6f3](https://github.com/blaxel-ai/sdk-go/commit/965b6f36b1aaff091ebcd1503da798ba29042647))
+
 ## 0.5.0 (2026-01-16)
 
 Full Changelog: [v0.4.0...v0.5.0](https://github.com/blaxel-ai/sdk-go/compare/v0.4.0...v0.5.0)
