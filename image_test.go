@@ -23,8 +23,7 @@ func TestImageGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.Get(
 		context.TODO(),
@@ -52,8 +51,7 @@ func TestImageList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.List(context.TODO())
 	if err != nil {
@@ -75,8 +73,7 @@ func TestImageDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.Delete(
 		context.TODO(),
@@ -104,8 +101,7 @@ func TestImageCleanup(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.Cleanup(context.TODO())
 	if err != nil {

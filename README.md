@@ -54,8 +54,7 @@ import (
 
 func main() {
 	client := blaxel.NewClient(
-		option.WithClientID("My Client ID"),         // defaults to os.LookupEnv("BL_CLIENT_ID")
-		option.WithClientSecret("My Client Secret"), // defaults to os.LookupEnv("BL_CLIENT_SECRET")
+		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("BL_API_KEY")
 	)
 	sandbox, err := client.Sandboxes.New(context.TODO(), blaxel.SandboxNewParams{
 		Sandbox: blaxel.SandboxParam{

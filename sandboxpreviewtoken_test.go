@@ -23,8 +23,7 @@ func TestSandboxPreviewTokenNew(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Previews.Tokens.New(
 		context.TODO(),
@@ -64,8 +63,7 @@ func TestSandboxPreviewTokenGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Previews.Tokens.Get(
 		context.TODO(),
@@ -93,8 +91,7 @@ func TestSandboxPreviewTokenDelete(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithClientID("My Client ID"),
-		option.WithClientSecret("My Client Secret"),
+		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.Previews.Tokens.Delete(
 		context.TODO(),
