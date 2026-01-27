@@ -4,11 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
 	blaxel "github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go/option"
 )
 
 // Test configuration
@@ -38,7 +40,11 @@ func uniqueName(prefix string) string {
 // newTestClient creates a new Blaxel client for testing
 func newTestClient(t *testing.T) blaxel.Client {
 	t.Helper()
-	client, err := blaxel.NewDefaultClient()
+	// Create HTTP client with longer timeout for CI environments
+	httpClient := &http.Client{
+		Timeout: 5 * time.Minute,
+	}
+	client, err := blaxel.NewDefaultClient(option.WithHTTPClient(httpClient))
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 		return blaxel.Client{}
