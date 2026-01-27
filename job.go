@@ -126,7 +126,7 @@ type CreateJobExecutionRequestParam struct {
 	WorkspaceID param.Opt[string] `json:"workspaceId,omitzero"`
 	// Environment variable overrides (optional, will merge with job's environment
 	// variables)
-	Env any `json:"env,omitzero"`
+	Env map[string]string `json:"env,omitzero"`
 	// Array of task parameters for parallel execution
 	Tasks []any `json:"tasks,omitzero"`
 	paramObj
