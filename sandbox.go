@@ -205,7 +205,7 @@ type Port struct {
 	Name string `json:"name"`
 	// The protocol of the port
 	//
-	// Any of "HTTP", "TCP", "UDP".
+	// Any of "HTTP", "TCP", "UDP", "TLS".
 	Protocol PortProtocol `json:"protocol"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -239,6 +239,7 @@ const (
 	PortProtocolHTTP PortProtocol = "HTTP"
 	PortProtocolTcp  PortProtocol = "TCP"
 	PortProtocolUdp  PortProtocol = "UDP"
+	PortProtocolTls  PortProtocol = "TLS"
 )
 
 // A port for a resource
@@ -251,7 +252,7 @@ type PortParam struct {
 	Name param.Opt[string] `json:"name,omitzero"`
 	// The protocol of the port
 	//
-	// Any of "HTTP", "TCP", "UDP".
+	// Any of "HTTP", "TCP", "UDP", "TLS".
 	Protocol PortProtocol `json:"protocol,omitzero"`
 	paramObj
 }

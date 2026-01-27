@@ -23,7 +23,8 @@ func TestWorkspaceGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.Get(context.TODO(), "workspaceName")
 	if err != nil {
@@ -45,7 +46,8 @@ func TestWorkspaceList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Workspaces.List(context.TODO())
 	if err != nil {

@@ -23,7 +23,8 @@ func TestTemplateGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Templates.Get(context.TODO(), "templateName")
 	if err != nil {
@@ -45,7 +46,8 @@ func TestTemplateList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Templates.List(context.TODO())
 	if err != nil {

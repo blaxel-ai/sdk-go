@@ -23,7 +23,8 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Process.New(context.TODO(), blaxel.SandboxProcessNewParams{
 		ProcessRequest: blaxel.ProcessRequestParam{
@@ -59,7 +60,8 @@ func TestSandboxProcessGet(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Process.Get(context.TODO(), "identifier")
 	if err != nil {
@@ -81,7 +83,8 @@ func TestSandboxProcessList(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Process.List(context.TODO())
 	if err != nil {
@@ -103,7 +106,8 @@ func TestSandboxProcessKill(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Process.Kill(context.TODO(), "identifier")
 	if err != nil {
@@ -125,7 +129,8 @@ func TestSandboxProcessGetLogs(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Process.GetLogs(context.TODO(), "identifier")
 	if err != nil {
@@ -147,7 +152,8 @@ func TestSandboxProcessStop(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Process.Stop(context.TODO(), "identifier")
 	if err != nil {

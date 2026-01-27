@@ -23,7 +23,8 @@ func TestSandboxCodegenFastapplyWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Codegen.Fastapply(
 		context.TODO(),
@@ -54,7 +55,8 @@ func TestSandboxCodegenRerankingWithOptionalParams(t *testing.T) {
 	}
 	client := blaxel.NewClient(
 		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
+		option.WithClientID("My Client ID"),
+		option.WithClientSecret("My Client Secret"),
 	)
 	_, err := client.Sandboxes.Codegen.Reranking(
 		context.TODO(),
