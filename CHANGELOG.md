@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 (2026-01-28)
+
+Full Changelog: [v0.7.0...v0.8.0](https://github.com/blaxel-ai/sdk-go/compare/v0.7.0...v0.8.0)
+
+### Features
+
+* Sandbox deletionin field ([a88cb22](https://github.com/blaxel-ai/sdk-go/commit/a88cb22907686eb35f769bec8820a16a645fcaec))
+
 ## 0.7.0 (2026-01-27)
 
 Full Changelog: [v0.6.0...v0.7.0](https://github.com/blaxel-ai/sdk-go/compare/v0.6.0...v0.7.0)
