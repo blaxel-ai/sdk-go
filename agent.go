@@ -452,6 +452,9 @@ type Metadata struct {
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
 	CreatedBy string `json:"createdBy"`
+	// Time in seconds until the resource is automatically deleted based on TTL and
+	// lifecycle policies. Only present for resources with expiration configured.
+	DeletionIn int64 `json:"deletionIn"`
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName string `json:"displayName"`
@@ -474,6 +477,7 @@ type Metadata struct {
 		Name        respjson.Field
 		CreatedAt   respjson.Field
 		CreatedBy   respjson.Field
+		DeletionIn  respjson.Field
 		DisplayName respjson.Field
 		Labels      respjson.Field
 		Plan        respjson.Field
