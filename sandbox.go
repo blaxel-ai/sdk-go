@@ -277,6 +277,9 @@ type Sandbox struct {
 	Spec SandboxSpec `json:"spec,required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
+	// Time in seconds until the sandbox is automatically deleted based on TTL and
+	// lifecycle policies. Only present for sandboxes with lifecycle configured.
+	ExpiresIn int64 `json:"expiresIn"`
 	// Last time the sandbox was used (read-only, managed by the system)
 	LastUsedAt string `json:"lastUsedAt"`
 	// Deployment status of a resource deployed on Blaxel
@@ -289,6 +292,7 @@ type Sandbox struct {
 		Metadata    respjson.Field
 		Spec        respjson.Field
 		Events      respjson.Field
+		ExpiresIn   respjson.Field
 		LastUsedAt  respjson.Field
 		Status      respjson.Field
 		ExtraFields map[string]respjson.Field
