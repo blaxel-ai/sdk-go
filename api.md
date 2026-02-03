@@ -441,3 +441,23 @@ Methods:
 - <code title="post /sandboxes/{sandboxName}/previews/{previewName}/tokens">client.Sandboxes.Previews.Tokens.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, previewName <a href="https://pkg.go.dev/builtin#string">string</a>, params <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenNewParams">SandboxPreviewTokenNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PreviewToken">PreviewToken</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /sandboxes/{sandboxName}/previews/{previewName}/tokens">client.Sandboxes.Previews.Tokens.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, previewName <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenGetParams">SandboxPreviewTokenGetParams</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PreviewToken">PreviewToken</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /sandboxes/{sandboxName}/previews/{previewName}/tokens/{tokenName}">client.Sandboxes.Previews.Tokens.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, tokenName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenDeleteParams">SandboxPreviewTokenDeleteParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxPreviewTokenDeleteResponse">SandboxPreviewTokenDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Health
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#HealthCheckResponse">HealthCheckResponse</a>
+
+Methods:
+
+- <code title="get /health">client.Health.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#HealthService.Check">Check</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#HealthCheckResponse">HealthCheckResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Upgrade
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeTriggerResponse">UpgradeTriggerResponse</a>
+
+Methods:
+
+- <code title="post /upgrade">client.Upgrade.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeService.Trigger">Trigger</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeTriggerParams">UpgradeTriggerParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeTriggerResponse">UpgradeTriggerResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
