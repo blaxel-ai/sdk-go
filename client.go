@@ -30,6 +30,8 @@ type Client struct {
 	Templates       TemplateService
 	Workspaces      WorkspaceService
 	Sandboxes       SandboxService
+	Health          HealthService
+	Upgrade         UpgradeService
 }
 
 // DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_ID,
@@ -74,6 +76,8 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Templates = NewTemplateService(opts...)
 	r.Workspaces = NewWorkspaceService(opts...)
 	r.Sandboxes = NewSandboxService(opts...)
+	r.Health = NewHealthService(opts...)
+	r.Upgrade = NewUpgradeService(opts...)
 
 	return
 }
