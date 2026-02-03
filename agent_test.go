@@ -37,6 +37,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 			Spec: blaxel.AgentSpecParam{
 				Enabled:  blaxel.Bool(true),
 				Policies: []string{"string"},
+				Public:   blaxel.Bool(false),
 				Repository: blaxel.RepositoryParam{
 					Type: blaxel.String("github"),
 					URL:  blaxel.String("https://github.com/my-org/my-agent"),
@@ -141,6 +142,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 				Spec: blaxel.AgentSpecParam{
 					Enabled:  blaxel.Bool(true),
 					Policies: []string{"string"},
+					Public:   blaxel.Bool(false),
 					Repository: blaxel.RepositoryParam{
 						Type: blaxel.String("github"),
 						URL:  blaxel.String("https://github.com/my-org/my-agent"),
