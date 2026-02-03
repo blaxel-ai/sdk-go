@@ -117,10 +117,19 @@ type Preview struct {
 	Metadata PreviewMetadata `json:"metadata,required"`
 	// Preview of a Resource
 	Spec PreviewSpec `json:"spec,required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEvent `json:"events"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
 		Spec        respjson.Field
+		Events      respjson.Field
+		Status      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`

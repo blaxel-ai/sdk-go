@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 (2026-02-03)
+
+Full Changelog: [v0.8.1...v0.9.0](https://github.com/blaxel-ai/sdk-go/compare/v0.8.1...v0.9.0)
+
+### Features
+
+* Update stainless openapi definition ([cfa7186](https://github.com/blaxel-ai/sdk-go/commit/cfa7186e44c335d6ffd9fba62180837f3af413ac))
+
 ## 0.8.1 (2026-02-02)
 
 Full Changelog: [v0.8.0...v0.8.1](https://github.com/blaxel-ai/sdk-go/compare/v0.8.0...v0.8.1)
