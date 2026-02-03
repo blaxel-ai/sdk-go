@@ -2,7 +2,9 @@ package integration_tests
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
@@ -330,6 +332,104 @@ func TestSandboxPreviews(t *testing.T) {
 		})
 	})
 
+	t.Run("AsyncDeletion", func(t *testing.T) {
+		t.Run("creates private preview with 15 tokens and tests async deletion", func(t *testing.T) {
+			t.Logf("Sandbox name: %s", sandbox.Metadata.Name)
+			preview, err := sandbox.Previews.New(ctx, blaxel.SandboxPreviewNewParams{
+				Preview: blaxel.PreviewParam{
+					Metadata: blaxel.PreviewMetadataParam{Name: "preview-with-many-tokens"},
+					Spec: blaxel.PreviewSpecParam{
+						Port:   blaxel.Int(3000),
+						Public: blaxel.Bool(false),
+					},
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to create preview: %v", err)
+			}
+			t.Logf("Preview created: %s", preview.Metadata.Name)
+
+			expiration := time.Now().Add(10 * time.Minute)
+			tokens := make([]*blaxel.PreviewToken, 15)
+			var wg sync.WaitGroup
+			var mu sync.Mutex
+			errChan := make(chan error, 15)
+
+			for i := 0; i < 15; i++ {
+				wg.Add(1)
+				go func(idx int) {
+					defer wg.Done()
+					token, err := sandbox.Previews.NewToken(ctx, "preview-with-many-tokens", expiration)
+					if err != nil {
+						errChan <- err
+						return
+					}
+					mu.Lock()
+					tokens[idx] = token
+					mu.Unlock()
+				}(i)
+			}
+			wg.Wait()
+			close(errChan)
+
+			for err := range errChan {
+				t.Fatalf("failed to create token: %v", err)
+			}
+
+			for _, token := range tokens {
+				if token == nil || token.Spec.Token == "" {
+					t.Error("expected token value to be set")
+				}
+			}
+
+			listedTokens, err := sandbox.Previews.ListTokens(ctx, "preview-with-many-tokens")
+			if err != nil {
+				t.Fatalf("failed to list tokens: %v", err)
+			}
+			if len(*listedTokens) < 15 {
+				t.Errorf("expected at least 15 tokens, got %d", len(*listedTokens))
+			}
+
+			_, err = sandbox.Previews.Delete(ctx, "preview-with-many-tokens")
+			if err != nil {
+				t.Fatalf("failed to delete preview: %v", err)
+			}
+
+			// Should fail to get the deleted preview
+			_, err = sandbox.Previews.Get(ctx, "preview-with-many-tokens")
+			if err == nil {
+				t.Error("expected error getting deleted preview")
+			}
+
+			// Recreate the preview
+			newPreview, err := sandbox.Previews.New(ctx, blaxel.SandboxPreviewNewParams{
+				Preview: blaxel.PreviewParam{
+					Metadata: blaxel.PreviewMetadataParam{Name: "preview-with-many-tokens"},
+					Spec: blaxel.PreviewSpecParam{
+						Port:   blaxel.Int(3000),
+						Public: blaxel.Bool(true),
+					},
+				},
+			})
+			if err != nil {
+				t.Fatalf("failed to recreate preview: %v", err)
+			}
+
+			httpClient := &http.Client{Timeout: 10 * time.Second}
+			resp, err := httpClient.Get(newPreview.Spec.URL)
+			if err != nil {
+				t.Fatalf("failed to access preview: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != 200 {
+				t.Errorf("expected status 200, got %d", resp.StatusCode)
+			}
+
+			_, _ = sandbox.Previews.Delete(ctx, "preview-with-many-tokens")
+		})
+	})
+
 	t.Run("PrivatePreviewTokens", func(t *testing.T) {
 		t.Run("private preview requires token", func(t *testing.T) {
 			preview, err := sandbox.Previews.New(ctx, blaxel.SandboxPreviewNewParams{
@@ -480,6 +580,96 @@ func TestSandboxPreviews(t *testing.T) {
 			}
 
 			_, _ = sandbox.Previews.Delete(ctx, "delete-token")
+		})
+	})
+
+	t.Run("PreviewRaceConditions", func(t *testing.T) {
+		t.Run("creates a preview then removes it and recreates the same preview", func(t *testing.T) {
+			runTest := func(index int) error {
+				previewName := fmt.Sprintf("preview-race-%d", index)
+				preview, err := sandbox.Previews.NewIfNotExists(ctx, blaxel.SandboxPreviewNewParams{
+					Preview: blaxel.PreviewParam{
+						Metadata: blaxel.PreviewMetadataParam{Name: previewName},
+						Spec: blaxel.PreviewSpecParam{
+							Port:   blaxel.Int(3000),
+							Public: blaxel.Bool(true),
+						},
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("failed to create preview %s: %v", previewName, err)
+				}
+
+				httpClient := &http.Client{Timeout: 10 * time.Second}
+				resp, err := httpClient.Get(preview.Spec.URL)
+				if err != nil {
+					return fmt.Errorf("failed to access preview %s: %v", previewName, err)
+				}
+				resp.Body.Close()
+
+				if resp.StatusCode != 200 {
+					return fmt.Errorf("expected status 200 for %s, got %d", previewName, resp.StatusCode)
+				}
+
+				_, err = sandbox.Previews.Delete(ctx, previewName)
+				if err != nil {
+					return fmt.Errorf("failed to delete preview %s: %v", previewName, err)
+				}
+
+				preview2, err := sandbox.Previews.NewIfNotExists(ctx, blaxel.SandboxPreviewNewParams{
+					Preview: blaxel.PreviewParam{
+						Metadata: blaxel.PreviewMetadataParam{Name: previewName},
+						Spec: blaxel.PreviewSpecParam{
+							Port:   blaxel.Int(3000),
+							Public: blaxel.Bool(true),
+						},
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("failed to recreate preview %s: %v", previewName, err)
+				}
+
+				resp2, err := httpClient.Get(preview2.Spec.URL)
+				if err != nil {
+					return fmt.Errorf("failed to access recreated preview %s: %v", previewName, err)
+				}
+				resp2.Body.Close()
+
+				if resp2.StatusCode != 200 {
+					t.Logf("Preview URL check failed for %s: %s - Status: %d", previewName, preview2.Spec.URL, resp2.StatusCode)
+					return fmt.Errorf("expected status 200 for recreated %s, got %d", previewName, resp2.StatusCode)
+				}
+
+				// Cleanup
+				_, _ = sandbox.Previews.Delete(ctx, previewName)
+				return nil
+			}
+
+			var wg sync.WaitGroup
+			errChan := make(chan error, 100)
+
+			for i := 1; i <= 100; i++ {
+				wg.Add(1)
+				go func(idx int) {
+					defer wg.Done()
+					if err := runTest(idx); err != nil {
+						errChan <- err
+					}
+				}(i)
+			}
+			wg.Wait()
+			close(errChan)
+
+			var errors []error
+			for err := range errChan {
+				errors = append(errors, err)
+			}
+			if len(errors) > 0 {
+				for _, err := range errors {
+					t.Errorf("%v", err)
+				}
+				t.Fatalf("had %d failures in race condition test", len(errors))
+			}
 		})
 	})
 }
