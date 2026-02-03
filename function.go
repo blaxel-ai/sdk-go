@@ -336,6 +336,9 @@ type FunctionSpec struct {
 	Enabled                bool     `json:"enabled"`
 	IntegrationConnections []string `json:"integrationConnections"`
 	Policies               []string `json:"policies"`
+	// When true, the function is publicly accessible without authentication. Only
+	// available for mk3 generation.
+	Public bool `json:"public"`
 	// Revision configuration
 	Revision RevisionConfiguration `json:"revision"`
 	// Runtime configuration defining how the MCP server function is deployed and
@@ -348,6 +351,7 @@ type FunctionSpec struct {
 		Enabled                respjson.Field
 		IntegrationConnections respjson.Field
 		Policies               respjson.Field
+		Public                 respjson.Field
 		Revision               respjson.Field
 		Runtime                respjson.Field
 		Triggers               respjson.Field
@@ -375,7 +379,10 @@ func (r FunctionSpec) ToParam() FunctionSpecParam {
 // protocol, and connected integrations
 type FunctionSpecParam struct {
 	// When false, the function is disabled and will not serve requests
-	Enabled                param.Opt[bool] `json:"enabled,omitzero"`
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// When true, the function is publicly accessible without authentication. Only
+	// available for mk3 generation.
+	Public                 param.Opt[bool] `json:"public,omitzero"`
 	IntegrationConnections []string        `json:"integrationConnections,omitzero"`
 	Policies               []string        `json:"policies,omitzero"`
 	// Revision configuration
