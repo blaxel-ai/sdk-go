@@ -39,6 +39,8 @@ type SandboxInstance struct {
 	Previews *SandboxInstancePreviewService
 	// Sessions provides session operations scoped to this sandbox
 	Sessions *SandboxInstanceSessionService
+	// System provides system operations for this sandbox
+	System *SandboxInstanceSystemService
 
 	sandboxService *SandboxService
 	options        []option.RequestOption
@@ -1061,9 +1063,51 @@ func (r *SandboxInstancePreviewService) List(ctx context.Context, opts ...option
 	return r.service.List(ctx, r.sandboxName, opts...)
 }
 
-// Delete deletes a preview for this sandbox
+// Delete deletes a preview for this sandbox.
+// If the preview is in DELETING state, waits for it to be fully deleted.
 func (r *SandboxInstancePreviewService) Delete(ctx context.Context, previewName string, opts ...option.RequestOption) (*Preview, error) {
-	return r.service.Delete(ctx, previewName, SandboxPreviewDeleteParams{SandboxName: r.sandboxName}, opts...)
+	preview, err := r.service.Delete(ctx, previewName, SandboxPreviewDeleteParams{SandboxName: r.sandboxName}, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// If the preview is in DELETING state, wait for it to be fully deleted
+	if preview != nil && preview.Status == StatusDeleting {
+		if err := r.waitForDeletion(ctx, previewName, 10*time.Second, opts...); err != nil {
+			return preview, err
+		}
+	}
+
+	return preview, nil
+}
+
+// waitForDeletion waits for a preview to be fully deleted
+func (r *SandboxInstancePreviewService) waitForDeletion(ctx context.Context, previewName string, timeout time.Duration, opts ...option.RequestOption) error {
+	fmt.Printf("Waiting for preview deletion: %s\n", previewName)
+	pollInterval := 500 * time.Millisecond
+	deadline := time.Now().Add(timeout)
+
+	for time.Now().Before(deadline) {
+		_, err := r.service.Get(ctx, previewName, SandboxPreviewGetParams{SandboxName: r.sandboxName}, opts...)
+		if err != nil {
+			// If we get an error, the preview is likely deleted (404)
+			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
+				return nil
+			}
+			// Other errors might be transient, continue polling
+		}
+
+		// Preview still exists, wait and retry
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(pollInterval):
+			// Continue polling
+		}
+	}
+
+	// Timeout reached
+	return fmt.Errorf("preview deletion timeout: %s is still in DELETING state after %v", previewName, timeout)
 }
 
 // NewToken creates a token for a preview in this sandbox
@@ -1316,6 +1360,31 @@ func (r *SandboxInstanceSessionService) Delete(ctx context.Context, name string)
 }
 
 // ============================================================================
+// System Service
+// ============================================================================
+
+// SandboxInstanceSystemService provides system operations for a specific sandbox
+type SandboxInstanceSystemService struct {
+	sandboxName string
+	options     []option.RequestOption
+	service     *SandboxSystemService
+}
+
+// Upgrade triggers an upgrade of the sandbox-api process.
+// Returns immediately before upgrading. The upgrade will: download the specified
+// binary from GitHub releases, validate it, and restart.
+// All running processes will be preserved across the upgrade.
+func (r *SandboxInstanceSystemService) Upgrade(ctx context.Context, body SandboxSystemUpgradeParams, opts ...option.RequestOption) (*UpgradeTriggerResponse, error) {
+	return r.service.Upgrade(ctx, body, opts...)
+}
+
+// Health returns health status and system information including upgrade count and binary details.
+// Also includes last upgrade attempt status with detailed error information if available.
+func (r *SandboxInstanceSystemService) Health(ctx context.Context, opts ...option.RequestOption) (*HealthResponse, error) {
+	return r.service.Health(ctx, opts...)
+}
+
+// ============================================================================
 // Constructors
 // ============================================================================
 
@@ -1335,6 +1404,7 @@ func newSandboxInstance(sandbox *Sandbox, sandboxService *SandboxService, opts [
 	fsService := NewSandboxFilesystemService(sandboxOpts...)
 	codegenService := NewSandboxCodegenService(sandboxOpts...)
 	previewService := NewSandboxPreviewService(opts...)
+	systemService := NewSandboxSystemService(sandboxOpts...)
 
 	return &SandboxInstance{
 		Sandbox: sandbox,
@@ -1362,6 +1432,11 @@ func newSandboxInstance(sandbox *Sandbox, sandboxService *SandboxService, opts [
 			sandboxName: sandboxName,
 			options:     opts,
 			service:     &previewService,
+		},
+		System: &SandboxInstanceSystemService{
+			sandboxName: sandboxName,
+			options:     sandboxOpts,
+			service:     &systemService,
 		},
 		sandboxService: sandboxService,
 		options:        sandboxOpts,

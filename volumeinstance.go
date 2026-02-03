@@ -210,6 +210,9 @@ func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, c
 		return nil, err
 	}
 
+	// This is for safe update
+	time.Sleep(500 * time.Millisecond)
+
 	return &VolumeInstance{
 		Volume:  volume,
 		service: r,
