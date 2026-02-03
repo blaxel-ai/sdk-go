@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.0 (2026-02-03)
+
+Full Changelog: [v0.9.2...v0.10.0](https://github.com/blaxel-ai/sdk-go/compare/v0.9.2...v0.10.0)
+
+### Features
+
+* Adds public access control to deployments ([aa5fc3a](https://github.com/blaxel-ai/sdk-go/commit/aa5fc3a1260287bb261017fdd5f187f685a663e6))
+
 ## 0.9.2 (2026-02-03)
 
 Full Changelog: [v0.9.1...v0.9.2](https://github.com/blaxel-ai/sdk-go/compare/v0.9.1...v0.9.2)

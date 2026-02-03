@@ -316,6 +316,9 @@ type AgentSpec struct {
 	// When false, the agent is disabled and will not serve inference requests
 	Enabled  bool     `json:"enabled"`
 	Policies []string `json:"policies"`
+	// When true, the agent is publicly accessible without authentication. Only
+	// available for mk3 generation.
+	Public bool `json:"public"`
 	// Repository
 	Repository Repository `json:"repository"`
 	// Revision configuration
@@ -328,6 +331,7 @@ type AgentSpec struct {
 	JSON struct {
 		Enabled     respjson.Field
 		Policies    respjson.Field
+		Public      respjson.Field
 		Repository  respjson.Field
 		Revision    respjson.Field
 		Runtime     respjson.Field
@@ -356,7 +360,10 @@ func (r AgentSpec) ToParam() AgentSpecParam {
 // deployment triggers
 type AgentSpecParam struct {
 	// When false, the agent is disabled and will not serve inference requests
-	Enabled  param.Opt[bool] `json:"enabled,omitzero"`
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// When true, the agent is publicly accessible without authentication. Only
+	// available for mk3 generation.
+	Public   param.Opt[bool] `json:"public,omitzero"`
 	Policies []string        `json:"policies,omitzero"`
 	// Repository
 	Repository RepositoryParam `json:"repository,omitzero"`
