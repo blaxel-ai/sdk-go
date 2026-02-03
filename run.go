@@ -46,6 +46,11 @@ func (r *Client) getResourceMetadataURL(ctx context.Context, resourceType string
 		if err == nil && model != nil && model.Metadata.URL != "" {
 			return model.Metadata.URL
 		}
+	case "sandbox", "sandboxes":
+		sandbox, err := r.Sandboxes.Get(ctx, resourceName, SandboxGetParams{}, opts...)
+		if err == nil && sandbox != nil && sandbox.Metadata.URL != "" {
+			return sandbox.Metadata.URL
+		}
 	}
 	return ""
 }
