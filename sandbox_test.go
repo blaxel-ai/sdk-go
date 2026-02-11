@@ -43,6 +43,10 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Value:  blaxel.String("24h"),
 					}},
 				},
+				Network: blaxel.SandboxSpecNetworkParam{
+					EgressGatewayName: "my-egress-gateway",
+					VpcName:           "my-vpc",
+				},
 				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
 					Envs: []blaxel.SandboxRuntimeEnvParam{{
@@ -138,6 +142,10 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Type:   blaxel.ExpirationPolicyTypeTtlIdle,
 							Value:  blaxel.String("24h"),
 						}},
+					},
+					Network: blaxel.SandboxSpecNetworkParam{
+						EgressGatewayName: "my-egress-gateway",
+						VpcName:           "my-vpc",
 					},
 					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{

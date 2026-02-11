@@ -514,6 +514,10 @@ type SandboxSpec struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycle `json:"lifecycle"`
+	// Network configuration for a sandbox including egress IP binding. All three
+	// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
+	// assign a dedicated IP.
+	Network SandboxSpecNetwork `json:"network"`
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
 	Region string `json:"region"`
@@ -525,6 +529,7 @@ type SandboxSpec struct {
 	JSON struct {
 		Enabled     respjson.Field
 		Lifecycle   respjson.Field
+		Network     respjson.Field
 		Region      respjson.Field
 		Runtime     respjson.Field
 		Volumes     respjson.Field
@@ -548,6 +553,31 @@ func (r SandboxSpec) ToParam() SandboxSpecParam {
 	return param.Override[SandboxSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// Network configuration for a sandbox including egress IP binding. All three
+// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
+// assign a dedicated IP.
+type SandboxSpecNetwork struct {
+	// Name of the egress gateway in the VPC. Must be specified together with vpcName
+	// and egressIpName.
+	EgressGatewayName string `json:"egressGatewayName,required"`
+	// Name of the VPC where the egress gateway is provisioned. Must be specified
+	// together with egressGatewayName and egressIpName.
+	VpcName string `json:"vpcName,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EgressGatewayName respjson.Field
+		VpcName           respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxSpecNetwork) RawJSON() string { return r.JSON.raw }
+func (r *SandboxSpecNetwork) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Configuration for a sandbox including its image, memory, ports, region, and
 // lifecycle policies
 type SandboxSpecParam struct {
@@ -559,6 +589,10 @@ type SandboxSpecParam struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
+	// Network configuration for a sandbox including egress IP binding. All three
+	// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
+	// assign a dedicated IP.
+	Network SandboxSpecNetworkParam `json:"network,omitzero"`
 	// Runtime configuration defining how the sandbox VM is provisioned and its
 	// resource limits
 	Runtime SandboxRuntimeParam     `json:"runtime,omitzero"`
@@ -571,6 +605,29 @@ func (r SandboxSpecParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Network configuration for a sandbox including egress IP binding. All three
+// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
+// assign a dedicated IP.
+//
+// The properties EgressGatewayName, VpcName are required.
+type SandboxSpecNetworkParam struct {
+	// Name of the egress gateway in the VPC. Must be specified together with vpcName
+	// and egressIpName.
+	EgressGatewayName string `json:"egressGatewayName,required"`
+	// Name of the VPC where the egress gateway is provisioned. Must be specified
+	// together with egressGatewayName and egressIpName.
+	VpcName string `json:"vpcName,required"`
+	paramObj
+}
+
+func (r SandboxSpecNetworkParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxSpecNetworkParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxSpecNetworkParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

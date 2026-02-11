@@ -32,6 +32,8 @@ type Client struct {
 	Sandboxes       SandboxService
 	Health          HealthService
 	Upgrade         UpgradeService
+	Features        FeatureService
+	Vpcs            VpcService
 }
 
 // DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_ID,
@@ -78,6 +80,8 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Sandboxes = NewSandboxService(opts...)
 	r.Health = NewHealthService(opts...)
 	r.Upgrade = NewUpgradeService(opts...)
+	r.Features = NewFeatureService(opts...)
+	r.Vpcs = NewVpcService(opts...)
 
 	return
 }
