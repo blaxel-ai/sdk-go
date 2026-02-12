@@ -44,6 +44,7 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 				Policies:               []string{"string"},
 				Runtime: blaxel.ModelRuntimeParam{
 					EndpointName: blaxel.String("endpointName"),
+					Generation:   blaxel.ModelRuntimeGenerationMk3,
 					Model:        blaxel.String("gpt-4.1"),
 					Organization: blaxel.String("org-abc123"),
 					Type:         blaxel.ModelRuntimeTypeOpenAI,
@@ -117,6 +118,7 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 					Policies:               []string{"string"},
 					Runtime: blaxel.ModelRuntimeParam{
 						EndpointName: blaxel.String("endpointName"),
+						Generation:   blaxel.ModelRuntimeGenerationMk3,
 						Model:        blaxel.String("gpt-4.1"),
 						Organization: blaxel.String("org-abc123"),
 						Type:         blaxel.ModelRuntimeTypeOpenAI,
