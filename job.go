@@ -877,6 +877,11 @@ func (r *ModelParam) UnmarshalJSON(data []byte) error {
 type ModelRuntime struct {
 	// Provider-specific endpoint name (e.g., HuggingFace Inference Endpoints name)
 	EndpointName string `json:"endpointName"`
+	// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
+	// deploys through the model-gateway on microVM clusters.
+	//
+	// Any of "mk3".
+	Generation ModelRuntimeGeneration `json:"generation"`
 	// Model identifier at the provider (e.g., gpt-4.1, claude-sonnet-4-20250514,
 	// mistral-large-latest)
 	Model string `json:"model"`
@@ -893,6 +898,7 @@ type ModelRuntime struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		EndpointName respjson.Field
+		Generation   respjson.Field
 		Model        respjson.Field
 		Organization respjson.Field
 		Type         respjson.Field
@@ -915,6 +921,14 @@ func (r *ModelRuntime) UnmarshalJSON(data []byte) error {
 func (r ModelRuntime) ToParam() ModelRuntimeParam {
 	return param.Override[ModelRuntimeParam](json.RawMessage(r.RawJSON()))
 }
+
+// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
+// deploys through the model-gateway on microVM clusters.
+type ModelRuntimeGeneration string
+
+const (
+	ModelRuntimeGenerationMk3 ModelRuntimeGeneration = "mk3"
+)
 
 // LLM provider type determining the API protocol and authentication method
 type ModelRuntimeType string
@@ -951,6 +965,11 @@ type ModelRuntimeParam struct {
 	// Organization or account identifier at the provider (required for some providers
 	// like OpenAI)
 	Organization param.Opt[string] `json:"organization,omitzero"`
+	// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
+	// deploys through the model-gateway on microVM clusters.
+	//
+	// Any of "mk3".
+	Generation ModelRuntimeGeneration `json:"generation,omitzero"`
 	// LLM provider type determining the API protocol and authentication method
 	//
 	// Any of "hf_private_endpoint", "hf_public_endpoint", "huggingface",
