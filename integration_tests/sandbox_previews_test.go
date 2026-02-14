@@ -23,6 +23,7 @@ func TestSandboxPreviews(t *testing.T) {
 				Labels: defaultLabels,
 			},
 			Spec: blaxel.SandboxSpecParam{
+				Region: blaxel.String(defaultRegion),
 				Runtime: blaxel.SandboxRuntimeParam{
 					Image:  blaxel.String("blaxel/nextjs:latest"),
 					Memory: blaxel.Int(4096),

@@ -122,6 +122,13 @@ func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams,
 	if !body.Sandbox.Spec.Runtime.Memory.Valid() || body.Sandbox.Spec.Runtime.Memory.Value == 0 {
 		body.Sandbox.Spec.Runtime.Memory = Int(4096)
 	}
+	if !body.Sandbox.Spec.Region.Valid() || body.Sandbox.Spec.Region.Value == "" {
+		if region := os.Getenv("BL_REGION"); region != "" {
+			body.Sandbox.Spec.Region = String(region)
+		} else {
+			return nil, fmt.Errorf("SandboxService.NewInstance: 'Region' is required. Please specify a region (e.g. 'us-pdx-1', 'eu-lon-1', 'us-was-1') in the sandbox spec or set the BL_REGION environment variable")
+		}
+	}
 
 	sandbox, err := r.New(ctx, body, opts...)
 	if err != nil {

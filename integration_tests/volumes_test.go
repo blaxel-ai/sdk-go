@@ -44,11 +44,17 @@ func TestVolumes(t *testing.T) {
 	t.Run("VolumeInstanceCRUD", func(t *testing.T) {
 		t.Run("creates a volume", func(t *testing.T) {
 			name := uniqueName("volume")
-			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   name,
-				Labels: defaultLabels,
-				Size:   1024, // 1GB
-				Region: defaultRegion,
+			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   name,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -62,12 +68,18 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("creates a volume with display name", func(t *testing.T) {
 			name := uniqueName("volume-display")
-			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:        name,
-				DisplayName: "My Test Volume",
-				Labels:      defaultLabels,
-				Size:        1024,
-				Region:      defaultRegion,
+			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:        name,
+						DisplayName: blaxel.String("My Test Volume"),
+						Labels:      defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -81,11 +93,17 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("gets a volume", func(t *testing.T) {
 			name := uniqueName("volume-get")
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   name,
-				Labels: defaultLabels,
-				Size:   1024,
-				Region: defaultRegion,
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   name,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -103,11 +121,17 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("lists volumes", func(t *testing.T) {
 			name := uniqueName("volume-list")
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   name,
-				Labels: defaultLabels,
-				Size:   1024,
-				Region: defaultRegion,
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   name,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -133,11 +157,17 @@ func TestVolumes(t *testing.T) {
 
 		t.Run("deletes a volume", func(t *testing.T) {
 			name := uniqueName("volume-delete")
-			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   name,
-				Labels: defaultLabels,
-				Size:   1024,
-				Region: defaultRegion,
+			volume, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   name,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -162,11 +192,17 @@ func TestVolumes(t *testing.T) {
 			volumeName := uniqueName("mount-vol")
 			sandboxName := uniqueName("mount-sandbox")
 
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   volumeName,
-				Labels: defaultLabels,
-				Size:   1024,
-				Region: defaultRegion,
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   volumeName,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -230,11 +266,17 @@ func TestVolumes(t *testing.T) {
 			sandbox2Name := uniqueName("resize-sandbox-2")
 
 			// Create a 512MB volume
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   volumeName,
-				Labels: defaultLabels,
-				Size:   512,
-				Region: defaultRegion,
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   volumeName,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(512),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -294,8 +336,12 @@ func TestVolumes(t *testing.T) {
 			waitForSandboxDeletion(ctx, client, sandbox1Name, 15)
 
 			// Resize volume to 1GB
-			updatedVolume, err := client.Volumes.UpdateInstance(ctx, volumeName, blaxel.VolumeConfiguration{
-				Size: 1024,
+			updatedVolume, err := client.Volumes.UpdateInstance(ctx, volumeName, blaxel.VolumeUpdateParams{
+				Volume: blaxel.VolumeParam{
+					Spec: blaxel.VolumeSpecParam{
+						Size: blaxel.Int(1024),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to update volume: %v", err)
@@ -377,11 +423,17 @@ func TestVolumes(t *testing.T) {
 			sandboxName := uniqueName("overflow-sandbox")
 
 			// Create a small 512MB volume
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   volumeName,
-				Labels: defaultLabels,
-				Size:   512,
-				Region: defaultRegion,
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   volumeName,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(512),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)
@@ -438,11 +490,17 @@ func TestVolumes(t *testing.T) {
 			volumeName := uniqueName("persist-vol")
 			fileContent := "persistent data " + uniqueName("")
 
-			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeConfiguration{
-				Name:   volumeName,
-				Labels: defaultLabels,
-				Size:   1024,
-				Region: defaultRegion,
+			_, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+				Volume: blaxel.VolumeParam{
+					Metadata: blaxel.MetadataParam{
+						Name:   volumeName,
+						Labels: defaultLabels,
+					},
+					Spec: blaxel.VolumeSpecParam{
+						Size:   blaxel.Int(1024),
+						Region: blaxel.String(defaultRegion),
+					},
+				},
 			})
 			if err != nil {
 				t.Fatalf("failed to create volume: %v", err)

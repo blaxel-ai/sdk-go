@@ -5,7 +5,9 @@ package blaxel
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -13,14 +15,10 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-// VolumeConfiguration contains options for creating a volume
-type VolumeConfiguration struct {
-	Name        string
-	DisplayName string
+// VolumeUpdateMetadataParams contains parameters for updating volume metadata
+type VolumeUpdateMetadataParams struct {
 	Labels      map[string]string
-	Size        int64  // Size in MB
-	Region      string // AWS region
-	Template    string // Volume template
+	DisplayName string
 }
 
 // VolumeInstance wraps a Volume with convenience methods
@@ -57,47 +55,52 @@ func (v *VolumeInstance) Delete(ctx context.Context, opts ...option.RequestOptio
 	return err
 }
 
-// Update updates this volume with the given configuration
-func (v *VolumeInstance) Update(ctx context.Context, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+// Update updates this volume with the given params
+func (v *VolumeInstance) Update(ctx context.Context, body VolumeUpdateParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(v.options, opts)
-	return v.service.UpdateInstance(ctx, v.Metadata.Name, config, opts...)
+	return v.service.UpdateInstance(ctx, v.Metadata.Name, body, opts...)
 }
 
-// NewVolumeInstance creates a new volume and returns a VolumeInstance
-func (r *VolumeService) NewInstance(ctx context.Context, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+// NewInstance creates a new volume and returns a VolumeInstance.
+// This allows fluent access to volume operations:
+//
+//	vol, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
+//	    Volume: blaxel.VolumeParam{
+//	        Metadata: blaxel.MetadataParam{Name: "my-volume"},
+//	        Spec: blaxel.VolumeSpecParam{
+//	            Size:   blaxel.Int(1024),
+//	            Region: blaxel.String("us-pdx-1"),
+//	        },
+//	    },
+//	})
+func (r *VolumeService) NewInstance(ctx context.Context, body VolumeNewParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 
 	// Generate default name if not provided
-	name := config.Name
-	if name == "" {
-		name = fmt.Sprintf("volume-%s", generateShortID())
+	if body.Volume.Metadata.Name == "" {
+		body.Volume.Metadata.Name = fmt.Sprintf("volume-%s", generateShortID())
 	}
 
 	// Default size is 1GB (1024 MB)
-	size := config.Size
-	if size == 0 {
-		size = 1024
+	if !body.Volume.Spec.Size.Valid() || body.Volume.Spec.Size.Value == 0 {
+		body.Volume.Spec.Size = Int(1024)
 	}
 
-	displayName := config.DisplayName
-	if displayName == "" {
-		displayName = name
+	// Region is required
+	if !body.Volume.Spec.Region.Valid() || body.Volume.Spec.Region.Value == "" {
+		if region := os.Getenv("BL_REGION"); region != "" {
+			body.Volume.Spec.Region = String(region)
+		} else {
+			return nil, fmt.Errorf("VolumeService.NewInstance: 'Region' is required. Please specify a region (e.g. 'us-pdx-1', 'eu-lon-1', 'us-was-1') in the volume spec or set the BL_REGION environment variable")
+		}
 	}
 
-	volume, err := r.New(ctx, VolumeNewParams{
-		Volume: VolumeParam{
-			Metadata: MetadataParam{
-				Name:        name,
-				DisplayName: String(displayName),
-				Labels:      config.Labels,
-			},
-			Spec: VolumeSpecParam{
-				Size:     Int(size),
-				Region:   String(config.Region),
-				Template: String(config.Template),
-			},
-		},
-	}, opts...)
+	// Default display name to name if not set
+	if !body.Volume.Metadata.DisplayName.Valid() || body.Volume.Metadata.DisplayName.Value == "" {
+		body.Volume.Metadata.DisplayName = String(body.Volume.Metadata.Name)
+	}
+
+	volume, err := r.New(ctx, body, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,55 +160,10 @@ func (r *VolumeService) DeleteInstance(ctx context.Context, volumeName string, o
 }
 
 // UpdateInstance updates a volume and returns a VolumeInstance
-func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
+func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, body VolumeUpdateParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 
-	// Get the current volume
-	currentInstance, err := r.GetInstance(ctx, volumeName, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the update params by merging current values with updates
-	displayName := config.DisplayName
-	if displayName == "" {
-		displayName = currentInstance.Metadata.DisplayName
-	}
-
-	labels := config.Labels
-	if labels == nil {
-		labels = currentInstance.Metadata.Labels
-	}
-
-	size := config.Size
-	if size == 0 {
-		size = currentInstance.Spec.Size
-	}
-
-	region := config.Region
-	if region == "" {
-		region = currentInstance.Spec.Region
-	}
-
-	template := config.Template
-	if template == "" {
-		template = currentInstance.Spec.Template
-	}
-
-	volume, err := r.Update(ctx, volumeName, VolumeUpdateParams{
-		Volume: VolumeParam{
-			Metadata: MetadataParam{
-				Name:        volumeName,
-				DisplayName: String(displayName),
-				Labels:      labels,
-			},
-			Spec: VolumeSpecParam{
-				Size:     Int(size),
-				Region:   String(region),
-				Template: String(template),
-			},
-		},
-	}, opts...)
+	volume, err := r.Update(ctx, volumeName, body, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -220,16 +178,46 @@ func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, c
 	}, nil
 }
 
+// UpdateInstanceMetadata updates only the metadata of a volume
+func (r *VolumeService) UpdateInstanceMetadata(ctx context.Context, volumeName string, metadata VolumeUpdateMetadataParams, opts ...option.RequestOption) (*VolumeInstance, error) {
+	// Get current volume first
+	instance, err := r.GetInstance(ctx, volumeName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the raw JSON into VolumeParam so fields are populated and modifiable
+	var volumeParam VolumeParam
+	if err := json.Unmarshal([]byte(instance.Volume.RawJSON()), &volumeParam); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal volume: %w", err)
+	}
+
+	// Update metadata fields
+	if metadata.Labels != nil {
+		volumeParam.Metadata.Labels = metadata.Labels
+	}
+	if metadata.DisplayName != "" {
+		volumeParam.Metadata.DisplayName = String(metadata.DisplayName)
+	}
+
+	updateParams := VolumeUpdateParams{
+		Volume: volumeParam,
+	}
+
+	return r.UpdateInstance(ctx, volumeName, updateParams, opts...)
+}
+
 // CreateInstanceIfNotExists creates a volume if it doesn't exist, or returns the existing one
-func (r *VolumeService) CreateInstanceIfNotExists(ctx context.Context, config VolumeConfiguration, opts ...option.RequestOption) (*VolumeInstance, error) {
-	instance, err := r.NewInstance(ctx, config, opts...)
+func (r *VolumeService) CreateInstanceIfNotExists(ctx context.Context, body VolumeNewParams, opts ...option.RequestOption) (*VolumeInstance, error) {
+	instance, err := r.NewInstance(ctx, body, opts...)
 	if err != nil {
 		// Check if error indicates volume already exists (409 conflict)
 		if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "VOLUME_ALREADY_EXISTS") {
-			if config.Name == "" {
+			name := body.Volume.Metadata.Name
+			if name == "" {
 				return nil, err
 			}
-			return r.GetInstance(ctx, config.Name, opts...)
+			return r.GetInstance(ctx, name, opts...)
 		}
 		return nil, err
 	}

@@ -35,6 +35,9 @@ func TestSandboxCRUD(t *testing.T) {
 					Metadata: blaxel.MetadataParam{
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -57,6 +60,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -77,6 +83,7 @@ func TestSandboxCRUD(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
 						},
@@ -101,6 +108,7 @@ func TestSandboxCRUD(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image:  blaxel.String(defaultImage),
 							Memory: blaxel.Int(8192),
@@ -135,6 +143,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: labels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -158,6 +169,7 @@ func TestSandboxCRUD(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image:  blaxel.String(defaultImage),
 							Memory: blaxel.Int(2048),
@@ -192,6 +204,7 @@ func TestSandboxCRUD(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
 							Envs: []blaxel.SandboxRuntimeEnvParam{
@@ -256,6 +269,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -277,6 +293,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -290,6 +309,9 @@ func TestSandboxCRUD(t *testing.T) {
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
 						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 					},
 				},
 			})
@@ -317,6 +339,9 @@ func TestSandboxCRUD(t *testing.T) {
 							Metadata: blaxel.MetadataParam{
 								Name:   name,
 								Labels: defaultLabels,
+							},
+							Spec: blaxel.SandboxSpecParam{
+								Region: blaxel.String(defaultRegion),
 							},
 						},
 					})
@@ -376,6 +401,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -408,6 +436,9 @@ func TestSandboxCRUD(t *testing.T) {
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
 						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 					},
 				},
 			})
@@ -446,6 +477,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -471,6 +505,9 @@ func TestSandboxCRUD(t *testing.T) {
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
 						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 					},
 				},
 			})
@@ -499,6 +536,9 @@ func TestSandboxCRUD(t *testing.T) {
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
 						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 					},
 				},
 			})
@@ -532,6 +572,9 @@ func TestSandboxCRUD(t *testing.T) {
 						Name:   name,
 						Labels: defaultLabels,
 					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
+					},
 				},
 			})
 			if err != nil {
@@ -559,6 +602,9 @@ func TestSandboxCRUD(t *testing.T) {
 					Metadata: blaxel.MetadataParam{
 						Name:   name,
 						Labels: defaultLabels,
+					},
+					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 					},
 				},
 			})
@@ -610,6 +656,7 @@ func TestSandboxLifecycle(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
 							Ttl:   blaxel.String("5m"),
@@ -648,6 +695,7 @@ func TestSandboxLifecycle(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
 						},
@@ -677,6 +725,7 @@ func TestSandboxLifecycle(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
 						},
@@ -706,6 +755,7 @@ func TestSandboxLifecycle(t *testing.T) {
 						Labels: defaultLabels,
 					},
 					Spec: blaxel.SandboxSpecParam{
+						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
 						},
