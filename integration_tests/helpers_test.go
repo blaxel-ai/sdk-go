@@ -25,7 +25,16 @@ var (
 )
 
 func init() {
-	if env := os.Getenv("BL_ENV"); env == "dev" {
+	// Resolve the environment the same way the SDK does:
+	// BL_ENV takes precedence, then fall back to workspace config file
+	var env blaxel.Environment
+	if envStr := os.Getenv("BL_ENV"); envStr != "" {
+		env = blaxel.Environment(envStr)
+	} else {
+		workspace := blaxel.GetDefaultWorkspace()
+		env = blaxel.LoadEnvironmentFromConfig(workspace)
+	}
+	if env == blaxel.EnvDevelopment {
 		defaultRegion = "eu-dub-1"
 	}
 }

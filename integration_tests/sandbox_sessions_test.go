@@ -22,6 +22,7 @@ func TestSandboxSessions(t *testing.T) {
 				Labels: defaultLabels,
 			},
 			Spec: blaxel.SandboxSpecParam{
+				Region: blaxel.String(defaultRegion),
 				Runtime: blaxel.SandboxRuntimeParam{
 					Image:  blaxel.String(defaultImage),
 					Memory: blaxel.Int(2048),

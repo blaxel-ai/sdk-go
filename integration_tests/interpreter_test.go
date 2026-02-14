@@ -16,6 +16,7 @@ func TestCodeInterpreter(t *testing.T) {
 	interpreterName := uniqueName("interp")
 	interpreter, err := client.Sandboxes.NewCodeInterpreter(ctx, &blaxel.CodeInterpreterCreateConfig{
 		Name:   interpreterName,
+		Region: defaultRegion,
 		Labels: defaultLabels,
 	})
 	if err != nil {
