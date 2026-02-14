@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.11.0 (2026-02-14)
+
+Full Changelog: [v0.10.0...v0.11.0](https://github.com/blaxel-ai/sdk-go/compare/v0.10.0...v0.11.0)
+
+### Features
+
+* add ecr for model-gateway ([1ecf9bb](https://github.com/blaxel-ai/sdk-go/commit/1ecf9bb0d7b8f5ea7359c6e9220c096de6754aa6))
+* Majoffre/dedicated ips ([5128af3](https://github.com/blaxel-ai/sdk-go/commit/5128af3793043dd907b9b7829c426d01ecf3d84d))
+
+
+### Bug Fixes
+
+* **encoder:** correctly serialize NullStruct ([e1df07c](https://github.com/blaxel-ai/sdk-go/commit/e1df07cd49ffae1bd1ec306c497f79ab8897fac9))
+
 ## 0.10.0 (2026-02-03)
 
 Full Changelog: [v0.9.2...v0.10.0](https://github.com/blaxel-ai/sdk-go/compare/v0.9.2...v0.10.0)
