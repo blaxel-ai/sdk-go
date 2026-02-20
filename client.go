@@ -36,6 +36,9 @@ type Client struct {
 	Upgrade         UpgradeService
 	Features        FeatureService
 	Vpcs            VpcService
+	Network         NetworkService
+	Egressgateways  EgressgatewayService
+	Egressips       EgressipService
 }
 
 // DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_CREDENTIALS,
@@ -90,6 +93,9 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Upgrade = NewUpgradeService(opts...)
 	r.Features = NewFeatureService(opts...)
 	r.Vpcs = NewVpcService(opts...)
+	r.Network = NewNetworkService(opts...)
+	r.Egressgateways = NewEgressgatewayService(opts...)
+	r.Egressips = NewEgressipService(opts...)
 
 	return
 }

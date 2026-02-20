@@ -880,7 +880,7 @@ type ModelRuntime struct {
 	// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
 	// deploys through the model-gateway on microVM clusters.
 	//
-	// Any of "mk3".
+	// Any of "mk3", "mk2".
 	Generation ModelRuntimeGeneration `json:"generation"`
 	// Model identifier at the provider (e.g., gpt-4.1, claude-sonnet-4-20250514,
 	// mistral-large-latest)
@@ -928,6 +928,7 @@ type ModelRuntimeGeneration string
 
 const (
 	ModelRuntimeGenerationMk3 ModelRuntimeGeneration = "mk3"
+	ModelRuntimeGenerationMk2 ModelRuntimeGeneration = "mk2"
 )
 
 // LLM provider type determining the API protocol and authentication method
@@ -968,7 +969,7 @@ type ModelRuntimeParam struct {
 	// Infrastructure generation. Empty (default) uses the classic deployment path. mk3
 	// deploys through the model-gateway on microVM clusters.
 	//
-	// Any of "mk3".
+	// Any of "mk3", "mk2".
 	Generation ModelRuntimeGeneration `json:"generation,omitzero"`
 	// LLM provider type determining the API protocol and authentication method
 	//
