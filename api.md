@@ -521,3 +521,37 @@ Methods:
 - <code title="get /vpcs/{vpcName}/egressgateways/{gatewayName}/ips">client.Vpcs.Egressgateways.IPs.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, gatewayName <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPListParams">VpcEgressgatewayIPListParams</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPListResponse">VpcEgressgatewayIPListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /vpcs/{vpcName}/egressgateways/{gatewayName}/ips/{ipName}">client.Vpcs.Egressgateways.IPs.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, ipName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPDeleteParams">VpcEgressgatewayIPDeleteParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPDeleteResponse">VpcEgressgatewayIPDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="post /vpcs/{vpcName}/egressgateways/{gatewayName}/ips">client.Vpcs.Egressgateways.IPs.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPService.Allocate">Allocate</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, gatewayName <a href="https://pkg.go.dev/builtin#string">string</a>, params <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPAllocateParams">VpcEgressgatewayIPAllocateParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPAllocateResponse">VpcEgressgatewayIPAllocateResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Network
+
+## Tunnel
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelDisconnectResponse">NetworkTunnelDisconnectResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigResponse">NetworkTunnelUpdateConfigResponse</a>
+
+Methods:
+
+- <code title="delete /network/tunnel">client.Network.Tunnel.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelService.Disconnect">Disconnect</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelDisconnectResponse">NetworkTunnelDisconnectResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="put /network/tunnel/config">client.Network.Tunnel.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelService.UpdateConfig">UpdateConfig</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigParams">NetworkTunnelUpdateConfigParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigResponse">NetworkTunnelUpdateConfigResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Egressgateways
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressgatewayListResponse">EgressgatewayListResponse</a>
+
+Methods:
+
+- <code title="get /egressgateways">client.Egressgateways.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressgatewayService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressgatewayListResponse">EgressgatewayListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Egressips
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressipListResponse">EgressipListResponse</a>
+
+Methods:
+
+- <code title="get /egressips">client.Egressips.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressipService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressipListResponse">EgressipListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
