@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.12.0 (2026-02-21)
+
+Full Changelog: [v0.11.0...v0.12.0](https://github.com/blaxel-ai/sdk-go/compare/v0.11.0...v0.12.0)
+
+### Features
+
+* Add mk2 to RuntimeGeneration enum in ModelRuntime ([31915ae](https://github.com/blaxel-ai/sdk-go/commit/31915ae8b0757c771e122539a4929dcff91be7f9))
+* Add reference field to FunctionSpec for MCP code mode with base64 normalization ([c5dba85](https://github.com/blaxel-ai/sdk-go/commit/c5dba852aa07c41c94523af8c7829bfd1313fca7))
+
+
+### Bug Fixes
+
+* allow canceling a request while it is waiting to retry ([794ec9e](https://github.com/blaxel-ai/sdk-go/commit/794ec9e82a979f10b7b83d8f3ba335dbc7c0295a))
+
+
+### Chores
+
+* update mock server docs ([4d76bc3](https://github.com/blaxel-ai/sdk-go/commit/4d76bc3fe3caac43d59176d6ada1b294518d140c))
+
 ## 0.11.0 (2026-02-14)
 
 Full Changelog: [v0.10.0...v0.11.0](https://github.com/blaxel-ai/sdk-go/compare/v0.10.0...v0.11.0)
