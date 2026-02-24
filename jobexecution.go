@@ -149,7 +149,7 @@ func (r *JobExecutionNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type JobExecutionGetParams struct {
-	JobID string `path:"jobId,required" json:"-"`
+	JobID string `path:"jobId" api:"required" json:"-"`
 	paramObj
 }
 
@@ -170,6 +170,6 @@ func (r JobExecutionListParams) URLQuery() (v url.Values, err error) {
 }
 
 type JobExecutionDeleteParams struct {
-	JobID string `path:"jobId,required" json:"-"`
+	JobID string `path:"jobId" api:"required" json:"-"`
 	paramObj
 }

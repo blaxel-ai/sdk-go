@@ -99,9 +99,9 @@ func (r *DriveService) Delete(ctx context.Context, driveName string, opts ...opt
 type Drive struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Immutable drive configuration set at creation time
-	Spec DriveSpec `json:"spec,required"`
+	Spec DriveSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Current runtime state of the drive
@@ -143,9 +143,9 @@ func (r Drive) ToParam() DriveParam {
 type DriveParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Immutable drive configuration set at creation time
-	Spec DriveSpecParam `json:"spec,omitzero,required"`
+	Spec DriveSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

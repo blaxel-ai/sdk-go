@@ -155,10 +155,10 @@ func (r *SandboxFilesystemService) WriteTree(ctx context.Context, filePath strin
 }
 
 type ContentSearchMatch struct {
-	Column  int64  `json:"column,required"`
-	Line    int64  `json:"line,required"`
-	Path    string `json:"path,required"`
-	Text    string `json:"text,required"`
+	Column  int64  `json:"column" api:"required"`
+	Line    int64  `json:"line" api:"required"`
+	Path    string `json:"path" api:"required"`
+	Text    string `json:"text" api:"required"`
 	Context string `json:"context"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -179,9 +179,9 @@ func (r *ContentSearchMatch) UnmarshalJSON(data []byte) error {
 }
 
 type ContentSearchResponse struct {
-	Matches []ContentSearchMatch `json:"matches,required"`
-	Query   string               `json:"query,required"`
-	Total   int64                `json:"total,required"`
+	Matches []ContentSearchMatch `json:"matches" api:"required"`
+	Query   string               `json:"query" api:"required"`
+	Total   int64                `json:"total" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Matches     respjson.Field
@@ -199,11 +199,11 @@ func (r *ContentSearchResponse) UnmarshalJSON(data []byte) error {
 }
 
 type Directory struct {
-	Files []FilesystemRead `json:"files,required"`
-	Name  string           `json:"name,required"`
-	Path  string           `json:"path,required"`
+	Files []FilesystemRead `json:"files" api:"required"`
+	Name  string           `json:"name" api:"required"`
+	Path  string           `json:"path" api:"required"`
 	// @name Subdirectories
-	Subdirectories []Subdirectory `json:"subdirectories,required"`
+	Subdirectories []Subdirectory `json:"subdirectories" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Files          respjson.Field
@@ -222,13 +222,13 @@ func (r *Directory) UnmarshalJSON(data []byte) error {
 }
 
 type FilesystemRead struct {
-	Group        string `json:"group,required"`
-	LastModified string `json:"lastModified,required"`
-	Name         string `json:"name,required"`
-	Owner        string `json:"owner,required"`
-	Path         string `json:"path,required"`
-	Permissions  string `json:"permissions,required"`
-	Size         int64  `json:"size,required"`
+	Group        string `json:"group" api:"required"`
+	LastModified string `json:"lastModified" api:"required"`
+	Name         string `json:"name" api:"required"`
+	Owner        string `json:"owner" api:"required"`
+	Path         string `json:"path" api:"required"`
+	Permissions  string `json:"permissions" api:"required"`
+	Size         int64  `json:"size" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Group        respjson.Field
@@ -250,14 +250,14 @@ func (r *FilesystemRead) UnmarshalJSON(data []byte) error {
 }
 
 type FilesystemReadWithContent struct {
-	Content      string `json:"content,required"`
-	Group        string `json:"group,required"`
-	LastModified string `json:"lastModified,required"`
-	Name         string `json:"name,required"`
-	Owner        string `json:"owner,required"`
-	Path         string `json:"path,required"`
-	Permissions  string `json:"permissions,required"`
-	Size         int64  `json:"size,required"`
+	Content      string `json:"content" api:"required"`
+	Group        string `json:"group" api:"required"`
+	LastModified string `json:"lastModified" api:"required"`
+	Name         string `json:"name" api:"required"`
+	Owner        string `json:"owner" api:"required"`
+	Path         string `json:"path" api:"required"`
+	Permissions  string `json:"permissions" api:"required"`
+	Size         int64  `json:"size" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Content      respjson.Field
@@ -295,9 +295,9 @@ func (r *FilesystemWriteRequestParam) UnmarshalJSON(data []byte) error {
 }
 
 type FindMatch struct {
-	Path string `json:"path,required"`
+	Path string `json:"path" api:"required"`
 	// "file" or "directory"
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Path        respjson.Field
@@ -314,8 +314,8 @@ func (r *FindMatch) UnmarshalJSON(data []byte) error {
 }
 
 type FindResponse struct {
-	Matches []FindMatch `json:"matches,required"`
-	Total   int64       `json:"total,required"`
+	Matches []FindMatch `json:"matches" api:"required"`
+	Total   int64       `json:"total" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Matches     respjson.Field
@@ -332,10 +332,10 @@ func (r *FindResponse) UnmarshalJSON(data []byte) error {
 }
 
 type FuzzySearchMatch struct {
-	Path  string `json:"path,required"`
-	Score int64  `json:"score,required"`
+	Path  string `json:"path" api:"required"`
+	Score int64  `json:"score" api:"required"`
 	// "file" or "directory"
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Path        respjson.Field
@@ -353,8 +353,8 @@ func (r *FuzzySearchMatch) UnmarshalJSON(data []byte) error {
 }
 
 type FuzzySearchResponse struct {
-	Matches []FuzzySearchMatch `json:"matches,required"`
-	Total   int64              `json:"total,required"`
+	Matches []FuzzySearchMatch `json:"matches" api:"required"`
+	Total   int64              `json:"total" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Matches     respjson.Field
@@ -371,8 +371,8 @@ func (r *FuzzySearchResponse) UnmarshalJSON(data []byte) error {
 }
 
 type Subdirectory struct {
-	Name string `json:"name,required"`
-	Path string `json:"path,required"`
+	Name string `json:"name" api:"required"`
+	Path string `json:"path" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Name        respjson.Field
@@ -402,7 +402,7 @@ func (r *TreeRequestParam) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxFilesystemDeleteResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -420,7 +420,7 @@ func (r *SandboxFilesystemDeleteResponse) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxFilesystemDeleteTreeResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -548,7 +548,7 @@ func (r *SandboxFilesystemGetTreeResponseUnion) UnmarshalJSON(data []byte) error
 }
 
 type SandboxFilesystemWriteResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -637,7 +637,7 @@ func (r SandboxFilesystemDeleteParams) URLQuery() (v url.Values, err error) {
 
 type SandboxFilesystemContentSearchParams struct {
 	// Text to search for
-	Query string `query:"query,required" json:"-"`
+	Query string `query:"query" api:"required" json:"-"`
 	// Case sensitive search (default: false)
 	CaseSensitive param.Opt[bool] `query:"caseSensitive,omitzero" json:"-"`
 	// Comma-separated directory names to skip (default:

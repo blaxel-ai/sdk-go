@@ -117,10 +117,10 @@ func (r *AgentService) ListRevisions(ctx context.Context, agentName string, opts
 type Agent struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Configuration for an AI agent including runtime settings, repository source, and
 	// deployment triggers
-	Spec AgentSpec `json:"spec,required"`
+	Spec AgentSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -162,10 +162,10 @@ func (r Agent) ToParam() AgentParam {
 type AgentParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Configuration for an AI agent including runtime settings, repository source, and
 	// deployment triggers
-	Spec AgentSpecParam `json:"spec,omitzero,required"`
+	Spec AgentSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -454,7 +454,7 @@ func (r *CoreEventParam) UnmarshalJSON(data []byte) error {
 type Metadata struct {
 	// Unique identifier for the resource within the workspace. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -512,7 +512,7 @@ func (r Metadata) ToParam() MetadataParam {
 type MetadataParam struct {
 	// Unique identifier for the resource within the workspace. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`

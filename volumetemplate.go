@@ -114,9 +114,9 @@ func (r *VolumeTemplateService) Upsert(ctx context.Context, volumeTemplateName s
 type VolumeTemplate struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Volume template specification
-	Spec VolumeTemplateSpec `json:"spec,required"`
+	Spec VolumeTemplateSpec `json:"spec" api:"required"`
 	// Volume template state
 	State VolumeTemplateState `json:"state"`
 	// List of versions for this template
@@ -153,9 +153,9 @@ func (r VolumeTemplate) ToParam() VolumeTemplateParam {
 type VolumeTemplateParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Volume template specification
-	Spec VolumeTemplateSpecParam `json:"spec,omitzero,required"`
+	Spec VolumeTemplateSpecParam `json:"spec,omitzero" api:"required"`
 	// Volume template state
 	State VolumeTemplateStateParam `json:"state,omitzero"`
 	// List of versions for this template
@@ -400,7 +400,7 @@ func (r VolumeTemplateNewParams) URLQuery() (v url.Values, err error) {
 }
 
 type VolumeTemplateDeleteVersionParams struct {
-	VolumeTemplateName string `path:"volumeTemplateName,required" json:"-"`
+	VolumeTemplateName string `path:"volumeTemplateName" api:"required" json:"-"`
 	paramObj
 }
 

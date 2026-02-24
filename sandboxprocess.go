@@ -104,9 +104,9 @@ func (r *SandboxProcessService) Stop(ctx context.Context, identifier string, opt
 }
 
 type ProcessLogs struct {
-	Logs   string `json:"logs,required"`
-	Stderr string `json:"stderr,required"`
-	Stdout string `json:"stdout,required"`
+	Logs   string `json:"logs" api:"required"`
+	Stderr string `json:"stderr" api:"required"`
+	Stdout string `json:"stdout" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Logs        respjson.Field
@@ -125,7 +125,7 @@ func (r *ProcessLogs) UnmarshalJSON(data []byte) error {
 
 // The property Command is required.
 type ProcessRequestParam struct {
-	Command           string            `json:"command,required"`
+	Command           string            `json:"command" api:"required"`
 	MaxRestarts       param.Opt[int64]  `json:"maxRestarts,omitzero"`
 	Name              param.Opt[string] `json:"name,omitzero"`
 	RestartOnFailure  param.Opt[bool]   `json:"restartOnFailure,omitzero"`
@@ -146,18 +146,18 @@ func (r *ProcessRequestParam) UnmarshalJSON(data []byte) error {
 }
 
 type ProcessResponse struct {
-	Command     string `json:"command,required"`
-	CompletedAt string `json:"completedAt,required"`
-	ExitCode    int64  `json:"exitCode,required"`
-	Logs        string `json:"logs,required"`
-	Name        string `json:"name,required"`
-	Pid         string `json:"pid,required"`
-	StartedAt   string `json:"startedAt,required"`
+	Command     string `json:"command" api:"required"`
+	CompletedAt string `json:"completedAt" api:"required"`
+	ExitCode    int64  `json:"exitCode" api:"required"`
+	Logs        string `json:"logs" api:"required"`
+	Name        string `json:"name" api:"required"`
+	Pid         string `json:"pid" api:"required"`
+	StartedAt   string `json:"startedAt" api:"required"`
 	// Any of "failed", "killed", "stopped", "running", "completed".
-	Status           ProcessResponseStatus `json:"status,required"`
-	Stderr           string                `json:"stderr,required"`
-	Stdout           string                `json:"stdout,required"`
-	WorkingDir       string                `json:"workingDir,required"`
+	Status           ProcessResponseStatus `json:"status" api:"required"`
+	Stderr           string                `json:"stderr" api:"required"`
+	Stdout           string                `json:"stdout" api:"required"`
+	WorkingDir       string                `json:"workingDir" api:"required"`
 	MaxRestarts      int64                 `json:"maxRestarts"`
 	RestartCount     int64                 `json:"restartCount"`
 	RestartOnFailure bool                  `json:"restartOnFailure"`
@@ -199,7 +199,7 @@ const (
 )
 
 type SandboxProcessKillResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -217,7 +217,7 @@ func (r *SandboxProcessKillResponse) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxProcessStopResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {

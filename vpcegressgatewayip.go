@@ -111,9 +111,9 @@ func (r *VpcEgressgatewayIPService) Allocate(ctx context.Context, gatewayName st
 // traffic
 type VpcEgressgatewayIPGetResponse struct {
 	// Metadata for an egress IP address including gateway association and name
-	Metadata VpcEgressgatewayIPGetResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayIPGetResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress IP including IP family and the provisioned address
-	Spec VpcEgressgatewayIPGetResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayIPGetResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -142,7 +142,7 @@ func (r *VpcEgressgatewayIPGetResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayIPGetResponseMetadata struct {
 	// Unique identifier for the egress IP within the gateway. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -187,7 +187,7 @@ type VpcEgressgatewayIPGetResponseSpec struct {
 	// IP address family, either IPv4 or IPv6
 	//
 	// Any of "IPv4", "IPv6".
-	IPFamily string `json:"ipFamily,required"`
+	IPFamily string `json:"ipFamily" api:"required"`
 	// Public IP address assigned to this egress IP (read-only, set after provisioning)
 	PublicIP string `json:"publicIp"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -209,9 +209,9 @@ func (r *VpcEgressgatewayIPGetResponseSpec) UnmarshalJSON(data []byte) error {
 // traffic
 type VpcEgressgatewayIPListResponse struct {
 	// Metadata for an egress IP address including gateway association and name
-	Metadata VpcEgressgatewayIPListResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayIPListResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress IP including IP family and the provisioned address
-	Spec VpcEgressgatewayIPListResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayIPListResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -240,7 +240,7 @@ func (r *VpcEgressgatewayIPListResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayIPListResponseMetadata struct {
 	// Unique identifier for the egress IP within the gateway. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -285,7 +285,7 @@ type VpcEgressgatewayIPListResponseSpec struct {
 	// IP address family, either IPv4 or IPv6
 	//
 	// Any of "IPv4", "IPv6".
-	IPFamily string `json:"ipFamily,required"`
+	IPFamily string `json:"ipFamily" api:"required"`
 	// Public IP address assigned to this egress IP (read-only, set after provisioning)
 	PublicIP string `json:"publicIp"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -307,9 +307,9 @@ func (r *VpcEgressgatewayIPListResponseSpec) UnmarshalJSON(data []byte) error {
 // traffic
 type VpcEgressgatewayIPDeleteResponse struct {
 	// Metadata for an egress IP address including gateway association and name
-	Metadata VpcEgressgatewayIPDeleteResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayIPDeleteResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress IP including IP family and the provisioned address
-	Spec VpcEgressgatewayIPDeleteResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayIPDeleteResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -338,7 +338,7 @@ func (r *VpcEgressgatewayIPDeleteResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayIPDeleteResponseMetadata struct {
 	// Unique identifier for the egress IP within the gateway. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -383,7 +383,7 @@ type VpcEgressgatewayIPDeleteResponseSpec struct {
 	// IP address family, either IPv4 or IPv6
 	//
 	// Any of "IPv4", "IPv6".
-	IPFamily string `json:"ipFamily,required"`
+	IPFamily string `json:"ipFamily" api:"required"`
 	// Public IP address assigned to this egress IP (read-only, set after provisioning)
 	PublicIP string `json:"publicIp"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -405,9 +405,9 @@ func (r *VpcEgressgatewayIPDeleteResponseSpec) UnmarshalJSON(data []byte) error 
 // traffic
 type VpcEgressgatewayIPAllocateResponse struct {
 	// Metadata for an egress IP address including gateway association and name
-	Metadata VpcEgressgatewayIPAllocateResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayIPAllocateResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress IP including IP family and the provisioned address
-	Spec VpcEgressgatewayIPAllocateResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayIPAllocateResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -436,7 +436,7 @@ func (r *VpcEgressgatewayIPAllocateResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayIPAllocateResponseMetadata struct {
 	// Unique identifier for the egress IP within the gateway. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -481,7 +481,7 @@ type VpcEgressgatewayIPAllocateResponseSpec struct {
 	// IP address family, either IPv4 or IPv6
 	//
 	// Any of "IPv4", "IPv6".
-	IPFamily string `json:"ipFamily,required"`
+	IPFamily string `json:"ipFamily" api:"required"`
 	// Public IP address assigned to this egress IP (read-only, set after provisioning)
 	PublicIP string `json:"publicIp"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -500,28 +500,28 @@ func (r *VpcEgressgatewayIPAllocateResponseSpec) UnmarshalJSON(data []byte) erro
 }
 
 type VpcEgressgatewayIPGetParams struct {
-	VpcName     string `path:"vpcName,required" json:"-"`
-	GatewayName string `path:"gatewayName,required" json:"-"`
+	VpcName     string `path:"vpcName" api:"required" json:"-"`
+	GatewayName string `path:"gatewayName" api:"required" json:"-"`
 	paramObj
 }
 
 type VpcEgressgatewayIPListParams struct {
-	VpcName string `path:"vpcName,required" json:"-"`
+	VpcName string `path:"vpcName" api:"required" json:"-"`
 	paramObj
 }
 
 type VpcEgressgatewayIPDeleteParams struct {
-	VpcName     string `path:"vpcName,required" json:"-"`
-	GatewayName string `path:"gatewayName,required" json:"-"`
+	VpcName     string `path:"vpcName" api:"required" json:"-"`
+	GatewayName string `path:"gatewayName" api:"required" json:"-"`
 	paramObj
 }
 
 type VpcEgressgatewayIPAllocateParams struct {
-	VpcName string `path:"vpcName,required" json:"-"`
+	VpcName string `path:"vpcName" api:"required" json:"-"`
 	// Metadata for an egress IP address including gateway association and name
-	Metadata VpcEgressgatewayIPAllocateParamsMetadata `json:"metadata,omitzero,required"`
+	Metadata VpcEgressgatewayIPAllocateParamsMetadata `json:"metadata,omitzero" api:"required"`
 	// Specification for an egress IP including IP family and the provisioned address
-	Spec VpcEgressgatewayIPAllocateParamsSpec `json:"spec,omitzero,required"`
+	Spec VpcEgressgatewayIPAllocateParamsSpec `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -539,7 +539,7 @@ func (r *VpcEgressgatewayIPAllocateParams) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayIPAllocateParamsMetadata struct {
 	// Unique identifier for the egress IP within the gateway. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
@@ -561,7 +561,7 @@ type VpcEgressgatewayIPAllocateParamsSpec struct {
 	// IP address family, either IPv4 or IPv6
 	//
 	// Any of "IPv4", "IPv6".
-	IPFamily string `json:"ipFamily,omitzero,required"`
+	IPFamily string `json:"ipFamily,omitzero" api:"required"`
 	paramObj
 }
 
