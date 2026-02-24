@@ -292,7 +292,7 @@ func (r *UploadPartResponse) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxFilesystemMultipartAbortResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -310,7 +310,7 @@ func (r *SandboxFilesystemMultipartAbortResponse) UnmarshalJSON(data []byte) err
 }
 
 type SandboxFilesystemMultipartCompleteResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -353,9 +353,9 @@ func (r *SandboxFilesystemMultipartInitiateParams) UnmarshalJSON(data []byte) er
 
 type SandboxFilesystemMultipartUploadPartParams struct {
 	// Part number (1-10000)
-	PartNumber int64 `query:"partNumber,required" json:"-"`
+	PartNumber int64 `query:"partNumber" api:"required" json:"-"`
 	// Part data
-	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	File io.Reader `json:"file,omitzero" api:"required" format:"binary"`
 	paramObj
 }
 

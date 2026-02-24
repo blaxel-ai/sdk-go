@@ -54,7 +54,7 @@ func (r *ImageTagService) Delete(ctx context.Context, tagName string, body Image
 }
 
 type ImageTagDeleteParams struct {
-	ResourceType string `path:"resourceType,required" json:"-"`
-	ImageName    string `path:"imageName,required" json:"-"`
+	ResourceType string `path:"resourceType" api:"required" json:"-"`
+	ImageName    string `path:"imageName" api:"required" json:"-"`
 	paramObj
 }

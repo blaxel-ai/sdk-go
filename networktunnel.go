@@ -55,7 +55,7 @@ func (r *NetworkTunnelService) UpdateConfig(ctx context.Context, body NetworkTun
 }
 
 type NetworkTunnelDisconnectResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -73,7 +73,7 @@ func (r *NetworkTunnelDisconnectResponse) UnmarshalJSON(data []byte) error {
 }
 
 type NetworkTunnelUpdateConfigResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -92,7 +92,7 @@ func (r *NetworkTunnelUpdateConfigResponse) UnmarshalJSON(data []byte) error {
 
 type NetworkTunnelUpdateConfigParams struct {
 	// Base64-encoded tunnel config JSON
-	Config string `json:"config,required"`
+	Config string `json:"config" api:"required"`
 	paramObj
 }
 

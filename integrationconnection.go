@@ -101,10 +101,10 @@ func (r *IntegrationConnectionService) Delete(ctx context.Context, connectionNam
 type IntegrationConnection struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Specification defining the integration type, configuration parameters, and
 	// encrypted credentials
-	Spec IntegrationConnectionSpec `json:"spec,required"`
+	Spec IntegrationConnectionSpec `json:"spec" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
@@ -136,10 +136,10 @@ func (r IntegrationConnection) ToParam() IntegrationConnectionParam {
 type IntegrationConnectionParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Specification defining the integration type, configuration parameters, and
 	// encrypted credentials
-	Spec IntegrationConnectionSpecParam `json:"spec,omitzero,required"`
+	Spec IntegrationConnectionSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

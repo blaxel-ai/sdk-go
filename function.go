@@ -117,10 +117,10 @@ func (r *FunctionService) ListRevisions(ctx context.Context, functionName string
 type Function struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Configuration for an MCP server function including runtime settings, transport
 	// protocol, and connected integrations
-	Spec FunctionSpec `json:"spec,required"`
+	Spec FunctionSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -162,10 +162,10 @@ func (r Function) ToParam() FunctionParam {
 type FunctionParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Configuration for an MCP server function including runtime settings, transport
 	// protocol, and connected integrations
-	Spec FunctionSpecParam `json:"spec,omitzero,required"`
+	Spec FunctionSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

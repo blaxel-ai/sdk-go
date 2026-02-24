@@ -101,9 +101,9 @@ func (r *PolicyService) Delete(ctx context.Context, policyName string, opts ...o
 type Policy struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Policy specification
-	Spec PolicySpec `json:"spec,required"`
+	Spec PolicySpec `json:"spec" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
@@ -135,9 +135,9 @@ func (r Policy) ToParam() PolicyParam {
 type PolicyParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Policy specification
-	Spec PolicySpecParam `json:"spec,omitzero,required"`
+	Spec PolicySpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

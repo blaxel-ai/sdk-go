@@ -44,9 +44,9 @@ func (r *EgressipService) List(ctx context.Context, opts ...option.RequestOption
 // traffic
 type EgressipListResponse struct {
 	// Metadata for an egress IP address including gateway association and name
-	Metadata EgressipListResponseMetadata `json:"metadata,required"`
+	Metadata EgressipListResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress IP including IP family and the provisioned address
-	Spec EgressipListResponseSpec `json:"spec,required"`
+	Spec EgressipListResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -75,7 +75,7 @@ func (r *EgressipListResponse) UnmarshalJSON(data []byte) error {
 type EgressipListResponseMetadata struct {
 	// Unique identifier for the egress IP within the gateway. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -120,7 +120,7 @@ type EgressipListResponseSpec struct {
 	// IP address family, either IPv4 or IPv6
 	//
 	// Any of "IPv4", "IPv6".
-	IPFamily string `json:"ipFamily,required"`
+	IPFamily string `json:"ipFamily" api:"required"`
 	// Public IP address assigned to this egress IP (read-only, set after provisioning)
 	PublicIP string `json:"publicIp"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].

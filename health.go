@@ -43,18 +43,18 @@ func (r *HealthService) Check(ctx context.Context, opts ...option.RequestOption)
 }
 
 type HealthCheckResponse struct {
-	Arch          string                         `json:"arch,required"`
-	BuildTime     string                         `json:"buildTime,required"`
-	GitCommit     string                         `json:"gitCommit,required"`
-	GoVersion     string                         `json:"goVersion,required"`
-	LastUpgrade   HealthCheckResponseLastUpgrade `json:"lastUpgrade,required"`
-	Os            string                         `json:"os,required"`
-	StartedAt     string                         `json:"startedAt,required"`
-	Status        string                         `json:"status,required"`
-	UpgradeCount  int64                          `json:"upgradeCount,required"`
-	Uptime        string                         `json:"uptime,required"`
-	UptimeSeconds float64                        `json:"uptimeSeconds,required"`
-	Version       string                         `json:"version,required"`
+	Arch          string                         `json:"arch" api:"required"`
+	BuildTime     string                         `json:"buildTime" api:"required"`
+	GitCommit     string                         `json:"gitCommit" api:"required"`
+	GoVersion     string                         `json:"goVersion" api:"required"`
+	LastUpgrade   HealthCheckResponseLastUpgrade `json:"lastUpgrade" api:"required"`
+	Os            string                         `json:"os" api:"required"`
+	StartedAt     string                         `json:"startedAt" api:"required"`
+	Status        string                         `json:"status" api:"required"`
+	UpgradeCount  int64                          `json:"upgradeCount" api:"required"`
+	Uptime        string                         `json:"uptime" api:"required"`
+	UptimeSeconds float64                        `json:"uptimeSeconds" api:"required"`
+	Version       string                         `json:"version" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Arch          respjson.Field
@@ -84,12 +84,12 @@ type HealthCheckResponseLastUpgrade struct {
 	// Current state (idle, running, completed, failed)
 	//
 	// Any of "idle", "running", "completed", "failed".
-	Status string `json:"status,required"`
+	Status string `json:"status" api:"required"`
 	// Current/last step (none, starting, download, validate, replace, completed,
 	// skipped)
-	Step string `json:"step,required"`
+	Step string `json:"step" api:"required"`
 	// Version being upgraded to
-	Version string `json:"version,required"`
+	Version string `json:"version" api:"required"`
 	// Path to downloaded binary
 	BinaryPath string `json:"binaryPath"`
 	// Bytes downloaded

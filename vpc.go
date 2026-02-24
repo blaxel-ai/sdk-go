@@ -82,9 +82,9 @@ func (r *VpcService) Delete(ctx context.Context, vpcName string, opts ...option.
 type VpcNewResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// VPC specification (controlplane-only, no external resources)
-	Spec map[string]any `json:"spec,required"`
+	Spec map[string]any `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -114,9 +114,9 @@ func (r *VpcNewResponse) UnmarshalJSON(data []byte) error {
 type VpcGetResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// VPC specification (controlplane-only, no external resources)
-	Spec map[string]any `json:"spec,required"`
+	Spec map[string]any `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -146,9 +146,9 @@ func (r *VpcGetResponse) UnmarshalJSON(data []byte) error {
 type VpcListResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// VPC specification (controlplane-only, no external resources)
-	Spec map[string]any `json:"spec,required"`
+	Spec map[string]any `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -178,9 +178,9 @@ func (r *VpcListResponse) UnmarshalJSON(data []byte) error {
 type VpcDeleteResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// VPC specification (controlplane-only, no external resources)
-	Spec map[string]any `json:"spec,required"`
+	Spec map[string]any `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -208,9 +208,9 @@ func (r *VpcDeleteResponse) UnmarshalJSON(data []byte) error {
 type VpcNewParams struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// VPC specification (controlplane-only, no external resources)
-	Spec map[string]any `json:"spec,omitzero,required"`
+	Spec map[string]any `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

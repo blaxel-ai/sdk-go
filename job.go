@@ -146,10 +146,10 @@ func (r *CreateJobExecutionRequestParam) UnmarshalJSON(data []byte) error {
 type Job struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Configuration for a batch job including execution parameters, parallelism
 	// settings, and deployment region
-	Spec JobSpec `json:"spec,required"`
+	Spec JobSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -191,10 +191,10 @@ func (r Job) ToParam() JobParam {
 type JobParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Configuration for a batch job including execution parameters, parallelism
 	// settings, and deployment region
-	Spec JobSpecParam `json:"spec,omitzero,required"`
+	Spec JobSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -209,9 +209,9 @@ func (r *JobParam) UnmarshalJSON(data []byte) error {
 // Job execution
 type JobExecution struct {
 	// Job execution metadata
-	Metadata JobExecutionMetadata `json:"metadata,required"`
+	Metadata JobExecutionMetadata `json:"metadata" api:"required"`
 	// Job execution specification
-	Spec JobExecutionSpec `json:"spec,required"`
+	Spec JobExecutionSpec `json:"spec" api:"required"`
 	// Job execution statistics
 	Stats JobExecutionStats `json:"stats"`
 	// Job execution status
@@ -813,10 +813,10 @@ func (r *JobSpecParam) UnmarshalJSON(data []byte) error {
 type Model struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Configuration for a model gateway endpoint including provider type, credentials,
 	// and access policies
-	Spec ModelSpec `json:"spec,required"`
+	Spec ModelSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -857,10 +857,10 @@ func (r Model) ToParam() ModelParam {
 type ModelParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Configuration for a model gateway endpoint including provider type, credentials,
 	// and access policies
-	Spec ModelSpecParam `json:"spec,omitzero,required"`
+	Spec ModelSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

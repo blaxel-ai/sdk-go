@@ -114,9 +114,9 @@ func (r *SandboxPreviewService) Delete(ctx context.Context, previewName string, 
 // Preview of a Resource
 type Preview struct {
 	// PreviewMetadata
-	Metadata PreviewMetadata `json:"metadata,required"`
+	Metadata PreviewMetadata `json:"metadata" api:"required"`
 	// Preview of a Resource
-	Spec PreviewSpec `json:"spec,required"`
+	Spec PreviewSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -155,9 +155,9 @@ func (r Preview) ToParam() PreviewParam {
 // The properties Metadata, Spec are required.
 type PreviewParam struct {
 	// PreviewMetadata
-	Metadata PreviewMetadataParam `json:"metadata,omitzero,required"`
+	Metadata PreviewMetadataParam `json:"metadata,omitzero" api:"required"`
 	// Preview of a Resource
-	Spec PreviewSpecParam `json:"spec,omitzero,required"`
+	Spec PreviewSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -171,7 +171,7 @@ func (r *PreviewParam) UnmarshalJSON(data []byte) error {
 
 type PreviewMetadata struct {
 	// Preview name
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -222,7 +222,7 @@ func (r PreviewMetadata) ToParam() PreviewMetadataParam {
 // The property Name is required.
 type PreviewMetadataParam struct {
 	// Preview name
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Model display name
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
 	// Resource name
@@ -345,12 +345,12 @@ func (r *SandboxPreviewNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxPreviewGetParams struct {
-	SandboxName string `path:"sandboxName,required" json:"-"`
+	SandboxName string `path:"sandboxName" api:"required" json:"-"`
 	paramObj
 }
 
 type SandboxPreviewUpdateParams struct {
-	SandboxName string `path:"sandboxName,required" json:"-"`
+	SandboxName string `path:"sandboxName" api:"required" json:"-"`
 	// Preview of a Resource
 	Preview PreviewParam
 	paramObj
@@ -364,6 +364,6 @@ func (r *SandboxPreviewUpdateParams) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxPreviewDeleteParams struct {
-	SandboxName string `path:"sandboxName,required" json:"-"`
+	SandboxName string `path:"sandboxName" api:"required" json:"-"`
 	paramObj
 }

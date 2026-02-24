@@ -97,9 +97,9 @@ func (r *VpcEgressgatewayService) Delete(ctx context.Context, gatewayName string
 // egress IPs can be allocated from a single gateway.
 type VpcEgressgatewayNewResponse struct {
 	// Metadata for an egress gateway resource including workspace, VPC, and name
-	Metadata VpcEgressgatewayNewResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayNewResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress gateway including region and capacity configuration
-	Spec VpcEgressgatewayNewResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayNewResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -128,7 +128,7 @@ func (r *VpcEgressgatewayNewResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayNewResponseMetadata struct {
 	// Unique identifier for the egress gateway within the VPC. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -168,7 +168,7 @@ func (r *VpcEgressgatewayNewResponseMetadata) UnmarshalJSON(data []byte) error {
 // Specification for an egress gateway including region and capacity configuration
 type VpcEgressgatewayNewResponseSpec struct {
 	// Region where the egress gateway is provisioned (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Region      respjson.Field
@@ -187,9 +187,9 @@ func (r *VpcEgressgatewayNewResponseSpec) UnmarshalJSON(data []byte) error {
 // egress IPs can be allocated from a single gateway.
 type VpcEgressgatewayGetResponse struct {
 	// Metadata for an egress gateway resource including workspace, VPC, and name
-	Metadata VpcEgressgatewayGetResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayGetResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress gateway including region and capacity configuration
-	Spec VpcEgressgatewayGetResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayGetResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -218,7 +218,7 @@ func (r *VpcEgressgatewayGetResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayGetResponseMetadata struct {
 	// Unique identifier for the egress gateway within the VPC. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -258,7 +258,7 @@ func (r *VpcEgressgatewayGetResponseMetadata) UnmarshalJSON(data []byte) error {
 // Specification for an egress gateway including region and capacity configuration
 type VpcEgressgatewayGetResponseSpec struct {
 	// Region where the egress gateway is provisioned (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Region      respjson.Field
@@ -277,9 +277,9 @@ func (r *VpcEgressgatewayGetResponseSpec) UnmarshalJSON(data []byte) error {
 // egress IPs can be allocated from a single gateway.
 type VpcEgressgatewayListResponse struct {
 	// Metadata for an egress gateway resource including workspace, VPC, and name
-	Metadata VpcEgressgatewayListResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayListResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress gateway including region and capacity configuration
-	Spec VpcEgressgatewayListResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayListResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -308,7 +308,7 @@ func (r *VpcEgressgatewayListResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayListResponseMetadata struct {
 	// Unique identifier for the egress gateway within the VPC. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -348,7 +348,7 @@ func (r *VpcEgressgatewayListResponseMetadata) UnmarshalJSON(data []byte) error 
 // Specification for an egress gateway including region and capacity configuration
 type VpcEgressgatewayListResponseSpec struct {
 	// Region where the egress gateway is provisioned (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Region      respjson.Field
@@ -367,9 +367,9 @@ func (r *VpcEgressgatewayListResponseSpec) UnmarshalJSON(data []byte) error {
 // egress IPs can be allocated from a single gateway.
 type VpcEgressgatewayDeleteResponse struct {
 	// Metadata for an egress gateway resource including workspace, VPC, and name
-	Metadata VpcEgressgatewayDeleteResponseMetadata `json:"metadata,required"`
+	Metadata VpcEgressgatewayDeleteResponseMetadata `json:"metadata" api:"required"`
 	// Specification for an egress gateway including region and capacity configuration
-	Spec VpcEgressgatewayDeleteResponseSpec `json:"spec,required"`
+	Spec VpcEgressgatewayDeleteResponseSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -398,7 +398,7 @@ func (r *VpcEgressgatewayDeleteResponse) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayDeleteResponseMetadata struct {
 	// Unique identifier for the egress gateway within the VPC. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The date and time when the resource was created
 	CreatedAt string `json:"createdAt"`
 	// The user or service account who created the resource
@@ -438,7 +438,7 @@ func (r *VpcEgressgatewayDeleteResponseMetadata) UnmarshalJSON(data []byte) erro
 // Specification for an egress gateway including region and capacity configuration
 type VpcEgressgatewayDeleteResponseSpec struct {
 	// Region where the egress gateway is provisioned (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Region      respjson.Field
@@ -455,9 +455,9 @@ func (r *VpcEgressgatewayDeleteResponseSpec) UnmarshalJSON(data []byte) error {
 
 type VpcEgressgatewayNewParams struct {
 	// Metadata for an egress gateway resource including workspace, VPC, and name
-	Metadata VpcEgressgatewayNewParamsMetadata `json:"metadata,omitzero,required"`
+	Metadata VpcEgressgatewayNewParamsMetadata `json:"metadata,omitzero" api:"required"`
 	// Specification for an egress gateway including region and capacity configuration
-	Spec VpcEgressgatewayNewParamsSpec `json:"spec,omitzero,required"`
+	Spec VpcEgressgatewayNewParamsSpec `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -475,7 +475,7 @@ func (r *VpcEgressgatewayNewParams) UnmarshalJSON(data []byte) error {
 type VpcEgressgatewayNewParamsMetadata struct {
 	// Unique identifier for the egress gateway within the VPC. Must be lowercase
 	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
@@ -495,7 +495,7 @@ func (r *VpcEgressgatewayNewParamsMetadata) UnmarshalJSON(data []byte) error {
 // The property Region is required.
 type VpcEgressgatewayNewParamsSpec struct {
 	// Region where the egress gateway is provisioned (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	paramObj
 }
 
@@ -508,11 +508,11 @@ func (r *VpcEgressgatewayNewParamsSpec) UnmarshalJSON(data []byte) error {
 }
 
 type VpcEgressgatewayGetParams struct {
-	VpcName string `path:"vpcName,required" json:"-"`
+	VpcName string `path:"vpcName" api:"required" json:"-"`
 	paramObj
 }
 
 type VpcEgressgatewayDeleteParams struct {
-	VpcName string `path:"vpcName,required" json:"-"`
+	VpcName string `path:"vpcName" api:"required" json:"-"`
 	paramObj
 }

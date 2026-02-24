@@ -111,7 +111,7 @@ func (r *SandboxCodegenService) Reranking(ctx context.Context, filePath string, 
 
 // The property CodeEdit is required.
 type ApplyEditRequestParam struct {
-	CodeEdit string            `json:"codeEdit,required"`
+	CodeEdit string            `json:"codeEdit" api:"required"`
 	Model    param.Opt[string] `json:"model,omitzero"`
 	paramObj
 }
@@ -204,7 +204,7 @@ func (r *SandboxCodegenFastapplyParams) UnmarshalJSON(data []byte) error {
 
 type SandboxCodegenRerankingParams struct {
 	// Natural language query to search for
-	Query string `query:"query,required" json:"-"`
+	Query string `query:"query" api:"required" json:"-"`
 	// Regex pattern to filter files (e.g., .\*\\.ts$ for TypeScript files)
 	FilePattern param.Opt[string] `query:"filePattern,omitzero" json:"-"`
 	// Minimum relevance score (default: 0.5)
