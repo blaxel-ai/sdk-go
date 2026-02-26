@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.2 (2026-02-26)
+
+Full Changelog: [v0.12.1...v0.12.2](https://github.com/blaxel-ai/sdk-go/compare/v0.12.1...v0.12.2)
+
 ## 0.12.1 (2026-02-26)
 
 Full Changelog: [v0.12.0...v0.12.1](https://github.com/blaxel-ai/sdk-go/compare/v0.12.0...v0.12.1)
