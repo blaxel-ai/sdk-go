@@ -253,6 +253,9 @@ func WriteConfig(config Config) error {
 	buf.WriteString("workspaces:\n")
 	for _, ws := range config.Workspaces {
 		buf.WriteString(fmt.Sprintf("- name: %s\n", ws.Name))
+		if ws.ID != "" {
+			buf.WriteString(fmt.Sprintf("  id: %s\n", ws.ID))
+		}
 		buf.WriteString("  credentials:\n")
 		if ws.Credentials.APIKey != "" {
 			buf.WriteString(fmt.Sprintf("    apiKey: \"%s\"\n", ws.Credentials.APIKey))
