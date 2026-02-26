@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,6 +28,7 @@ type Config struct {
 // WorkspaceConfig represents a workspace configuration
 type WorkspaceConfig struct {
 	Name        string      `yaml:"name"`
+	ID          string      `yaml:"id,omitempty"`
 	Credentials Credentials `yaml:"credentials"`
 	Env         string      `yaml:"env"`
 }
@@ -156,13 +158,34 @@ func LoadCredentials(workspaceName string) (Credentials, error) {
 	return Credentials{}, nil
 }
 
-// SaveCredentials saves updated credentials for a specific workspace
+// SaveCredentials saves updated credentials for a specific workspace.
+// Also fetches and persists the workspace ID (best-effort).
 func SaveCredentials(workspaceName string, creds Credentials) error {
 	config, err := LoadConfig()
 	if err != nil {
-		// Initialize empty config if it doesn't exist
 		config = Config{
 			Workspaces: []WorkspaceConfig{},
+		}
+	}
+
+	// Fetch workspace ID (best-effort)
+	var workspaceID string
+	if workspaceName != "" {
+		opts := []option.RequestOption{
+			option.WithBaseURL(GetBaseURL()),
+			option.WithWorkspace(workspaceName),
+		}
+		if creds.APIKey != "" {
+			opts = append(opts, option.WithAPIKey(creds.APIKey))
+		} else if creds.AccessToken != "" {
+			opts = append(opts, option.WithAccessToken(creds.AccessToken))
+		} else if creds.ClientCredentials != "" {
+			opts = append(opts, option.WithClientCredentials(creds.ClientCredentials))
+		}
+		client := NewClient(opts...)
+		ws, err := client.Workspaces.Get(context.Background(), workspaceName)
+		if err == nil && ws != nil {
+			workspaceID = ws.ID
 		}
 	}
 
@@ -171,6 +194,9 @@ func SaveCredentials(workspaceName string, creds Credentials) error {
 	for i, workspace := range config.Workspaces {
 		if workspace.Name == workspaceName {
 			config.Workspaces[i].Credentials = creds
+			if workspaceID != "" {
+				config.Workspaces[i].ID = workspaceID
+			}
 			found = true
 			break
 		}
@@ -180,6 +206,7 @@ func SaveCredentials(workspaceName string, creds Credentials) error {
 	if !found {
 		configWorkspace := WorkspaceConfig{
 			Name:        workspaceName,
+			ID:          workspaceID,
 			Credentials: creds,
 		}
 		environment := GetEnvironment()
