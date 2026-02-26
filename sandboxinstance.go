@@ -18,6 +18,7 @@ import (
 
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"golang.org/x/sync/errgroup"
 )
 
 // ============================================================================
@@ -78,6 +79,14 @@ type ProcessStreamOptions struct {
 // StreamControl provides control over a streaming operation
 type StreamControl struct {
 	Close func()
+	done  chan struct{}
+}
+
+// Wait blocks until the streaming operation completes.
+func (sc *StreamControl) Wait() {
+	if sc.done != nil {
+		<-sc.done
+	}
 }
 
 // WatchEvent represents a filesystem change event
@@ -392,8 +401,10 @@ func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier str
 // expect to parse the full response, which doesn't work for streaming.
 func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifier string, opts ProcessStreamOptions) *StreamControl {
 	ctx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
 
 	go func() {
+		defer close(done)
 		defer cancel()
 
 		path := fmt.Sprintf("process/%s/logs/stream", identifier)
@@ -471,6 +482,7 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 
 	return &StreamControl{
 		Close: cancel,
+		done:  done,
 	}
 }
 
@@ -783,8 +795,10 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
 
 	go func() {
+		defer close(done)
 		defer cancel()
 
 		urlPath := fmt.Sprintf("watch/filesystem/%s", path)
@@ -874,6 +888,7 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 
 	return &StreamControl{
 		Close: cancel,
+		done:  done,
 	}
 }
 
@@ -945,32 +960,43 @@ func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, pat
 		return nil, fmt.Errorf("failed to get upload ID from initiate response")
 	}
 
-	// Upload parts
+	// Upload parts in parallel
 	numParts := (len(data) + chunkSize - 1) / chunkSize
-	parts := make([]PartInfoParam, 0, numParts)
+	parts := make([]PartInfoParam, numParts)
+
+	g, gctx := errgroup.WithContext(ctx)
+	g.SetLimit(20)
 
 	for i := 0; i < numParts; i++ {
-		partNumber := i + 1
-		start := i * chunkSize
-		end := start + chunkSize
-		if end > len(data) {
-			end = len(data)
-		}
-		chunk := data[start:end]
+		i := i // capture loop variable
+		g.Go(func() error {
+			partNumber := i + 1
+			start := i * chunkSize
+			end := start + chunkSize
+			if end > len(data) {
+				end = len(data)
+			}
+			chunk := data[start:end]
 
-		partResp, err := r.service.Multipart.UploadPart(ctx, uploadID, SandboxFilesystemMultipartUploadPartParams{
-			PartNumber: int64(partNumber),
-			File:       bytes.NewReader(chunk),
-		}, opts...)
-		if err != nil {
-			_, _ = r.service.Multipart.Abort(ctx, uploadID, opts...)
-			return nil, fmt.Errorf("failed to upload part %d: %w", partNumber, err)
-		}
+			partResp, err := r.service.Multipart.UploadPart(gctx, uploadID, SandboxFilesystemMultipartUploadPartParams{
+				PartNumber: int64(partNumber),
+				File:       bytes.NewReader(chunk),
+			}, opts...)
+			if err != nil {
+				return fmt.Errorf("failed to upload part %d: %w", partNumber, err)
+			}
 
-		parts = append(parts, PartInfoParam{
-			PartNumber: Int(int64(partNumber)),
-			Etag:       String(partResp.Etag),
+			parts[i] = PartInfoParam{
+				PartNumber: Int(int64(partNumber)),
+				Etag:       String(partResp.Etag),
+			}
+			return nil
 		})
+	}
+
+	if err := g.Wait(); err != nil {
+		_, _ = r.service.Multipart.Abort(ctx, uploadID, opts...)
+		return nil, err
 	}
 
 	// Complete multipart upload

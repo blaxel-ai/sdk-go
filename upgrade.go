@@ -47,7 +47,7 @@ func (r *UpgradeService) Trigger(ctx context.Context, body UpgradeTriggerParams,
 }
 
 type UpgradeTriggerResponse struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Path    string `json:"path"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {

@@ -1,6 +1,6 @@
 module github.com/blaxel-ai/sdk-go
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/gorilla/websocket v1.5.3
@@ -16,4 +16,5 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
 )

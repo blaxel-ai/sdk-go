@@ -101,10 +101,10 @@ func (r *VolumeService) Delete(ctx context.Context, volumeName string, opts ...o
 type Volume struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Immutable volume configuration set at creation time (size and region cannot be
 	// changed after creation)
-	Spec VolumeSpec `json:"spec,required"`
+	Spec VolumeSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Current runtime state of the volume including attachment status
@@ -199,10 +199,10 @@ func (r *VolumeState) UnmarshalJSON(data []byte) error {
 type VolumeParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Immutable volume configuration set at creation time (size and region cannot be
 	// changed after creation)
-	Spec VolumeSpecParam `json:"spec,omitzero,required"`
+	Spec VolumeSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 

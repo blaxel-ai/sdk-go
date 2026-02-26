@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.12.0 (2026-02-25)
+
+Full Changelog: [v0.11.0...v0.12.0](https://github.com/blaxel-ai/sdk-go/compare/v0.11.0...v0.12.0)
+
+### Features
+
+* Add agent drive management functionality ([0068eb5](https://github.com/blaxel-ai/sdk-go/commit/0068eb5067f5b7ba90326aa215a4cf0442b8bbe7))
+* Add mk2 to RuntimeGeneration enum in ModelRuntime ([f6d98c6](https://github.com/blaxel-ai/sdk-go/commit/f6d98c605e1e8c874af918d5e70a900c36d4ffca))
+* Add reference field to FunctionSpec for MCP code mode with base64 normalization ([1bf7385](https://github.com/blaxel-ai/sdk-go/commit/1bf73854206fbf184bdc98903005c1880e3c1c72))
+
+
+### Bug Fixes
+
+* allow canceling a request while it is waiting to retry ([d3aff84](https://github.com/blaxel-ai/sdk-go/commit/d3aff84df378e10fc07caa28dece88a71b883f93))
+
+
+### Chores
+
+* **internal:** move custom custom `json` tags to `api` ([8f3951c](https://github.com/blaxel-ai/sdk-go/commit/8f3951cdc0a7f52ba2e6b213c65197ef905bee44))
+* update mock server docs ([e4ff897](https://github.com/blaxel-ai/sdk-go/commit/e4ff89787282be3a2fef652c4067f0bf411809e3))
+
 ## 0.11.0 (2026-02-14)
 
 Full Changelog: [v0.10.0...v0.11.0](https://github.com/blaxel-ai/sdk-go/compare/v0.10.0...v0.11.0)

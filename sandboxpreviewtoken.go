@@ -92,9 +92,9 @@ func (r *SandboxPreviewTokenService) Delete(ctx context.Context, tokenName strin
 // Token for a Preview
 type PreviewToken struct {
 	// PreviewTokenMetadata
-	Metadata PreviewTokenMetadata `json:"metadata,required"`
+	Metadata PreviewTokenMetadata `json:"metadata" api:"required"`
 	// Spec for a Preview Token
-	Spec PreviewTokenSpec `json:"spec,required"`
+	Spec PreviewTokenSpec `json:"spec" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
@@ -122,7 +122,7 @@ func (r PreviewToken) ToParam() PreviewTokenParam {
 // PreviewTokenMetadata
 type PreviewTokenMetadata struct {
 	// Token name
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Preview name
 	PreviewName string `json:"previewName"`
 	// Resource name
@@ -178,9 +178,9 @@ func (r *PreviewTokenSpec) UnmarshalJSON(data []byte) error {
 // The properties Metadata, Spec are required.
 type PreviewTokenParam struct {
 	// PreviewTokenMetadata
-	Metadata PreviewTokenMetadataParam `json:"metadata,omitzero,required"`
+	Metadata PreviewTokenMetadataParam `json:"metadata,omitzero" api:"required"`
 	// Spec for a Preview Token
-	Spec PreviewTokenSpecParam `json:"spec,omitzero,required"`
+	Spec PreviewTokenSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -197,7 +197,7 @@ func (r *PreviewTokenParam) UnmarshalJSON(data []byte) error {
 // The property Name is required.
 type PreviewTokenMetadataParam struct {
 	// Token name
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Preview name
 	PreviewName param.Opt[string] `json:"previewName,omitzero"`
 	// Resource name
@@ -250,7 +250,7 @@ func (r *SandboxPreviewTokenDeleteResponse) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxPreviewTokenNewParams struct {
-	SandboxName string `path:"sandboxName,required" json:"-"`
+	SandboxName string `path:"sandboxName" api:"required" json:"-"`
 	// Token for a Preview
 	PreviewToken PreviewTokenParam
 	paramObj
@@ -264,12 +264,12 @@ func (r *SandboxPreviewTokenNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxPreviewTokenGetParams struct {
-	SandboxName string `path:"sandboxName,required" json:"-"`
+	SandboxName string `path:"sandboxName" api:"required" json:"-"`
 	paramObj
 }
 
 type SandboxPreviewTokenDeleteParams struct {
-	SandboxName string `path:"sandboxName,required" json:"-"`
-	PreviewName string `path:"previewName,required" json:"-"`
+	SandboxName string `path:"sandboxName" api:"required" json:"-"`
+	PreviewName string `path:"previewName" api:"required" json:"-"`
 	paramObj
 }

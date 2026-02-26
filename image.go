@@ -91,8 +91,8 @@ func (r *ImageService) Cleanup(ctx context.Context, opts ...option.RequestOption
 }
 
 type Image struct {
-	Metadata ImageMetadata `json:"metadata,required"`
-	Spec     ImageSpec     `json:"spec,required"`
+	Metadata ImageMetadata `json:"metadata" api:"required"`
+	Spec     ImageSpec     `json:"spec" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
@@ -211,11 +211,11 @@ func (r *ImageCleanupResponse) UnmarshalJSON(data []byte) error {
 }
 
 type ImageGetParams struct {
-	ResourceType string `path:"resourceType,required" json:"-"`
+	ResourceType string `path:"resourceType" api:"required" json:"-"`
 	paramObj
 }
 
 type ImageDeleteParams struct {
-	ResourceType string `path:"resourceType,required" json:"-"`
+	ResourceType string `path:"resourceType" api:"required" json:"-"`
 	paramObj
 }

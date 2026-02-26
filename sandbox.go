@@ -200,7 +200,7 @@ func (r *ExpirationPolicyParam) UnmarshalJSON(data []byte) error {
 // A port for a resource
 type Port struct {
 	// The target port of the port
-	Target int64 `json:"target,required"`
+	Target int64 `json:"target" api:"required"`
 	// The name of the port
 	Name string `json:"name"`
 	// The protocol of the port
@@ -247,7 +247,7 @@ const (
 // The property Target is required.
 type PortParam struct {
 	// The target port of the port
-	Target int64 `json:"target,required"`
+	Target int64 `json:"target" api:"required"`
 	// The name of the port
 	Name param.Opt[string] `json:"name,omitzero"`
 	// The protocol of the port
@@ -271,10 +271,10 @@ func (r *PortParam) UnmarshalJSON(data []byte) error {
 type Sandbox struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata,required"`
+	Metadata Metadata `json:"metadata" api:"required"`
 	// Configuration for a sandbox including its image, memory, ports, region, and
 	// lifecycle policies
-	Spec SandboxSpec `json:"spec,required"`
+	Spec SandboxSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Time in seconds until the sandbox is automatically deleted based on TTL and
@@ -323,10 +323,10 @@ func (r Sandbox) ToParam() SandboxParam {
 type SandboxParam struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero,required"`
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Configuration for a sandbox including its image, memory, ports, region, and
 	// lifecycle policies
-	Spec SandboxSpecParam `json:"spec,omitzero,required"`
+	Spec SandboxSpecParam `json:"spec,omitzero" api:"required"`
 	paramObj
 }
 
@@ -559,10 +559,10 @@ func (r SandboxSpec) ToParam() SandboxSpecParam {
 type SandboxSpecNetwork struct {
 	// Name of the egress gateway in the VPC. Must be specified together with vpcName
 	// and egressIpName.
-	EgressGatewayName string `json:"egressGatewayName,required"`
+	EgressGatewayName string `json:"egressGatewayName" api:"required"`
 	// Name of the VPC where the egress gateway is provisioned. Must be specified
 	// together with egressGatewayName and egressIpName.
-	VpcName string `json:"vpcName,required"`
+	VpcName string `json:"vpcName" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		EgressGatewayName respjson.Field
@@ -616,10 +616,10 @@ func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
 type SandboxSpecNetworkParam struct {
 	// Name of the egress gateway in the VPC. Must be specified together with vpcName
 	// and egressIpName.
-	EgressGatewayName string `json:"egressGatewayName,required"`
+	EgressGatewayName string `json:"egressGatewayName" api:"required"`
 	// Name of the VPC where the egress gateway is provisioned. Must be specified
 	// together with egressGatewayName and egressIpName.
-	VpcName string `json:"vpcName,required"`
+	VpcName string `json:"vpcName" api:"required"`
 	paramObj
 }
 
