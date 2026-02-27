@@ -93,6 +93,30 @@ func (r *DriveService) Delete(ctx context.Context, driveName string, opts ...opt
 	return
 }
 
+// Issues a short-lived JWT access token scoped to a specific drive. The token can
+// be used as Bearer authentication for direct S3 operations against the drive's
+// SeaweedFS bucket.
+func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opts ...option.RequestOption) (res *DriveNewAccessTokenResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if driveName == "" {
+		err = errors.New("missing required driveName parameter")
+		return
+	}
+	path := fmt.Sprintf("drives/%s/access-token", driveName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
+	return
+}
+
+// Returns the JSON Web Key Set containing the Ed25519 public key used to verify
+// drive access tokens. SeaweedFS or other S3-compatible storage can use this
+// endpoint to validate Bearer tokens.
+func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption) (res *DriveGetJwksResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "drives/jwks.json"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
 // Drive providing persistent storage that can be attached to agents, functions,
 // and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
 // runtime via the sbx API.
@@ -211,7 +235,45 @@ func (r *DriveSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type DriveState map[string]any
+// Current runtime state of the drive
+type DriveState struct {
+	// S3-compatible endpoint URL for accessing drive contents
+	S3URL string `json:"s3Url"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		S3URL       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveState) RawJSON() string { return r.JSON.raw }
+func (r *DriveState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this DriveState to a DriveStateParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// DriveStateParam.Overrides()
+func (r DriveState) ToParam() DriveStateParam {
+	return param.Override[DriveStateParam](json.RawMessage(r.RawJSON()))
+}
+
+// Current runtime state of the drive
+type DriveStateParam struct {
+	paramObj
+}
+
+func (r DriveStateParam) MarshalJSON() (data []byte, err error) {
+	type shadow DriveStateParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *DriveStateParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 type DriveDeleteResponse struct {
 	Message string `json:"message"`
@@ -228,6 +290,42 @@ type DriveDeleteResponse struct {
 // Returns the unmodified JSON received from the API
 func (r DriveDeleteResponse) RawJSON() string { return r.JSON.raw }
 func (r *DriveDeleteResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type DriveNewAccessTokenResponse struct {
+	AccessToken string  `json:"access_token"`
+	ExpiresIn   float64 `json:"expires_in"`
+	TokenType   string  `json:"token_type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AccessToken respjson.Field
+		ExpiresIn   respjson.Field
+		TokenType   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveNewAccessTokenResponse) RawJSON() string { return r.JSON.raw }
+func (r *DriveNewAccessTokenResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type DriveGetJwksResponse struct {
+	Keys []any `json:"keys"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Keys        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveGetJwksResponse) RawJSON() string { return r.JSON.raw }
+func (r *DriveGetJwksResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
