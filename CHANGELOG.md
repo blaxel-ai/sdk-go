@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.13.0 (2026-03-02)
+
+Full Changelog: [v0.12.2...v0.13.0](https://github.com/blaxel-ai/sdk-go/compare/v0.12.2...v0.13.0)
+
+### Features
+
+* Majoffre/drive browser ([3e5c96f](https://github.com/blaxel-ai/sdk-go/commit/3e5c96f00ad2595ac8c4f78a212e39fd237fcf74))
+
+
+### Chores
+
+* **ci:** add build step ([78735fc](https://github.com/blaxel-ai/sdk-go/commit/78735fc0413ece828e7290d564992d80e62431ee))
+
 ## 0.12.2 (2026-02-26)
 
 Full Changelog: [v0.12.1...v0.12.2](https://github.com/blaxel-ai/sdk-go/compare/v0.12.1...v0.12.2)
