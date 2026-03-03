@@ -339,8 +339,6 @@ type FunctionSpec struct {
 	// When true, the function is publicly accessible without authentication. Only
 	// available for mk3 generation.
 	Public bool `json:"public"`
-	// Base64-encoded API reference for MCP code mode
-	Reference string `json:"reference"`
 	// Revision configuration
 	Revision RevisionConfiguration `json:"revision"`
 	// Runtime configuration defining how the MCP server function is deployed and
@@ -354,7 +352,6 @@ type FunctionSpec struct {
 		IntegrationConnections respjson.Field
 		Policies               respjson.Field
 		Public                 respjson.Field
-		Reference              respjson.Field
 		Revision               respjson.Field
 		Runtime                respjson.Field
 		Triggers               respjson.Field
@@ -385,11 +382,9 @@ type FunctionSpecParam struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	// When true, the function is publicly accessible without authentication. Only
 	// available for mk3 generation.
-	Public param.Opt[bool] `json:"public,omitzero"`
-	// Base64-encoded API reference for MCP code mode
-	Reference              param.Opt[string] `json:"reference,omitzero"`
-	IntegrationConnections []string          `json:"integrationConnections,omitzero"`
-	Policies               []string          `json:"policies,omitzero"`
+	Public                 param.Opt[bool] `json:"public,omitzero"`
+	IntegrationConnections []string        `json:"integrationConnections,omitzero"`
+	Policies               []string        `json:"policies,omitzero"`
 	// Revision configuration
 	Revision RevisionConfigurationParam `json:"revision,omitzero"`
 	// Runtime configuration defining how the MCP server function is deployed and
