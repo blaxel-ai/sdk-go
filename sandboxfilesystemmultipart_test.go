@@ -161,7 +161,7 @@ func TestSandboxFilesystemMultipartUploadPart(t *testing.T) {
 		"uploadId",
 		blaxel.SandboxFilesystemMultipartUploadPartParams{
 			PartNumber: 0,
-			File:       io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+			File:       io.Reader(bytes.NewBuffer([]byte("Example data"))),
 		},
 	)
 	if err != nil {
