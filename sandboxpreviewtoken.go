@@ -42,15 +42,15 @@ func (r *SandboxPreviewTokenService) New(ctx context.Context, previewName string
 	opts = slices.Concat(r.Options, opts)
 	if params.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	if previewName == "" {
 		err = errors.New("missing required previewName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews/%s/tokens", params.SandboxName, previewName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // Gets tokens for a Sandbox Preview.
@@ -58,15 +58,15 @@ func (r *SandboxPreviewTokenService) Get(ctx context.Context, previewName string
 	opts = slices.Concat(r.Options, opts)
 	if query.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	if previewName == "" {
 		err = errors.New("missing required previewName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews/%s/tokens", query.SandboxName, previewName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Deletes a token for a Sandbox Preview by name.
@@ -74,19 +74,19 @@ func (r *SandboxPreviewTokenService) Delete(ctx context.Context, tokenName strin
 	opts = slices.Concat(r.Options, opts)
 	if body.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	if body.PreviewName == "" {
 		err = errors.New("missing required previewName parameter")
-		return
+		return nil, err
 	}
 	if tokenName == "" {
 		err = errors.New("missing required tokenName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews/%s/tokens/%s", body.SandboxName, body.PreviewName, tokenName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Token for a Preview

@@ -46,11 +46,11 @@ func (r *JobExecutionService) New(ctx context.Context, jobID string, body JobExe
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/executions", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a specific job execution including status,
@@ -59,15 +59,15 @@ func (r *JobExecutionService) Get(ctx context.Context, executionID string, query
 	opts = slices.Concat(r.Options, opts)
 	if query.JobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	if executionID == "" {
 		err = errors.New("missing required executionId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/executions/%s", query.JobID, executionID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns paginated list of executions for a batch job, sorted by creation time.
@@ -76,11 +76,11 @@ func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobE
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/executions", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Cancels a running job execution. Tasks already in progress will complete, but no
@@ -90,15 +90,15 @@ func (r *JobExecutionService) Delete(ctx context.Context, executionID string, bo
 	opts = slices.Concat(r.Options, opts)
 	if body.JobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	if executionID == "" {
 		err = errors.New("missing required executionId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/executions/%s", body.JobID, executionID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Response returned when a job execution is successfully created. Contains

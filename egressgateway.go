@@ -38,7 +38,7 @@ func (r *EgressgatewayService) List(ctx context.Context, opts ...option.RequestO
 	opts = slices.Concat(r.Options, opts)
 	path := "egressgateways"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // An egress gateway that manages outbound traffic routing within a VPC. Multiple

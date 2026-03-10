@@ -46,7 +46,7 @@ func (r *VolumeTemplateService) New(ctx context.Context, params VolumeTemplateNe
 	opts = slices.Concat(r.Options, opts)
 	path := "volume_templates"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns a volume template by name.
@@ -54,11 +54,11 @@ func (r *VolumeTemplateService) Get(ctx context.Context, volumeTemplateName stri
 	opts = slices.Concat(r.Options, opts)
 	if volumeTemplateName == "" {
 		err = errors.New("missing required volumeTemplateName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volume_templates/%s", volumeTemplateName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all volume templates in the workspace. Volume templates contain
@@ -67,7 +67,7 @@ func (r *VolumeTemplateService) List(ctx context.Context, opts ...option.Request
 	opts = slices.Concat(r.Options, opts)
 	path := "volume_templates"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Deletes a volume template by name.
@@ -75,11 +75,11 @@ func (r *VolumeTemplateService) Delete(ctx context.Context, volumeTemplateName s
 	opts = slices.Concat(r.Options, opts)
 	if volumeTemplateName == "" {
 		err = errors.New("missing required volumeTemplateName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volume_templates/%s", volumeTemplateName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Deletes a specific version of a volume template.
@@ -87,15 +87,15 @@ func (r *VolumeTemplateService) DeleteVersion(ctx context.Context, versionName s
 	opts = slices.Concat(r.Options, opts)
 	if body.VolumeTemplateName == "" {
 		err = errors.New("missing required volumeTemplateName parameter")
-		return
+		return nil, err
 	}
 	if versionName == "" {
 		err = errors.New("missing required versionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volume_templates/%s/versions/%s", body.VolumeTemplateName, versionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Creates or updates a volume template.
@@ -103,11 +103,11 @@ func (r *VolumeTemplateService) Upsert(ctx context.Context, volumeTemplateName s
 	opts = slices.Concat(r.Options, opts)
 	if volumeTemplateName == "" {
 		err = errors.New("missing required volumeTemplateName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volume_templates/%s", volumeTemplateName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // Volume template for creating pre-configured volumes

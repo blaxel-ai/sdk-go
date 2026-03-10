@@ -42,15 +42,15 @@ func (r *ImageService) Get(ctx context.Context, imageName string, query ImageGet
 	opts = slices.Concat(r.Options, opts)
 	if query.ResourceType == "" {
 		err = errors.New("missing required resourceType parameter")
-		return
+		return nil, err
 	}
 	if imageName == "" {
 		err = errors.New("missing required imageName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("images/%s/%s", query.ResourceType, imageName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all container images stored in the workspace registry, grouped by
@@ -60,7 +60,7 @@ func (r *ImageService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Deletes a container image and all its tags from the workspace registry. Will
@@ -69,15 +69,15 @@ func (r *ImageService) Delete(ctx context.Context, imageName string, body ImageD
 	opts = slices.Concat(r.Options, opts)
 	if body.ResourceType == "" {
 		err = errors.New("missing required resourceType parameter")
-		return
+		return nil, err
 	}
 	if imageName == "" {
 		err = errors.New("missing required imageName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("images/%s/%s", body.ResourceType, imageName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Cleans up unused container images in the workspace registry. Only removes images
@@ -87,7 +87,7 @@ func (r *ImageService) Cleanup(ctx context.Context, opts ...option.RequestOption
 	opts = slices.Concat(r.Options, opts)
 	path := "images"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Image struct {

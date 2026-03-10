@@ -55,7 +55,7 @@ func (r *SandboxService) New(ctx context.Context, params SandboxNewParams, opts 
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a sandbox including its configuration,
@@ -64,11 +64,11 @@ func (r *SandboxService) Get(ctx context.Context, sandboxName string, query Sand
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a sandbox's configuration. Note that certain changes (like image or
@@ -78,11 +78,11 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all sandboxes in the workspace. Each sandbox includes its configuration,
@@ -91,7 +91,7 @@ func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption)
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes a sandbox and all its data. If no volumes are attached, this
@@ -100,11 +100,11 @@ func (r *SandboxService) Delete(ctx context.Context, sandboxName string, opts ..
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all pre-built sandbox templates available in the Blaxel Hub. These
@@ -114,7 +114,7 @@ func (r *SandboxService) GetHub(ctx context.Context, opts ...option.RequestOptio
 	opts = slices.Concat(r.Options, opts)
 	path := "sandbox/hub"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Expiration policy for automatic sandbox cleanup based on time conditions

@@ -44,7 +44,7 @@ func (r *IntegrationConnectionService) New(ctx context.Context, body Integration
 	opts = slices.Concat(r.Options, opts)
 	path := "integrations/connections"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about an integration connection including its
@@ -53,11 +53,11 @@ func (r *IntegrationConnectionService) Get(ctx context.Context, connectionName s
 	opts = slices.Concat(r.Options, opts)
 	if connectionName == "" {
 		err = errors.New("missing required connectionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("integrations/connections/%s", connectionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an integration connection's configuration or credentials. Changes take
@@ -66,11 +66,11 @@ func (r *IntegrationConnectionService) Update(ctx context.Context, connectionNam
 	opts = slices.Concat(r.Options, opts)
 	if connectionName == "" {
 		err = errors.New("missing required connectionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("integrations/connections/%s", connectionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all configured integration connections in the workspace. Each connection
@@ -80,7 +80,7 @@ func (r *IntegrationConnectionService) List(ctx context.Context, opts ...option.
 	opts = slices.Concat(r.Options, opts)
 	path := "integrations/connections"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes an integration connection. Any resources using this
@@ -89,11 +89,11 @@ func (r *IntegrationConnectionService) Delete(ctx context.Context, connectionNam
 	opts = slices.Concat(r.Options, opts)
 	if connectionName == "" {
 		err = errors.New("missing required connectionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("integrations/connections/%s", connectionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Configured connection to an external service (LLM provider, API, SaaS, database)

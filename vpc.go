@@ -42,7 +42,7 @@ func (r *VpcService) New(ctx context.Context, body VpcNewParams, opts ...option.
 	opts = slices.Concat(r.Options, opts)
 	path := "vpcs"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get a VPC by name
@@ -50,11 +50,11 @@ func (r *VpcService) Get(ctx context.Context, vpcName string, opts ...option.Req
 	opts = slices.Concat(r.Options, opts)
 	if vpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s", vpcName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List all VPCs in the workspace
@@ -62,7 +62,7 @@ func (r *VpcService) List(ctx context.Context, opts ...option.RequestOption) (re
 	opts = slices.Concat(r.Options, opts)
 	path := "vpcs"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a VPC
@@ -70,11 +70,11 @@ func (r *VpcService) Delete(ctx context.Context, vpcName string, opts ...option.
 	opts = slices.Concat(r.Options, opts)
 	if vpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s", vpcName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Virtual Private Cloud scoped to a workspace for network isolation and dedicated

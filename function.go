@@ -47,7 +47,7 @@ func (r *FunctionService) New(ctx context.Context, body FunctionNewParams, opts 
 	opts = slices.Concat(r.Options, opts)
 	path := "functions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about an MCP server function including its
@@ -56,11 +56,11 @@ func (r *FunctionService) Get(ctx context.Context, functionName string, query Fu
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an MCP server function's configuration and triggers a new deployment.
@@ -70,11 +70,11 @@ func (r *FunctionService) Update(ctx context.Context, functionName string, body 
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all MCP server functions deployed in the workspace. Each function
@@ -84,7 +84,7 @@ func (r *FunctionService) List(ctx context.Context, opts ...option.RequestOption
 	opts = slices.Concat(r.Options, opts)
 	path := "functions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes an MCP server function and all its deployment history. Any
@@ -93,11 +93,11 @@ func (r *FunctionService) Delete(ctx context.Context, functionName string, opts 
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns revisions for a function by name.
@@ -105,11 +105,11 @@ func (r *FunctionService) ListRevisions(ctx context.Context, functionName string
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s/revisions", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // MCP server deployment that exposes tools for AI agents via the Model Context

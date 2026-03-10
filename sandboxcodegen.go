@@ -76,11 +76,11 @@ func (r *SandboxCodegenService) Fastapply(ctx context.Context, filePath string, 
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("codegen/fastapply/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Uses Relace's code reranking model to find the most relevant files for a given
@@ -102,11 +102,11 @@ func (r *SandboxCodegenService) Reranking(ctx context.Context, filePath string, 
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("codegen/reranking/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // The property CodeEdit is required.

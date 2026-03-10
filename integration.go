@@ -42,11 +42,11 @@ func (r *IntegrationService) Get(ctx context.Context, integrationName string, op
 	opts = slices.Concat(r.Options, opts)
 	if integrationName == "" {
 		err = errors.New("missing required integrationName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("integrations/%s", integrationName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Integration

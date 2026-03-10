@@ -48,7 +48,7 @@ func (r *SandboxFilesystemMultipartService) List(ctx context.Context, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	path := "filesystem-multipart"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Abort a multipart upload and clean up all parts
@@ -56,11 +56,11 @@ func (r *SandboxFilesystemMultipartService) Abort(ctx context.Context, uploadID 
 	opts = slices.Concat(r.Options, opts)
 	if uploadID == "" {
 		err = errors.New("missing required uploadId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-multipart/%s/abort", uploadID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Complete a multipart upload by assembling all parts
@@ -68,11 +68,11 @@ func (r *SandboxFilesystemMultipartService) Complete(ctx context.Context, upload
 	opts = slices.Concat(r.Options, opts)
 	if uploadID == "" {
 		err = errors.New("missing required uploadId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-multipart/%s/complete", uploadID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Initiate a multipart upload session for a file
@@ -80,11 +80,11 @@ func (r *SandboxFilesystemMultipartService) Initiate(ctx context.Context, filePa
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-multipart/initiate/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // List all uploaded parts for a multipart upload
@@ -92,11 +92,11 @@ func (r *SandboxFilesystemMultipartService) ListParts(ctx context.Context, uploa
 	opts = slices.Concat(r.Options, opts)
 	if uploadID == "" {
 		err = errors.New("missing required uploadId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-multipart/%s/parts", uploadID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Upload a single part of a multipart upload
@@ -104,11 +104,11 @@ func (r *SandboxFilesystemMultipartService) UploadPart(ctx context.Context, uplo
 	opts = slices.Concat(r.Options, opts)
 	if uploadID == "" {
 		err = errors.New("missing required uploadId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-multipart/%s/part", uploadID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 type CompleteRequestParam struct {

@@ -40,11 +40,11 @@ func (r *TemplateService) Get(ctx context.Context, templateName string, opts ...
 	opts = slices.Concat(r.Options, opts)
 	if templateName == "" {
 		err = errors.New("missing required templateName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("templates/%s", templateName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all deployment templates available for creating agents, functions, and
@@ -53,7 +53,7 @@ func (r *TemplateService) List(ctx context.Context, opts ...option.RequestOption
 	opts = slices.Concat(r.Options, opts)
 	path := "templates"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Blaxel template

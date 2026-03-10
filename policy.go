@@ -45,7 +45,7 @@ func (r *PolicyService) New(ctx context.Context, body PolicyNewParams, opts ...o
 	opts = slices.Concat(r.Options, opts)
 	path := "policies"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a governance policy including its type
@@ -55,11 +55,11 @@ func (r *PolicyService) Get(ctx context.Context, policyName string, opts ...opti
 	opts = slices.Concat(r.Options, opts)
 	if policyName == "" {
 		err = errors.New("missing required policyName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("policies/%s", policyName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a governance policy's restrictions. Changes take effect on the next
@@ -68,11 +68,11 @@ func (r *PolicyService) Update(ctx context.Context, policyName string, body Poli
 	opts = slices.Concat(r.Options, opts)
 	if policyName == "" {
 		err = errors.New("missing required policyName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("policies/%s", policyName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all governance policies in the workspace. Policies control deployment
@@ -81,7 +81,7 @@ func (r *PolicyService) List(ctx context.Context, opts ...option.RequestOption) 
 	opts = slices.Concat(r.Options, opts)
 	path := "policies"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes a governance policy. Resources using this policy will need
@@ -90,11 +90,11 @@ func (r *PolicyService) Delete(ctx context.Context, policyName string, opts ...o
 	opts = slices.Concat(r.Options, opts)
 	if policyName == "" {
 		err = errors.New("missing required policyName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("policies/%s", policyName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Rule that controls how a deployment is made and served (e.g. location

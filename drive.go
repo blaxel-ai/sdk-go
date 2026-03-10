@@ -42,7 +42,7 @@ func (r *DriveService) New(ctx context.Context, body DriveNewParams, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	path := "drives"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieves details of a specific drive including its status and events.
@@ -50,11 +50,11 @@ func (r *DriveService) Get(ctx context.Context, driveName string, opts ...option
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
 		err = errors.New("missing required driveName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("drives/%s", driveName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an existing drive. Metadata fields like displayName and labels can be
@@ -63,11 +63,11 @@ func (r *DriveService) Update(ctx context.Context, driveName string, body DriveU
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
 		err = errors.New("missing required driveName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("drives/%s", driveName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all drives in the workspace. Drives provide persistent storage that can
@@ -76,7 +76,7 @@ func (r *DriveService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = slices.Concat(r.Options, opts)
 	path := "drives"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Deletes a drive immediately. The drive record is removed from the database
@@ -85,11 +85,11 @@ func (r *DriveService) Delete(ctx context.Context, driveName string, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
 		err = errors.New("missing required driveName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("drives/%s", driveName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Issues a short-lived JWT access token scoped to a specific drive. The token can
@@ -99,11 +99,11 @@ func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opt
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
 		err = errors.New("missing required driveName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("drives/%s/access-token", driveName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns the JSON Web Key Set containing the Ed25519 public key used to verify
@@ -113,7 +113,7 @@ func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption
 	opts = slices.Concat(r.Options, opts)
 	path := "drives/jwks.json"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Immutable drive configuration set at creation time
