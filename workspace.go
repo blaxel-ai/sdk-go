@@ -67,6 +67,8 @@ type Workspace struct {
 	CreatedBy string `json:"createdBy"`
 	// Workspace display name
 	DisplayName string `json:"displayName"`
+	// Group-to-role mappings for directory sync (SCIM) group membership
+	GroupMappings []WorkspaceGroupMapping `json:"groupMappings"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
@@ -90,27 +92,51 @@ type Workspace struct {
 	UpdatedBy string `json:"updatedBy"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID           respjson.Field
-		AccountID    respjson.Field
-		CreatedAt    respjson.Field
-		CreatedBy    respjson.Field
-		DisplayName  respjson.Field
-		Labels       respjson.Field
-		Name         respjson.Field
-		Region       respjson.Field
-		Runtime      respjson.Field
-		Status       respjson.Field
-		StatusReason respjson.Field
-		UpdatedAt    respjson.Field
-		UpdatedBy    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
+		ID            respjson.Field
+		AccountID     respjson.Field
+		CreatedAt     respjson.Field
+		CreatedBy     respjson.Field
+		DisplayName   respjson.Field
+		GroupMappings respjson.Field
+		Labels        respjson.Field
+		Name          respjson.Field
+		Region        respjson.Field
+		Runtime       respjson.Field
+		Status        respjson.Field
+		StatusReason  respjson.Field
+		UpdatedAt     respjson.Field
+		UpdatedBy     respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
 func (r Workspace) RawJSON() string { return r.JSON.raw }
 func (r *Workspace) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Mapping between an IdP group and a workspace role for directory sync
+type WorkspaceGroupMapping struct {
+	// Name of the IdP group (e.g. "Engineering", "Platform")
+	GroupName string `json:"groupName"`
+	// Role to assign in this workspace (admin or member)
+	//
+	// Any of "admin", "member".
+	Role string `json:"role"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		GroupName   respjson.Field
+		Role        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceGroupMapping) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceGroupMapping) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

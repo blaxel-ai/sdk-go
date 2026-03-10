@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestPolicyNew(t *testing.T) {
@@ -35,9 +36,9 @@ func TestPolicyNew(t *testing.T) {
 				},
 			},
 			Spec: blaxel.PolicySpecParam{
-				Flavors: []blaxel.PolicySpecFlavorParam{{
+				Flavors: []shared.FlavorParam{{
 					Name: blaxel.String("t4"),
-					Type: "cpu",
+					Type: shared.FlavorTypeCPU,
 				}},
 				Locations: []blaxel.PolicyLocationParam{{
 					Name: blaxel.String("EU"),
@@ -113,9 +114,9 @@ func TestPolicyUpdate(t *testing.T) {
 					},
 				},
 				Spec: blaxel.PolicySpecParam{
-					Flavors: []blaxel.PolicySpecFlavorParam{{
+					Flavors: []shared.FlavorParam{{
 						Name: blaxel.String("t4"),
-						Type: "cpu",
+						Type: shared.FlavorTypeCPU,
 					}},
 					Locations: []blaxel.PolicyLocationParam{{
 						Name: blaxel.String("EU"),

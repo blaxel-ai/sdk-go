@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestVpcEgressgatewayIPGet(t *testing.T) {
@@ -116,12 +117,12 @@ func TestVpcEgressgatewayIPAllocateWithOptionalParams(t *testing.T) {
 		"gatewayName",
 		blaxel.VpcEgressgatewayIPAllocateParams{
 			VpcName: "vpcName",
-			Metadata: blaxel.VpcEgressgatewayIPAllocateParamsMetadata{
+			Metadata: shared.EgressIPMetadataParam{
 				Name:        "my-egress-ip",
 				DisplayName: blaxel.String("My Egress IP"),
 			},
-			Spec: blaxel.VpcEgressgatewayIPAllocateParamsSpec{
-				IPFamily: "IPv4",
+			Spec: shared.EgressIPSpecParam{
+				IPFamily: shared.EgressIPSpecIPFamilyIPv4,
 			},
 		},
 	)

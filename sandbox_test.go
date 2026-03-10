@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestSandboxNewWithOptionalParams(t *testing.T) {
@@ -43,13 +44,13 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Value:  blaxel.String("24h"),
 					}},
 				},
-				Network: blaxel.SandboxSpecNetworkParam{
+				Network: blaxel.SandboxNetworkParam{
 					EgressGatewayName: "my-egress-gateway",
 					VpcName:           "my-vpc",
 				},
 				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
-					Envs: []blaxel.SandboxRuntimeEnvParam{{
+					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
 						Value:  blaxel.String("my-value"),
@@ -143,13 +144,13 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Value:  blaxel.String("24h"),
 						}},
 					},
-					Network: blaxel.SandboxSpecNetworkParam{
+					Network: blaxel.SandboxNetworkParam{
 						EgressGatewayName: "my-egress-gateway",
 						VpcName:           "my-vpc",
 					},
 					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{
-						Envs: []blaxel.SandboxRuntimeEnvParam{{
+						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),
 							Value:  blaxel.String("my-value"),

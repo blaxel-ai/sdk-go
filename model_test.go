@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestModelNewWithOptionalParams(t *testing.T) {
@@ -36,9 +37,9 @@ func TestModelNewWithOptionalParams(t *testing.T) {
 			},
 			Spec: blaxel.ModelSpecParam{
 				Enabled: blaxel.Bool(true),
-				Flavors: []blaxel.ModelSpecFlavorParam{{
+				Flavors: []shared.FlavorParam{{
 					Name: blaxel.String("t4"),
-					Type: "cpu",
+					Type: shared.FlavorTypeCPU,
 				}},
 				IntegrationConnections: []string{"string"},
 				Policies:               []string{"string"},
@@ -110,9 +111,9 @@ func TestModelUpdateWithOptionalParams(t *testing.T) {
 				},
 				Spec: blaxel.ModelSpecParam{
 					Enabled: blaxel.Bool(true),
-					Flavors: []blaxel.ModelSpecFlavorParam{{
+					Flavors: []shared.FlavorParam{{
 						Name: blaxel.String("t4"),
-						Type: "cpu",
+						Type: shared.FlavorTypeCPU,
 					}},
 					IntegrationConnections: []string{"string"},
 					Policies:               []string{"string"},

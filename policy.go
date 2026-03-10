@@ -16,6 +16,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 // PolicyService contains methods and other services that help with interacting
@@ -279,7 +280,7 @@ func (r *PolicyMaxTokensParam) UnmarshalJSON(data []byte) error {
 // Policy specification
 type PolicySpec struct {
 	// Types of hardware available for deployments
-	Flavors []PolicySpecFlavor `json:"flavors"`
+	Flavors []shared.Flavor `json:"flavors"`
 	// PolicyLocations is a local type that wraps a slice of Location
 	Locations []PolicyLocation `json:"locations"`
 	// PolicyMaxTokens is a local type that wraps a slice of PolicyMaxTokens
@@ -322,29 +323,6 @@ func (r PolicySpec) ToParam() PolicySpecParam {
 	return param.Override[PolicySpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// A type of hardware available for deployments
-type PolicySpecFlavor struct {
-	// Flavor name (e.g. t4)
-	Name string `json:"name"`
-	// Flavor type (e.g. cpu, gpu)
-	//
-	// Any of "cpu", "gpu".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Type        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r PolicySpecFlavor) RawJSON() string { return r.JSON.raw }
-func (r *PolicySpecFlavor) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Policy type, can be location or flavor
 type PolicySpecType string
 
@@ -359,7 +337,7 @@ type PolicySpecParam struct {
 	// Sandbox mode
 	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
 	// Types of hardware available for deployments
-	Flavors []PolicySpecFlavorParam `json:"flavors,omitzero"`
+	Flavors []shared.FlavorParam `json:"flavors,omitzero"`
 	// PolicyLocations is a local type that wraps a slice of Location
 	Locations []PolicyLocationParam `json:"locations,omitzero"`
 	// PolicyMaxTokens is a local type that wraps a slice of PolicyMaxTokens
@@ -381,31 +359,6 @@ func (r PolicySpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *PolicySpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-// A type of hardware available for deployments
-type PolicySpecFlavorParam struct {
-	// Flavor name (e.g. t4)
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Flavor type (e.g. cpu, gpu)
-	//
-	// Any of "cpu", "gpu".
-	Type string `json:"type,omitzero"`
-	paramObj
-}
-
-func (r PolicySpecFlavorParam) MarshalJSON() (data []byte, err error) {
-	type shadow PolicySpecFlavorParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *PolicySpecFlavorParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[PolicySpecFlavorParam](
-		"type", "cpu", "gpu",
-	)
 }
 
 type PolicyNewParams struct {

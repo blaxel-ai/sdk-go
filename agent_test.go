@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestAgentNewWithOptionalParams(t *testing.T) {
@@ -50,7 +51,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 					Traffic:          blaxel.Int(100),
 				},
 				Runtime: blaxel.AgentRuntimeParam{
-					Envs: []blaxel.AgentRuntimeEnvParam{{
+					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
 						Value:  blaxel.String("my-value"),
@@ -155,7 +156,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 						Traffic:          blaxel.Int(100),
 					},
 					Runtime: blaxel.AgentRuntimeParam{
-						Envs: []blaxel.AgentRuntimeEnvParam{{
+						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),
 							Value:  blaxel.String("my-value"),
