@@ -44,7 +44,7 @@ func (r *VolumeService) New(ctx context.Context, body VolumeNewParams, opts ...o
 	opts = slices.Concat(r.Options, opts)
 	path := "volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a volume including its size, region,
@@ -53,11 +53,11 @@ func (r *VolumeService) Get(ctx context.Context, volumeName string, opts ...opti
 	opts = slices.Concat(r.Options, opts)
 	if volumeName == "" {
 		err = errors.New("missing required volumeName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volumes/%s", volumeName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a volume.
@@ -65,11 +65,11 @@ func (r *VolumeService) Update(ctx context.Context, volumeName string, body Volu
 	opts = slices.Concat(r.Options, opts)
 	if volumeName == "" {
 		err = errors.New("missing required volumeName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volumes/%s", volumeName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all persistent storage volumes in the workspace. Volumes can be attached
@@ -79,7 +79,7 @@ func (r *VolumeService) List(ctx context.Context, opts ...option.RequestOption) 
 	opts = slices.Concat(r.Options, opts)
 	path := "volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes a volume and all its data. The volume must not be attached
@@ -88,11 +88,11 @@ func (r *VolumeService) Delete(ctx context.Context, volumeName string, opts ...o
 	opts = slices.Concat(r.Options, opts)
 	if volumeName == "" {
 		err = errors.New("missing required volumeName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("volumes/%s", volumeName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Persistent storage volume that can be attached to sandboxes for durable file

@@ -41,19 +41,19 @@ func (r *VpcEgressgatewayIPService) Get(ctx context.Context, ipName string, quer
 	opts = slices.Concat(r.Options, opts)
 	if query.VpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	if query.GatewayName == "" {
 		err = errors.New("missing required gatewayName parameter")
-		return
+		return nil, err
 	}
 	if ipName == "" {
 		err = errors.New("missing required ipName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways/%s/ips/%s", query.VpcName, query.GatewayName, ipName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List egress IPs in a gateway
@@ -61,15 +61,15 @@ func (r *VpcEgressgatewayIPService) List(ctx context.Context, gatewayName string
 	opts = slices.Concat(r.Options, opts)
 	if query.VpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	if gatewayName == "" {
 		err = errors.New("missing required gatewayName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways/%s/ips", query.VpcName, gatewayName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an egress IP
@@ -77,19 +77,19 @@ func (r *VpcEgressgatewayIPService) Delete(ctx context.Context, ipName string, b
 	opts = slices.Concat(r.Options, opts)
 	if body.VpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	if body.GatewayName == "" {
 		err = errors.New("missing required gatewayName parameter")
-		return
+		return nil, err
 	}
 	if ipName == "" {
 		err = errors.New("missing required ipName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways/%s/ips/%s", body.VpcName, body.GatewayName, ipName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Allocate a new egress IP from the gateway
@@ -97,15 +97,15 @@ func (r *VpcEgressgatewayIPService) Allocate(ctx context.Context, gatewayName st
 	opts = slices.Concat(r.Options, opts)
 	if params.VpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	if gatewayName == "" {
 		err = errors.New("missing required gatewayName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways/%s/ips", params.VpcName, gatewayName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // An individual IP address allocated from an egress gateway for dedicated outbound

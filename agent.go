@@ -47,7 +47,7 @@ func (r *AgentService) New(ctx context.Context, body AgentNewParams, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	path := "agents"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about an agent including its current deployment
@@ -56,11 +56,11 @@ func (r *AgentService) Get(ctx context.Context, agentName string, query AgentGet
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an agent's configuration and triggers a new deployment. Changes to
@@ -70,11 +70,11 @@ func (r *AgentService) Update(ctx context.Context, agentName string, body AgentU
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all AI agents deployed in the workspace. Each agent includes its
@@ -83,7 +83,7 @@ func (r *AgentService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = slices.Concat(r.Options, opts)
 	path := "agents"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes an agent and all its deployment history. The agent's
@@ -93,11 +93,11 @@ func (r *AgentService) Delete(ctx context.Context, agentName string, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List all agent revisions
@@ -105,11 +105,11 @@ func (r *AgentService) ListRevisions(ctx context.Context, agentName string, opts
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s/revisions", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Serverless AI agent deployment that runs your custom agent code as an

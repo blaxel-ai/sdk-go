@@ -49,7 +49,7 @@ func (r *JobService) New(ctx context.Context, body JobNewParams, opts ...option.
 	opts = slices.Concat(r.Options, opts)
 	path := "jobs"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a batch job including its runtime
@@ -58,11 +58,11 @@ func (r *JobService) Get(ctx context.Context, jobID string, query JobGetParams, 
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a batch job's configuration. Changes affect new executions; running
@@ -71,11 +71,11 @@ func (r *JobService) Update(ctx context.Context, jobID string, body JobUpdatePar
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all batch job definitions in the workspace. Each job can be triggered to
@@ -84,7 +84,7 @@ func (r *JobService) List(ctx context.Context, opts ...option.RequestOption) (re
 	opts = slices.Concat(r.Options, opts)
 	path := "jobs"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes a batch job definition and cancels any running executions.
@@ -93,11 +93,11 @@ func (r *JobService) Delete(ctx context.Context, jobID string, opts ...option.Re
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns revisions for a job by name.
@@ -105,11 +105,11 @@ func (r *JobService) ListRevisions(ctx context.Context, jobID string, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/revisions", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Request to create a job execution

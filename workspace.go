@@ -40,11 +40,11 @@ func (r *WorkspaceService) Get(ctx context.Context, workspaceName string, opts .
 	opts = slices.Concat(r.Options, opts)
 	if workspaceName == "" {
 		err = errors.New("missing required workspaceName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("workspaces/%s", workspaceName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all workspaces the authenticated user has access to. Each workspace is a
@@ -53,7 +53,7 @@ func (r *WorkspaceService) List(ctx context.Context, opts ...option.RequestOptio
 	opts = slices.Concat(r.Options, opts)
 	path := "workspaces"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Workspace struct {

@@ -43,11 +43,11 @@ func (r *VpcEgressgatewayService) New(ctx context.Context, vpcName string, body 
 	opts = slices.Concat(r.Options, opts)
 	if vpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways", vpcName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get an egress gateway by name
@@ -55,15 +55,15 @@ func (r *VpcEgressgatewayService) Get(ctx context.Context, gatewayName string, q
 	opts = slices.Concat(r.Options, opts)
 	if query.VpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	if gatewayName == "" {
 		err = errors.New("missing required gatewayName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways/%s", query.VpcName, gatewayName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List egress gateways in a VPC
@@ -71,11 +71,11 @@ func (r *VpcEgressgatewayService) List(ctx context.Context, vpcName string, opts
 	opts = slices.Concat(r.Options, opts)
 	if vpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways", vpcName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an egress gateway
@@ -83,15 +83,15 @@ func (r *VpcEgressgatewayService) Delete(ctx context.Context, gatewayName string
 	opts = slices.Concat(r.Options, opts)
 	if body.VpcName == "" {
 		err = errors.New("missing required vpcName parameter")
-		return
+		return nil, err
 	}
 	if gatewayName == "" {
 		err = errors.New("missing required gatewayName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("vpcs/%s/egressgateways/%s", body.VpcName, gatewayName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // An egress gateway that manages outbound traffic routing within a VPC. Multiple

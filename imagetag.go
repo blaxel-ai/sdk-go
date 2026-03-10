@@ -38,19 +38,19 @@ func (r *ImageTagService) Delete(ctx context.Context, tagName string, body Image
 	opts = slices.Concat(r.Options, opts)
 	if body.ResourceType == "" {
 		err = errors.New("missing required resourceType parameter")
-		return
+		return nil, err
 	}
 	if body.ImageName == "" {
 		err = errors.New("missing required imageName parameter")
-		return
+		return nil, err
 	}
 	if tagName == "" {
 		err = errors.New("missing required tagName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("images/%s/%s/tags/%s", body.ResourceType, body.ImageName, tagName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type ImageTagDeleteParams struct {

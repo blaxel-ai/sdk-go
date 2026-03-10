@@ -41,7 +41,7 @@ func (r *NetworkTunnelService) Disconnect(ctx context.Context, opts ...option.Re
 	opts = slices.Concat(r.Options, opts)
 	path := "network/tunnel"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Apply a new tunnel configuration on the fly. The existing tunnel is torn down
@@ -51,7 +51,7 @@ func (r *NetworkTunnelService) UpdateConfig(ctx context.Context, body NetworkTun
 	opts = slices.Concat(r.Options, opts)
 	path := "network/tunnel/config"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type NetworkTunnelDisconnectResponse struct {
