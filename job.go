@@ -18,6 +18,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 // JobService contains methods and other services that help with interacting with
@@ -601,7 +602,7 @@ func (r *JobExecutionTaskSpec) UnmarshalJSON(data []byte) error {
 type JobRuntime struct {
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []JobRuntimeEnv `json:"envs"`
+	Envs []shared.Env `json:"envs"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
 	// sub-25ms cold starts)
 	//
@@ -651,30 +652,6 @@ func (r JobRuntime) ToParam() JobRuntimeParam {
 	return param.Override[JobRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Environment variable with name and value
-type JobRuntimeEnv struct {
-	// Name of the environment variable
-	Name string `json:"name"`
-	// Whether the value is a secret
-	Secret bool `json:"secret"`
-	// Value of the environment variable
-	Value string `json:"value"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Secret      respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r JobRuntimeEnv) RawJSON() string { return r.JSON.raw }
-func (r *JobRuntimeEnv) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
 // sub-25ms cold starts)
 type JobRuntimeGeneration string
@@ -701,7 +678,7 @@ type JobRuntimeParam struct {
 	Timeout param.Opt[int64] `json:"timeout,omitzero"`
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []JobRuntimeEnvParam `json:"envs,omitzero"`
+	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts) or mk3 (microVMs,
 	// sub-25ms cold starts)
 	//
@@ -717,25 +694,6 @@ func (r JobRuntimeParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *JobRuntimeParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Environment variable with name and value
-type JobRuntimeEnvParam struct {
-	// Name of the environment variable
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Whether the value is a secret
-	Secret param.Opt[bool] `json:"secret,omitzero"`
-	// Value of the environment variable
-	Value param.Opt[string] `json:"value,omitzero"`
-	paramObj
-}
-
-func (r JobRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
-	type shadow JobRuntimeEnvParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *JobRuntimeEnvParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -996,9 +954,9 @@ type ModelSpec struct {
 	// requests
 	Enabled bool `json:"enabled"`
 	// Types of hardware available for deployments
-	Flavors                []ModelSpecFlavor `json:"flavors"`
-	IntegrationConnections []string          `json:"integrationConnections"`
-	Policies               []string          `json:"policies"`
+	Flavors                []shared.Flavor `json:"flavors"`
+	IntegrationConnections []string        `json:"integrationConnections"`
+	Policies               []string        `json:"policies"`
 	// Configuration identifying which external LLM provider and model this gateway
 	// endpoint proxies to
 	Runtime ModelRuntime `json:"runtime"`
@@ -1032,29 +990,6 @@ func (r ModelSpec) ToParam() ModelSpecParam {
 	return param.Override[ModelSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// A type of hardware available for deployments
-type ModelSpecFlavor struct {
-	// Flavor name (e.g. t4)
-	Name string `json:"name"`
-	// Flavor type (e.g. cpu, gpu)
-	//
-	// Any of "cpu", "gpu".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Type        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelSpecFlavor) RawJSON() string { return r.JSON.raw }
-func (r *ModelSpecFlavor) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Configuration for a model gateway endpoint including provider type, credentials,
 // and access policies
 type ModelSpecParam struct {
@@ -1064,9 +999,9 @@ type ModelSpecParam struct {
 	// When true, uses sandbox/test credentials from the integration connection
 	Sandbox param.Opt[bool] `json:"sandbox,omitzero"`
 	// Types of hardware available for deployments
-	Flavors                []ModelSpecFlavorParam `json:"flavors,omitzero"`
-	IntegrationConnections []string               `json:"integrationConnections,omitzero"`
-	Policies               []string               `json:"policies,omitzero"`
+	Flavors                []shared.FlavorParam `json:"flavors,omitzero"`
+	IntegrationConnections []string             `json:"integrationConnections,omitzero"`
+	Policies               []string             `json:"policies,omitzero"`
 	// Configuration identifying which external LLM provider and model this gateway
 	// endpoint proxies to
 	Runtime ModelRuntimeParam `json:"runtime,omitzero"`
@@ -1079,31 +1014,6 @@ func (r ModelSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *ModelSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-// A type of hardware available for deployments
-type ModelSpecFlavorParam struct {
-	// Flavor name (e.g. t4)
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Flavor type (e.g. cpu, gpu)
-	//
-	// Any of "cpu", "gpu".
-	Type string `json:"type,omitzero"`
-	paramObj
-}
-
-func (r ModelSpecFlavorParam) MarshalJSON() (data []byte, err error) {
-	type shadow ModelSpecFlavorParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ModelSpecFlavorParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ModelSpecFlavorParam](
-		"type", "cpu", "gpu",
-	)
 }
 
 type JobNewParams struct {

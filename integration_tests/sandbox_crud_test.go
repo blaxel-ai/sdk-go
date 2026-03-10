@@ -207,7 +207,7 @@ func TestSandboxCRUD(t *testing.T) {
 						Region: blaxel.String(defaultRegion),
 						Runtime: blaxel.SandboxRuntimeParam{
 							Image: blaxel.String(defaultImage),
-							Envs: []blaxel.SandboxRuntimeEnvParam{
+							Envs: []blaxel.EnvParam{
 								{Name: blaxel.String("NODE_ENV"), Value: blaxel.String("test")},
 								{Name: blaxel.String("DEBUG"), Value: blaxel.String("true")},
 							},

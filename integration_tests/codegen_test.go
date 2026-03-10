@@ -37,7 +37,7 @@ func TestSandboxCodegen(t *testing.T) {
 				Spec: blaxel.SandboxSpecParam{
 					Runtime: blaxel.SandboxRuntimeParam{
 						Image: blaxel.String(defaultImage),
-						Envs: []blaxel.SandboxRuntimeEnvParam{
+						Envs: []blaxel.EnvParam{
 							{Name: blaxel.String("RELACE_API_KEY"), Value: blaxel.String(os.Getenv("RELACE_API_KEY"))},
 						},
 					},
@@ -147,7 +147,7 @@ func TestSandboxCodegen(t *testing.T) {
 				Spec: blaxel.SandboxSpecParam{
 					Runtime: blaxel.SandboxRuntimeParam{
 						Image: blaxel.String(defaultImage),
-						Envs: []blaxel.SandboxRuntimeEnvParam{
+						Envs: []blaxel.EnvParam{
 							{Name: blaxel.String("MORPH_API_KEY"), Value: blaxel.String(os.Getenv("MORPH_API_KEY"))},
 						},
 					},

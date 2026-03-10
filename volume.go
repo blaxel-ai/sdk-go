@@ -141,37 +141,6 @@ func (r Volume) ToParam() VolumeParam {
 	return param.Override[VolumeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Immutable volume configuration set at creation time (size and region cannot be
-// changed after creation)
-type VolumeSpec struct {
-	// The internal infrastructure resource identifier for this volume
-	InfrastructureID string `json:"infrastructureId"`
-	// Deployment region for the volume (e.g., us-pdx-1, eu-lon-1). Must match the
-	// region of sandboxes it attaches to.
-	Region string `json:"region"`
-	// Storage capacity in megabytes. Can be increased after creation but not
-	// decreased.
-	Size int64 `json:"size"`
-	// Volume template to initialize from, with optional revision (e.g., "mytemplate:1"
-	// or "mytemplate:latest")
-	Template string `json:"template"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		InfrastructureID respjson.Field
-		Region           respjson.Field
-		Size             respjson.Field
-		Template         respjson.Field
-		ExtraFields      map[string]respjson.Field
-		raw              string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r VolumeSpec) RawJSON() string { return r.JSON.raw }
-func (r *VolumeSpec) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Current runtime state of the volume including attachment status
 type VolumeState struct {
 	// Resource currently using this volume in format "type:name" (e.g.,
@@ -214,6 +183,62 @@ func (r *VolumeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Current runtime state of the volume including attachment status
+type VolumeStateParam struct {
+	// Resource currently using this volume in format "type:name" (e.g.,
+	// "sandbox:my-sandbox"). Empty if not attached.
+	AttachedTo param.Opt[string] `json:"attachedTo,omitzero"`
+	paramObj
+}
+
+func (r VolumeStateParam) MarshalJSON() (data []byte, err error) {
+	type shadow VolumeStateParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VolumeStateParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Immutable volume configuration set at creation time (size and region cannot be
+// changed after creation)
+type VolumeSpec struct {
+	// The internal infrastructure resource identifier for this volume
+	InfrastructureID string `json:"infrastructureId"`
+	// Deployment region for the volume (e.g., us-pdx-1, eu-lon-1). Must match the
+	// region of sandboxes it attaches to.
+	Region string `json:"region"`
+	// Storage capacity in megabytes. Can be increased after creation but not
+	// decreased.
+	Size int64 `json:"size"`
+	// Volume template to initialize from, with optional revision (e.g., "mytemplate:1"
+	// or "mytemplate:latest")
+	Template string `json:"template"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		InfrastructureID respjson.Field
+		Region           respjson.Field
+		Size             respjson.Field
+		Template         respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeSpec) RawJSON() string { return r.JSON.raw }
+func (r *VolumeSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this VolumeSpec to a VolumeSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// VolumeSpecParam.Overrides()
+func (r VolumeSpec) ToParam() VolumeSpecParam {
+	return param.Override[VolumeSpecParam](json.RawMessage(r.RawJSON()))
+}
+
 // Immutable volume configuration set at creation time (size and region cannot be
 // changed after creation)
 type VolumeSpecParam struct {
@@ -234,22 +259,6 @@ func (r VolumeSpecParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *VolumeSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Current runtime state of the volume including attachment status
-type VolumeStateParam struct {
-	// Resource currently using this volume in format "type:name" (e.g.,
-	// "sandbox:my-sandbox"). Empty if not attached.
-	AttachedTo param.Opt[string] `json:"attachedTo,omitzero"`
-	paramObj
-}
-
-func (r VolumeStateParam) MarshalJSON() (data []byte, err error) {
-	type shadow VolumeStateParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *VolumeStateParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
