@@ -277,6 +277,9 @@ type AgentSpec struct {
 	// When true, the agent is publicly accessible without authentication. Only
 	// available for mk3 generation.
 	Public bool `json:"public"`
+	// Region where the agent should be deployed (e.g. us-pdx-1, eu-lon-1). Required
+	// when volumes are attached.
+	Region string `json:"region"`
 	// Repository
 	Repository Repository `json:"repository"`
 	// Revision configuration
@@ -284,16 +287,19 @@ type AgentSpec struct {
 	// Runtime configuration defining how the AI agent is deployed and scaled globally
 	Runtime AgentRuntime `json:"runtime"`
 	// Triggers to use your agent
-	Triggers []Trigger `json:"triggers"`
+	Triggers []Trigger          `json:"triggers"`
+	Volumes  []VolumeAttachment `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Enabled     respjson.Field
 		Policies    respjson.Field
 		Public      respjson.Field
+		Region      respjson.Field
 		Repository  respjson.Field
 		Revision    respjson.Field
 		Runtime     respjson.Field
 		Triggers    respjson.Field
+		Volumes     respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -321,8 +327,11 @@ type AgentSpecParam struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	// When true, the agent is publicly accessible without authentication. Only
 	// available for mk3 generation.
-	Public   param.Opt[bool] `json:"public,omitzero"`
-	Policies []string        `json:"policies,omitzero"`
+	Public param.Opt[bool] `json:"public,omitzero"`
+	// Region where the agent should be deployed (e.g. us-pdx-1, eu-lon-1). Required
+	// when volumes are attached.
+	Region   param.Opt[string] `json:"region,omitzero"`
+	Policies []string          `json:"policies,omitzero"`
 	// Repository
 	Repository RepositoryParam `json:"repository,omitzero"`
 	// Revision configuration
@@ -330,7 +339,8 @@ type AgentSpecParam struct {
 	// Runtime configuration defining how the AI agent is deployed and scaled globally
 	Runtime AgentRuntimeParam `json:"runtime,omitzero"`
 	// Triggers to use your agent
-	Triggers []TriggerParam `json:"triggers,omitzero"`
+	Triggers []TriggerParam          `json:"triggers,omitzero"`
+	Volumes  []VolumeAttachmentParam `json:"volumes,omitzero"`
 	paramObj
 }
 

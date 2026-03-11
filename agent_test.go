@@ -40,6 +40,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 				Enabled:  blaxel.Bool(true),
 				Policies: []string{"string"},
 				Public:   blaxel.Bool(false),
+				Region:   blaxel.String("us-pdx-1"),
 				Repository: blaxel.RepositoryParam{
 					Type: blaxel.String("github"),
 					URL:  blaxel.String("https://github.com/my-org/my-agent"),
@@ -76,6 +77,11 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 					},
 					Enabled: blaxel.Bool(true),
 					Type:    blaxel.TriggerTypeHTTP,
+				}},
+				Volumes: []blaxel.VolumeAttachmentParam{{
+					MountPath: blaxel.String("/mnt/data"),
+					Name:      blaxel.String("my-volume"),
+					ReadOnly:  blaxel.Bool(false),
 				}},
 			},
 		},
@@ -145,6 +151,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 					Enabled:  blaxel.Bool(true),
 					Policies: []string{"string"},
 					Public:   blaxel.Bool(false),
+					Region:   blaxel.String("us-pdx-1"),
 					Repository: blaxel.RepositoryParam{
 						Type: blaxel.String("github"),
 						URL:  blaxel.String("https://github.com/my-org/my-agent"),
@@ -181,6 +188,11 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 						},
 						Enabled: blaxel.Bool(true),
 						Type:    blaxel.TriggerTypeHTTP,
+					}},
+					Volumes: []blaxel.VolumeAttachmentParam{{
+						MountPath: blaxel.String("/mnt/data"),
+						Name:      blaxel.String("my-volume"),
+						ReadOnly:  blaxel.Bool(false),
 					}},
 				},
 			},
