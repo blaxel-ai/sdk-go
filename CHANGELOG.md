@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.16.0 (2026-03-11)
+
+Full Changelog: [v0.15.0...v0.16.0](https://github.com/blaxel-ai/sdk-go/compare/v0.15.0...v0.16.0)
+
+### Features
+
+* Remove seaweedfs from doc generated ([6e00399](https://github.com/blaxel-ai/sdk-go/commit/6e00399a3ed932d75fe8e7abd60067b2fb9671b6))
+* Thomas/add filter billing metrics on resource info ([f9724db](https://github.com/blaxel-ai/sdk-go/commit/f9724db573e2117e44352e91164b029e8c86bea5))
+
 ## 0.15.0 (2026-03-11)
 
 Full Changelog: [v0.14.0...v0.15.0](https://github.com/blaxel-ai/sdk-go/compare/v0.14.0...v0.15.0)
