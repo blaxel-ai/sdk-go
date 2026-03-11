@@ -48,11 +48,11 @@ func (r *SandboxFilesystemService) Delete(ctx context.Context, filePath string, 
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Searches for text content inside files using ripgrep. Returns matching lines
@@ -61,11 +61,11 @@ func (r *SandboxFilesystemService) ContentSearch(ctx context.Context, filePath s
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-content-search/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a directory tree recursively
@@ -73,11 +73,11 @@ func (r *SandboxFilesystemService) DeleteTree(ctx context.Context, filePath stri
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/tree/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Finds files and directories using the find command.
@@ -85,11 +85,11 @@ func (r *SandboxFilesystemService) Find(ctx context.Context, filePath string, qu
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-find/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Get content of a file or listing of a directory. Use Accept header to control
@@ -98,11 +98,11 @@ func (r *SandboxFilesystemService) Get(ctx context.Context, filePath string, que
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Get a recursive directory tree structure starting from the specified path
@@ -110,11 +110,11 @@ func (r *SandboxFilesystemService) GetTree(ctx context.Context, filePath string,
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/tree/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Performs fuzzy search on filesystem paths using fuzzy matching algorithm.
@@ -123,11 +123,11 @@ func (r *SandboxFilesystemService) Search(ctx context.Context, filePath string, 
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem-search/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Create or update a file or directory
@@ -135,11 +135,11 @@ func (r *SandboxFilesystemService) Write(ctx context.Context, filePath string, b
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Create or update multiple files within a directory tree structure
@@ -147,11 +147,11 @@ func (r *SandboxFilesystemService) WriteTree(ctx context.Context, filePath strin
 	opts = slices.Concat(r.Options, opts)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("filesystem/tree/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type ContentSearchMatch struct {

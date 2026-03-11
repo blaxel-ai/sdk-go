@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestVpcEgressgatewayNewWithOptionalParams(t *testing.T) {
@@ -29,11 +30,11 @@ func TestVpcEgressgatewayNewWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"vpcName",
 		blaxel.VpcEgressgatewayNewParams{
-			Metadata: blaxel.VpcEgressgatewayNewParamsMetadata{
+			Metadata: shared.EgressGatewayMetadataParam{
 				Name:        "my-egress-gateway",
 				DisplayName: blaxel.String("My Egress Gateway"),
 			},
-			Spec: blaxel.VpcEgressgatewayNewParamsSpec{
+			Spec: shared.EgressGatewaySpecParam{
 				Region: "us-pdx-1",
 			},
 		},

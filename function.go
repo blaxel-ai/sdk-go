@@ -18,6 +18,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 // FunctionService contains methods and other services that help with interacting
@@ -46,7 +47,7 @@ func (r *FunctionService) New(ctx context.Context, body FunctionNewParams, opts 
 	opts = slices.Concat(r.Options, opts)
 	path := "functions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about an MCP server function including its
@@ -55,11 +56,11 @@ func (r *FunctionService) Get(ctx context.Context, functionName string, query Fu
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an MCP server function's configuration and triggers a new deployment.
@@ -69,11 +70,11 @@ func (r *FunctionService) Update(ctx context.Context, functionName string, body 
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all MCP server functions deployed in the workspace. Each function
@@ -83,7 +84,7 @@ func (r *FunctionService) List(ctx context.Context, opts ...option.RequestOption
 	opts = slices.Concat(r.Options, opts)
 	path := "functions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes an MCP server function and all its deployment history. Any
@@ -92,11 +93,11 @@ func (r *FunctionService) Delete(ctx context.Context, functionName string, opts 
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns revisions for a function by name.
@@ -104,11 +105,11 @@ func (r *FunctionService) ListRevisions(ctx context.Context, functionName string
 	opts = slices.Concat(r.Options, opts)
 	if functionName == "" {
 		err = errors.New("missing required functionName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("functions/%s/revisions", functionName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // MCP server deployment that exposes tools for AI agents via the Model Context
@@ -182,7 +183,7 @@ func (r *FunctionParam) UnmarshalJSON(data []byte) error {
 type FunctionRuntime struct {
 	// Environment variables injected into the function. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []FunctionRuntimeEnv `json:"envs"`
+	Envs []shared.Env `json:"envs"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -232,30 +233,6 @@ func (r FunctionRuntime) ToParam() FunctionRuntimeParam {
 	return param.Override[FunctionRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Environment variable with name and value
-type FunctionRuntimeEnv struct {
-	// Name of the environment variable
-	Name string `json:"name"`
-	// Whether the value is a secret
-	Secret bool `json:"secret"`
-	// Value of the environment variable
-	Value string `json:"value"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Secret      respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FunctionRuntimeEnv) RawJSON() string { return r.JSON.raw }
-func (r *FunctionRuntimeEnv) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 // regions) or mk3 (microVMs, sub-25ms cold starts)
 type FunctionRuntimeGeneration string
@@ -289,7 +266,7 @@ type FunctionRuntimeParam struct {
 	MinScale param.Opt[int64] `json:"minScale,omitzero"`
 	// Environment variables injected into the function. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []FunctionRuntimeEnvParam `json:"envs,omitzero"`
+	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -310,25 +287,6 @@ func (r *FunctionRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Environment variable with name and value
-type FunctionRuntimeEnvParam struct {
-	// Name of the environment variable
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Whether the value is a secret
-	Secret param.Opt[bool] `json:"secret,omitzero"`
-	// Value of the environment variable
-	Value param.Opt[string] `json:"value,omitzero"`
-	paramObj
-}
-
-func (r FunctionRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
-	type shadow FunctionRuntimeEnvParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FunctionRuntimeEnvParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Configuration for an MCP server function including runtime settings, transport
 // protocol, and connected integrations
 type FunctionSpec struct {
@@ -339,6 +297,9 @@ type FunctionSpec struct {
 	// When true, the function is publicly accessible without authentication. Only
 	// available for mk3 generation.
 	Public bool `json:"public"`
+	// Region where the function should be deployed (e.g. us-pdx-1, eu-lon-1). If not
+	// specified, the function is deployed based on policy locations.
+	Region string `json:"region"`
 	// Revision configuration
 	Revision RevisionConfiguration `json:"revision"`
 	// Runtime configuration defining how the MCP server function is deployed and
@@ -352,6 +313,7 @@ type FunctionSpec struct {
 		IntegrationConnections respjson.Field
 		Policies               respjson.Field
 		Public                 respjson.Field
+		Region                 respjson.Field
 		Revision               respjson.Field
 		Runtime                respjson.Field
 		Triggers               respjson.Field
@@ -382,9 +344,12 @@ type FunctionSpecParam struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	// When true, the function is publicly accessible without authentication. Only
 	// available for mk3 generation.
-	Public                 param.Opt[bool] `json:"public,omitzero"`
-	IntegrationConnections []string        `json:"integrationConnections,omitzero"`
-	Policies               []string        `json:"policies,omitzero"`
+	Public param.Opt[bool] `json:"public,omitzero"`
+	// Region where the function should be deployed (e.g. us-pdx-1, eu-lon-1). If not
+	// specified, the function is deployed based on policy locations.
+	Region                 param.Opt[string] `json:"region,omitzero"`
+	IntegrationConnections []string          `json:"integrationConnections,omitzero"`
+	Policies               []string          `json:"policies,omitzero"`
 	// Revision configuration
 	Revision RevisionConfigurationParam `json:"revision,omitzero"`
 	// Runtime configuration defining how the MCP server function is deployed and

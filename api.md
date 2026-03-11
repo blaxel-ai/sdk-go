@@ -1,3 +1,21 @@
+# Shared Params Types
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressGatewayMetadataParam">EgressGatewayMetadataParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressGatewaySpecParam">EgressGatewaySpecParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressIPMetadataParam">EgressIPMetadataParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressIPSpecParam">EgressIPSpecParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EnvParam">EnvParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#FlavorParam">FlavorParam</a>
+
+# Shared Response Types
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressGatewayMetadata">EgressGatewayMetadata</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressGatewaySpec">EgressGatewaySpec</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressIPMetadata">EgressIPMetadata</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#EgressIPSpec">EgressIPSpec</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#Env">Env</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared">shared</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go/shared#Flavor">Flavor</a>
+
 # Agents
 
 Params Types:
@@ -227,10 +245,12 @@ Methods:
 Params Types:
 
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeParam">VolumeParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeSpecParam">VolumeSpecParam</a>
 
 Response Types:
 
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Volume">Volume</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeSpec">VolumeSpec</a>
 
 Methods:
 
@@ -271,6 +291,7 @@ Params Types:
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PortParam">PortParam</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxParam">SandboxParam</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxLifecycleParam">SandboxLifecycleParam</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxNetworkParam">SandboxNetworkParam</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxRuntimeParam">SandboxRuntimeParam</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSpecParam">SandboxSpecParam</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeAttachmentParam">VolumeAttachmentParam</a>
@@ -281,6 +302,7 @@ Response Types:
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Port">Port</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Sandbox">Sandbox</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxLifecycle">SandboxLifecycle</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxNetwork">SandboxNetwork</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxRuntime">SandboxRuntime</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#SandboxSpec">SandboxSpec</a>
 - <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VolumeAttachment">VolumeAttachment</a>
@@ -462,18 +484,6 @@ Methods:
 
 - <code title="post /upgrade">client.Upgrade.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeService.Trigger">Trigger</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeTriggerParams">UpgradeTriggerParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#UpgradeTriggerResponse">UpgradeTriggerResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
-# Features
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FeatureGetResponse">FeatureGetResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FeatureListResponse">FeatureListResponse</a>
-
-Methods:
-
-- <code title="get /features/{featureKey}">client.Features.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FeatureService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, featureKey <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FeatureGetResponse">FeatureGetResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /features">client.Features.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FeatureService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#FeatureListResponse">FeatureListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # Vpcs
 
 Response Types:
@@ -522,47 +532,6 @@ Methods:
 - <code title="delete /vpcs/{vpcName}/egressgateways/{gatewayName}/ips/{ipName}">client.Vpcs.Egressgateways.IPs.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, ipName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPDeleteParams">VpcEgressgatewayIPDeleteParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPDeleteResponse">VpcEgressgatewayIPDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="post /vpcs/{vpcName}/egressgateways/{gatewayName}/ips">client.Vpcs.Egressgateways.IPs.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPService.Allocate">Allocate</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, gatewayName <a href="https://pkg.go.dev/builtin#string">string</a>, params <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPAllocateParams">VpcEgressgatewayIPAllocateParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#VpcEgressgatewayIPAllocateResponse">VpcEgressgatewayIPAllocateResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
-# Drives
-
-Params Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveParam">DriveParam</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveSpecParam">DriveSpecParam</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveStateParam">DriveStateParam</a>
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Drive">Drive</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveSpec">DriveSpec</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveState">DriveState</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveDeleteResponse">DriveDeleteResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewAccessTokenResponse">DriveNewAccessTokenResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetJwksResponse">DriveGetJwksResponse</a>
-
-Methods:
-
-- <code title="post /drives">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewParams">DriveNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Drive">Drive</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Drive">Drive</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="put /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveUpdateParams">DriveUpdateParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Drive">Drive</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /drives">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Drive">Drive</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="delete /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveDeleteResponse">DriveDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="post /drives/{driveName}/access-token">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.NewAccessToken">NewAccessToken</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewAccessTokenResponse">DriveNewAccessTokenResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /drives/jwks.json">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.GetJwks">GetJwks</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetJwksResponse">DriveGetJwksResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-# Network
-
-## Tunnel
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelDisconnectResponse">NetworkTunnelDisconnectResponse</a>
-- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigResponse">NetworkTunnelUpdateConfigResponse</a>
-
-Methods:
-
-- <code title="delete /network/tunnel">client.Network.Tunnel.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelService.Disconnect">Disconnect</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelDisconnectResponse">NetworkTunnelDisconnectResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="put /network/tunnel/config">client.Network.Tunnel.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelService.UpdateConfig">UpdateConfig</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigParams">NetworkTunnelUpdateConfigParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigResponse">NetworkTunnelUpdateConfigResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # Egressgateways
 
 Response Types:
@@ -582,3 +551,44 @@ Response Types:
 Methods:
 
 - <code title="get /egressips">client.Egressips.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressipService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#EgressipListResponse">EgressipListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Network
+
+## Tunnel
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelDisconnectResponse">NetworkTunnelDisconnectResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigResponse">NetworkTunnelUpdateConfigResponse</a>
+
+Methods:
+
+- <code title="delete /network/tunnel">client.Network.Tunnel.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelService.Disconnect">Disconnect</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelDisconnectResponse">NetworkTunnelDisconnectResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="put /network/tunnel/config">client.Network.Tunnel.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelService.UpdateConfig">UpdateConfig</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigParams">NetworkTunnelUpdateConfigParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#NetworkTunnelUpdateConfigResponse">NetworkTunnelUpdateConfigResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Drives
+
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveSpecParam">DriveSpecParam</a>
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveSpec">DriveSpec</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewResponse">DriveNewResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetResponse">DriveGetResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveUpdateResponse">DriveUpdateResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveListResponse">DriveListResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveDeleteResponse">DriveDeleteResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewAccessTokenResponse">DriveNewAccessTokenResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetJwksResponse">DriveGetJwksResponse</a>
+
+Methods:
+
+- <code title="post /drives">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewParams">DriveNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewResponse">DriveNewResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Get">Get</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetResponse">DriveGetResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="put /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveUpdateParams">DriveUpdateParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveUpdateResponse">DriveUpdateResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /drives">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveListResponse">DriveListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveDeleteResponse">DriveDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="post /drives/{driveName}/access-token">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.NewAccessToken">NewAccessToken</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewAccessTokenResponse">DriveNewAccessTokenResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /drives/jwks.json">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.GetJwks">GetJwks</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetJwksResponse">DriveGetJwksResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>

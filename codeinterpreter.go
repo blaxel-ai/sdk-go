@@ -92,7 +92,7 @@ type CodeInterpreterCreateConfig struct {
 	Name   string
 	Memory int64
 	Region string
-	Envs   []SandboxRuntimeEnvParam
+	Envs   []EnvParam
 	Labels map[string]string
 }
 

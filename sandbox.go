@@ -18,6 +18,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 // SandboxService contains methods and other services that help with interacting
@@ -54,7 +55,7 @@ func (r *SandboxService) New(ctx context.Context, params SandboxNewParams, opts 
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a sandbox including its configuration,
@@ -63,11 +64,11 @@ func (r *SandboxService) Get(ctx context.Context, sandboxName string, query Sand
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a sandbox's configuration. Note that certain changes (like image or
@@ -77,11 +78,11 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all sandboxes in the workspace. Each sandbox includes its configuration,
@@ -90,7 +91,7 @@ func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption)
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes a sandbox and all its data. If no volumes are attached, this
@@ -99,11 +100,11 @@ func (r *SandboxService) Delete(ctx context.Context, sandboxName string, opts ..
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all pre-built sandbox templates available in the Blaxel Hub. These
@@ -113,7 +114,7 @@ func (r *SandboxService) GetHub(ctx context.Context, opts ...option.RequestOptio
 	opts = slices.Concat(r.Options, opts)
 	path := "sandbox/hub"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Expiration policy for automatic sandbox cleanup based on time conditions
@@ -344,11 +345,15 @@ type SandboxLifecycle struct {
 	// List of expiration policies. Multiple policies can be combined; whichever
 	// condition is met first triggers the action.
 	ExpirationPolicies []ExpirationPolicy `json:"expirationPolicies"`
+	// Duration to keep the sandbox record after termination for log access (e.g.,
+	// '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.
+	TerminatedRetention string `json:"terminatedRetention"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ExpirationPolicies respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
+		ExpirationPolicies  respjson.Field
+		TerminatedRetention respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
 	} `json:"-"`
 }
 
@@ -370,6 +375,9 @@ func (r SandboxLifecycle) ToParam() SandboxLifecycleParam {
 // Lifecycle configuration controlling automatic sandbox deletion based on idle
 // time, max age, or specific dates
 type SandboxLifecycleParam struct {
+	// Duration to keep the sandbox record after termination for log access (e.g.,
+	// '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.
+	TerminatedRetention param.Opt[string] `json:"terminatedRetention,omitzero"`
 	// List of expiration policies. Multiple policies can be combined; whichever
 	// condition is met first triggers the action.
 	ExpirationPolicies []ExpirationPolicyParam `json:"expirationPolicies,omitzero"`
@@ -384,12 +392,67 @@ func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Network configuration for a sandbox including egress IP binding. All fields
+// (vpcName, egressGatewayName) must be specified together to assign a dedicated
+// IP.
+type SandboxNetwork struct {
+	// Name of the egress gateway in the VPC. Must be specified together with vpcName.
+	EgressGatewayName string `json:"egressGatewayName" api:"required"`
+	// Name of the VPC where the egress gateway is provisioned. Must be specified
+	// together with egressGatewayName.
+	VpcName string `json:"vpcName" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EgressGatewayName respjson.Field
+		VpcName           respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetwork) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetwork) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this SandboxNetwork to a SandboxNetworkParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// SandboxNetworkParam.Overrides()
+func (r SandboxNetwork) ToParam() SandboxNetworkParam {
+	return param.Override[SandboxNetworkParam](json.RawMessage(r.RawJSON()))
+}
+
+// Network configuration for a sandbox including egress IP binding. All fields
+// (vpcName, egressGatewayName) must be specified together to assign a dedicated
+// IP.
+//
+// The properties EgressGatewayName, VpcName are required.
+type SandboxNetworkParam struct {
+	// Name of the egress gateway in the VPC. Must be specified together with vpcName.
+	EgressGatewayName string `json:"egressGatewayName" api:"required"`
+	// Name of the VPC where the egress gateway is provisioned. Must be specified
+	// together with egressGatewayName.
+	VpcName string `json:"vpcName" api:"required"`
+	paramObj
+}
+
+func (r SandboxNetworkParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Runtime configuration defining how the sandbox VM is provisioned and its
 // resource limits
 type SandboxRuntime struct {
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []SandboxRuntimeEnv `json:"envs"`
+	Envs []shared.Env `json:"envs"`
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires string `json:"expires"`
@@ -432,30 +495,6 @@ func (r SandboxRuntime) ToParam() SandboxRuntimeParam {
 	return param.Override[SandboxRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Environment variable with name and value
-type SandboxRuntimeEnv struct {
-	// Name of the environment variable
-	Name string `json:"name"`
-	// Whether the value is a secret
-	Secret bool `json:"secret"`
-	// Value of the environment variable
-	Value string `json:"value"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Secret      respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxRuntimeEnv) RawJSON() string { return r.JSON.raw }
-func (r *SandboxRuntimeEnv) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Runtime configuration defining how the sandbox VM is provisioned and its
 // resource limits
 type SandboxRuntimeParam struct {
@@ -473,7 +512,7 @@ type SandboxRuntimeParam struct {
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
-	Envs []SandboxRuntimeEnvParam `json:"envs,omitzero"`
+	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
@@ -487,25 +526,6 @@ func (r *SandboxRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Environment variable with name and value
-type SandboxRuntimeEnvParam struct {
-	// Name of the environment variable
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Whether the value is a secret
-	Secret param.Opt[bool] `json:"secret,omitzero"`
-	// Value of the environment variable
-	Value param.Opt[string] `json:"value,omitzero"`
-	paramObj
-}
-
-func (r SandboxRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxRuntimeEnvParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxRuntimeEnvParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Configuration for a sandbox including its image, memory, ports, region, and
 // lifecycle policies
 type SandboxSpec struct {
@@ -514,10 +534,10 @@ type SandboxSpec struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycle `json:"lifecycle"`
-	// Network configuration for a sandbox including egress IP binding. All three
-	// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
-	// assign a dedicated IP.
-	Network SandboxSpecNetwork `json:"network"`
+	// Network configuration for a sandbox including egress IP binding. All fields
+	// (vpcName, egressGatewayName) must be specified together to assign a dedicated
+	// IP.
+	Network SandboxNetwork `json:"network"`
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
 	Region string `json:"region"`
@@ -553,31 +573,6 @@ func (r SandboxSpec) ToParam() SandboxSpecParam {
 	return param.Override[SandboxSpecParam](json.RawMessage(r.RawJSON()))
 }
 
-// Network configuration for a sandbox including egress IP binding. All three
-// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
-// assign a dedicated IP.
-type SandboxSpecNetwork struct {
-	// Name of the egress gateway in the VPC. Must be specified together with vpcName
-	// and egressIpName.
-	EgressGatewayName string `json:"egressGatewayName" api:"required"`
-	// Name of the VPC where the egress gateway is provisioned. Must be specified
-	// together with egressGatewayName and egressIpName.
-	VpcName string `json:"vpcName" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EgressGatewayName respjson.Field
-		VpcName           respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxSpecNetwork) RawJSON() string { return r.JSON.raw }
-func (r *SandboxSpecNetwork) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Configuration for a sandbox including its image, memory, ports, region, and
 // lifecycle policies
 type SandboxSpecParam struct {
@@ -589,10 +584,10 @@ type SandboxSpecParam struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
-	// Network configuration for a sandbox including egress IP binding. All three
-	// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
-	// assign a dedicated IP.
-	Network SandboxSpecNetworkParam `json:"network,omitzero"`
+	// Network configuration for a sandbox including egress IP binding. All fields
+	// (vpcName, egressGatewayName) must be specified together to assign a dedicated
+	// IP.
+	Network SandboxNetworkParam `json:"network,omitzero"`
 	// Runtime configuration defining how the sandbox VM is provisioned and its
 	// resource limits
 	Runtime SandboxRuntimeParam     `json:"runtime,omitzero"`
@@ -605,29 +600,6 @@ func (r SandboxSpecParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Network configuration for a sandbox including egress IP binding. All three
-// fields (vpcName, egressGatewayName, egressIpName) must be specified together to
-// assign a dedicated IP.
-//
-// The properties EgressGatewayName, VpcName are required.
-type SandboxSpecNetworkParam struct {
-	// Name of the egress gateway in the VPC. Must be specified together with vpcName
-	// and egressIpName.
-	EgressGatewayName string `json:"egressGatewayName" api:"required"`
-	// Name of the VPC where the egress gateway is provisioned. Must be specified
-	// together with egressGatewayName and egressIpName.
-	VpcName string `json:"vpcName" api:"required"`
-	paramObj
-}
-
-func (r SandboxSpecNetworkParam) MarshalJSON() (data []byte, err error) {
-	type shadow SandboxSpecNetworkParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *SandboxSpecNetworkParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

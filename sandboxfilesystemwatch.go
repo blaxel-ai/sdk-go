@@ -42,11 +42,11 @@ func (r *SandboxFilesystemWatchService) Start(ctx context.Context, filePath stri
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "text/plain")}, opts...)
 	if filePath == "" {
 		err = errors.New("missing required filePath parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("watch/filesystem/%s", filePath)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 type SandboxFilesystemWatchStartParams struct {

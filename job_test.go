@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestJobNewWithOptionalParams(t *testing.T) {
@@ -46,7 +47,7 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					Traffic:          blaxel.Int(100),
 				},
 				Runtime: blaxel.JobRuntimeParam{
-					Envs: []blaxel.JobRuntimeEnvParam{{
+					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
 						Value:  blaxel.String("my-value"),
@@ -153,7 +154,7 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						Traffic:          blaxel.Int(100),
 					},
 					Runtime: blaxel.JobRuntimeParam{
-						Envs: []blaxel.JobRuntimeEnvParam{{
+						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),
 							Value:  blaxel.String("my-value"),

@@ -43,7 +43,7 @@ func (r *UpgradeService) Trigger(ctx context.Context, body UpgradeTriggerParams,
 	opts = slices.Concat(r.Options, opts)
 	path := "upgrade"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type UpgradeTriggerResponse struct {

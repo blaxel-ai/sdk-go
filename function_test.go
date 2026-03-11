@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 func TestFunctionNewWithOptionalParams(t *testing.T) {
@@ -39,6 +40,7 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 				IntegrationConnections: []string{"string"},
 				Policies:               []string{"string"},
 				Public:                 blaxel.Bool(false),
+				Region:                 blaxel.String("us-pdx-1"),
 				Revision: blaxel.RevisionConfigurationParam{
 					Active:           blaxel.String("rev-abc123"),
 					Canary:           blaxel.String("canary"),
@@ -47,7 +49,7 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					Traffic:          blaxel.Int(100),
 				},
 				Runtime: blaxel.FunctionRuntimeParam{
-					Envs: []blaxel.FunctionRuntimeEnvParam{{
+					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
 						Value:  blaxel.String("my-value"),
@@ -142,6 +144,7 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 					IntegrationConnections: []string{"string"},
 					Policies:               []string{"string"},
 					Public:                 blaxel.Bool(false),
+					Region:                 blaxel.String("us-pdx-1"),
 					Revision: blaxel.RevisionConfigurationParam{
 						Active:           blaxel.String("rev-abc123"),
 						Canary:           blaxel.String("canary"),
@@ -150,7 +153,7 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						Traffic:          blaxel.Int(100),
 					},
 					Runtime: blaxel.FunctionRuntimeParam{
-						Envs: []blaxel.FunctionRuntimeEnvParam{{
+						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),
 							Value:  blaxel.String("my-value"),

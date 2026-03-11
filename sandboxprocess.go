@@ -44,7 +44,7 @@ func (r *SandboxProcessService) New(ctx context.Context, body SandboxProcessNewP
 	opts = slices.Concat(r.Options, opts)
 	path := "process"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get information about a process by its PID or name
@@ -52,11 +52,11 @@ func (r *SandboxProcessService) Get(ctx context.Context, identifier string, opts
 	opts = slices.Concat(r.Options, opts)
 	if identifier == "" {
 		err = errors.New("missing required identifier parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("process/%s", identifier)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Get a list of all running and completed processes
@@ -64,7 +64,7 @@ func (r *SandboxProcessService) List(ctx context.Context, opts ...option.Request
 	opts = slices.Concat(r.Options, opts)
 	path := "process"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Forcefully kill a running process
@@ -72,11 +72,11 @@ func (r *SandboxProcessService) Kill(ctx context.Context, identifier string, opt
 	opts = slices.Concat(r.Options, opts)
 	if identifier == "" {
 		err = errors.New("missing required identifier parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("process/%s/kill", identifier)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Get the stdout and stderr output of a process
@@ -84,11 +84,11 @@ func (r *SandboxProcessService) GetLogs(ctx context.Context, identifier string, 
 	opts = slices.Concat(r.Options, opts)
 	if identifier == "" {
 		err = errors.New("missing required identifier parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("process/%s/logs", identifier)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Gracefully stop a running process
@@ -96,11 +96,11 @@ func (r *SandboxProcessService) Stop(ctx context.Context, identifier string, opt
 	opts = slices.Concat(r.Options, opts)
 	if identifier == "" {
 		err = errors.New("missing required identifier parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("process/%s", identifier)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type ProcessLogs struct {

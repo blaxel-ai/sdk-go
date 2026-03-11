@@ -41,7 +41,7 @@ func (r *ModelService) New(ctx context.Context, body ModelNewParams, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about a model gateway endpoint including its
@@ -50,11 +50,11 @@ func (r *ModelService) Get(ctx context.Context, modelName string, opts ...option
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
 		err = errors.New("missing required modelName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("models/%s", modelName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a model gateway endpoint's configuration. Changes to provider settings
@@ -63,11 +63,11 @@ func (r *ModelService) Update(ctx context.Context, modelName string, body ModelU
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
 		err = errors.New("missing required modelName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("models/%s", modelName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all model gateway endpoints configured in the workspace. Each model
@@ -77,7 +77,7 @@ func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes a model gateway endpoint. Any agents or applications using
@@ -86,11 +86,11 @@ func (r *ModelService) Delete(ctx context.Context, modelName string, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
 		err = errors.New("missing required modelName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("models/%s", modelName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns revisions for a model by name.
@@ -98,11 +98,11 @@ func (r *ModelService) ListRevisions(ctx context.Context, modelName string, opts
 	opts = slices.Concat(r.Options, opts)
 	if modelName == "" {
 		err = errors.New("missing required modelName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("models/%s/revisions", modelName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type ModelNewParams struct {

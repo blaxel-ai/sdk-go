@@ -40,7 +40,7 @@ func (r *PublicIPService) List(ctx context.Context, query PublicIPListParams, op
 	opts = slices.Concat(r.Options, opts)
 	path := "publicIps"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 type PublicIPListResponse map[string]PublicIPListResponseItem

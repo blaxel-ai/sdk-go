@@ -44,11 +44,11 @@ func (r *SandboxPreviewService) New(ctx context.Context, sandboxName string, bod
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns a Sandbox Preview by name.
@@ -56,15 +56,15 @@ func (r *SandboxPreviewService) Get(ctx context.Context, previewName string, que
 	opts = slices.Concat(r.Options, opts)
 	if query.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	if previewName == "" {
 		err = errors.New("missing required previewName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews/%s", query.SandboxName, previewName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates a Sandbox Preview by name.
@@ -72,15 +72,15 @@ func (r *SandboxPreviewService) Update(ctx context.Context, previewName string, 
 	opts = slices.Concat(r.Options, opts)
 	if params.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	if previewName == "" {
 		err = errors.New("missing required previewName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews/%s", params.SandboxName, previewName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, params, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns a list of Sandbox Previews in the workspace.
@@ -88,11 +88,11 @@ func (r *SandboxPreviewService) List(ctx context.Context, sandboxName string, op
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews", sandboxName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Deletes a Sandbox Preview by name.
@@ -100,15 +100,15 @@ func (r *SandboxPreviewService) Delete(ctx context.Context, previewName string, 
 	opts = slices.Concat(r.Options, opts)
 	if body.SandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
-		return
+		return nil, err
 	}
 	if previewName == "" {
 		err = errors.New("missing required previewName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews/%s", body.SandboxName, previewName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Preview of a Resource

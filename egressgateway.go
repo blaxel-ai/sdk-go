@@ -11,6 +11,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 // EgressgatewayService contains methods and other services that help with
@@ -37,16 +38,16 @@ func (r *EgressgatewayService) List(ctx context.Context, opts ...option.RequestO
 	opts = slices.Concat(r.Options, opts)
 	path := "egressgateways"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // An egress gateway that manages outbound traffic routing within a VPC. Multiple
 // egress IPs can be allocated from a single gateway.
 type EgressgatewayListResponse struct {
 	// Metadata for an egress gateway resource including workspace, VPC, and name
-	Metadata EgressgatewayListResponseMetadata `json:"metadata" api:"required"`
+	Metadata shared.EgressGatewayMetadata `json:"metadata" api:"required"`
 	// Specification for an egress gateway including region and capacity configuration
-	Spec EgressgatewayListResponseSpec `json:"spec" api:"required"`
+	Spec shared.EgressGatewaySpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Deployment status of a resource deployed on Blaxel
@@ -68,64 +69,5 @@ type EgressgatewayListResponse struct {
 // Returns the unmodified JSON received from the API
 func (r EgressgatewayListResponse) RawJSON() string { return r.JSON.raw }
 func (r *EgressgatewayListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Metadata for an egress gateway resource including workspace, VPC, and name
-type EgressgatewayListResponseMetadata struct {
-	// Unique identifier for the egress gateway within the VPC. Must be lowercase
-	// alphanumeric with hyphens, max 49 characters. Immutable after creation.
-	Name string `json:"name" api:"required"`
-	// The date and time when the resource was created
-	CreatedAt string `json:"createdAt"`
-	// The user or service account who created the resource
-	CreatedBy string `json:"createdBy"`
-	// Human-readable name for display in the UI. Can contain spaces and special
-	// characters, max 63 characters.
-	DisplayName string `json:"displayName"`
-	// The date and time when the resource was updated
-	UpdatedAt string `json:"updatedAt"`
-	// The user or service account who updated the resource
-	UpdatedBy string `json:"updatedBy"`
-	// Name of the VPC this egress gateway belongs to
-	VpcName string `json:"vpcName"`
-	// Name of the workspace this resource belongs to (read-only, set automatically)
-	Workspace string `json:"workspace"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		CreatedAt   respjson.Field
-		CreatedBy   respjson.Field
-		DisplayName respjson.Field
-		UpdatedAt   respjson.Field
-		UpdatedBy   respjson.Field
-		VpcName     respjson.Field
-		Workspace   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EgressgatewayListResponseMetadata) RawJSON() string { return r.JSON.raw }
-func (r *EgressgatewayListResponseMetadata) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Specification for an egress gateway including region and capacity configuration
-type EgressgatewayListResponseSpec struct {
-	// Region where the egress gateway is provisioned (e.g. us-pdx-1, eu-lon-1)
-	Region string `json:"region" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Region      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EgressgatewayListResponseSpec) RawJSON() string { return r.JSON.raw }
-func (r *EgressgatewayListResponseSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }

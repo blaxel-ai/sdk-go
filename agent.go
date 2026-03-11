@@ -18,6 +18,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
 )
 
 // AgentService contains methods and other services that help with interacting with
@@ -46,7 +47,7 @@ func (r *AgentService) New(ctx context.Context, body AgentNewParams, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	path := "agents"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns detailed information about an agent including its current deployment
@@ -55,11 +56,11 @@ func (r *AgentService) Get(ctx context.Context, agentName string, query AgentGet
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an agent's configuration and triggers a new deployment. Changes to
@@ -69,11 +70,11 @@ func (r *AgentService) Update(ctx context.Context, agentName string, body AgentU
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns all AI agents deployed in the workspace. Each agent includes its
@@ -82,7 +83,7 @@ func (r *AgentService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = slices.Concat(r.Options, opts)
 	path := "agents"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes an agent and all its deployment history. The agent's
@@ -92,11 +93,11 @@ func (r *AgentService) Delete(ctx context.Context, agentName string, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List all agent revisions
@@ -104,11 +105,11 @@ func (r *AgentService) ListRevisions(ctx context.Context, agentName string, opts
 	opts = slices.Concat(r.Options, opts)
 	if agentName == "" {
 		err = errors.New("missing required agentName parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("agents/%s/revisions", agentName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Serverless AI agent deployment that runs your custom agent code as an
@@ -181,7 +182,7 @@ func (r *AgentParam) UnmarshalJSON(data []byte) error {
 type AgentRuntime struct {
 	// Environment variables injected into the agent. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []AgentRuntimeEnv `json:"envs"`
+	Envs []shared.Env `json:"envs"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -226,30 +227,6 @@ func (r AgentRuntime) ToParam() AgentRuntimeParam {
 	return param.Override[AgentRuntimeParam](json.RawMessage(r.RawJSON()))
 }
 
-// Environment variable with name and value
-type AgentRuntimeEnv struct {
-	// Name of the environment variable
-	Name string `json:"name"`
-	// Whether the value is a secret
-	Secret bool `json:"secret"`
-	// Value of the environment variable
-	Value string `json:"value"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Secret      respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r AgentRuntimeEnv) RawJSON() string { return r.JSON.raw }
-func (r *AgentRuntimeEnv) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 // regions) or mk3 (microVMs, sub-25ms cold starts)
 type AgentRuntimeGeneration string
@@ -274,7 +251,7 @@ type AgentRuntimeParam struct {
 	MinScale param.Opt[int64] `json:"minScale,omitzero"`
 	// Environment variables injected into the agent. Supports Kubernetes EnvVar format
 	// with valueFrom references.
-	Envs []AgentRuntimeEnvParam `json:"envs,omitzero"`
+	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
 	// regions) or mk3 (microVMs, sub-25ms cold starts)
 	//
@@ -291,25 +268,6 @@ func (r *AgentRuntimeParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Environment variable with name and value
-type AgentRuntimeEnvParam struct {
-	// Name of the environment variable
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Whether the value is a secret
-	Secret param.Opt[bool] `json:"secret,omitzero"`
-	// Value of the environment variable
-	Value param.Opt[string] `json:"value,omitzero"`
-	paramObj
-}
-
-func (r AgentRuntimeEnvParam) MarshalJSON() (data []byte, err error) {
-	type shadow AgentRuntimeEnvParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *AgentRuntimeEnvParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Configuration for an AI agent including runtime settings, repository source, and
 // deployment triggers
 type AgentSpec struct {
@@ -319,6 +277,9 @@ type AgentSpec struct {
 	// When true, the agent is publicly accessible without authentication. Only
 	// available for mk3 generation.
 	Public bool `json:"public"`
+	// Region where the agent should be deployed (e.g. us-pdx-1, eu-lon-1). Required
+	// when volumes are attached.
+	Region string `json:"region"`
 	// Repository
 	Repository Repository `json:"repository"`
 	// Revision configuration
@@ -326,16 +287,19 @@ type AgentSpec struct {
 	// Runtime configuration defining how the AI agent is deployed and scaled globally
 	Runtime AgentRuntime `json:"runtime"`
 	// Triggers to use your agent
-	Triggers []Trigger `json:"triggers"`
+	Triggers []Trigger          `json:"triggers"`
+	Volumes  []VolumeAttachment `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Enabled     respjson.Field
 		Policies    respjson.Field
 		Public      respjson.Field
+		Region      respjson.Field
 		Repository  respjson.Field
 		Revision    respjson.Field
 		Runtime     respjson.Field
 		Triggers    respjson.Field
+		Volumes     respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -363,8 +327,11 @@ type AgentSpecParam struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	// When true, the agent is publicly accessible without authentication. Only
 	// available for mk3 generation.
-	Public   param.Opt[bool] `json:"public,omitzero"`
-	Policies []string        `json:"policies,omitzero"`
+	Public param.Opt[bool] `json:"public,omitzero"`
+	// Region where the agent should be deployed (e.g. us-pdx-1, eu-lon-1). Required
+	// when volumes are attached.
+	Region   param.Opt[string] `json:"region,omitzero"`
+	Policies []string          `json:"policies,omitzero"`
 	// Repository
 	Repository RepositoryParam `json:"repository,omitzero"`
 	// Revision configuration
@@ -372,7 +339,8 @@ type AgentSpecParam struct {
 	// Runtime configuration defining how the AI agent is deployed and scaled globally
 	Runtime AgentRuntimeParam `json:"runtime,omitzero"`
 	// Triggers to use your agent
-	Triggers []TriggerParam `json:"triggers,omitzero"`
+	Triggers []TriggerParam          `json:"triggers,omitzero"`
+	Volumes  []VolumeAttachmentParam `json:"volumes,omitzero"`
 	paramObj
 }
 
