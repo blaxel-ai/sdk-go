@@ -31,6 +31,7 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 			Env: map[string]string{
 				`{"PORT"`: ` "3000"}`,
 			},
+			KeepAlive:         blaxel.Bool(false),
 			MaxRestarts:       blaxel.Int(3),
 			Name:              blaxel.String("my-process"),
 			RestartOnFailure:  blaxel.Bool(true),
