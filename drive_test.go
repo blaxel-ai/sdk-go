@@ -26,16 +26,18 @@ func TestDriveNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Drives.New(context.TODO(), blaxel.DriveNewParams{
-		Metadata: blaxel.MetadataParam{
-			Name:        "my-resource",
-			DisplayName: blaxel.String("My Resource"),
-			Labels: map[string]string{
-				"foo": "string",
+		Drive: blaxel.DriveParam{
+			Metadata: blaxel.MetadataParam{
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
+				Labels: map[string]string{
+					"foo": "string",
+				},
 			},
-		},
-		Spec: blaxel.DriveSpecParam{
-			Region: blaxel.String("us-pdx-1"),
-			Size:   blaxel.Int(100),
+			Spec: blaxel.DriveSpecParam{
+				Region: blaxel.String("us-pdx-1"),
+				Size:   blaxel.Int(100),
+			},
 		},
 	})
 	if err != nil {
@@ -85,16 +87,18 @@ func TestDriveUpdateWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"driveName",
 		blaxel.DriveUpdateParams{
-			Metadata: blaxel.MetadataParam{
-				Name:        "my-resource",
-				DisplayName: blaxel.String("My Resource"),
-				Labels: map[string]string{
-					"foo": "string",
+			Drive: blaxel.DriveParam{
+				Metadata: blaxel.MetadataParam{
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
+					Labels: map[string]string{
+						"foo": "string",
+					},
 				},
-			},
-			Spec: blaxel.DriveSpecParam{
-				Region: blaxel.String("us-pdx-1"),
-				Size:   blaxel.Int(100),
+				Spec: blaxel.DriveSpecParam{
+					Region: blaxel.String("us-pdx-1"),
+					Size:   blaxel.Int(100),
+				},
 			},
 		},
 	)

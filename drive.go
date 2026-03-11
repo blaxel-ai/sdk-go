@@ -11,6 +11,7 @@ import (
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
@@ -38,7 +39,7 @@ func NewDriveService(opts ...option.RequestOption) (r DriveService) {
 
 // Creates a new drive in the workspace. Drives are backed by SeaweedFS buckets and
 // can be mounted at runtime to sandboxes.
-func (r *DriveService) New(ctx context.Context, body DriveNewParams, opts ...option.RequestOption) (res *DriveNewResponse, err error) {
+func (r *DriveService) New(ctx context.Context, body DriveNewParams, opts ...option.RequestOption) (res *Drive, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "drives"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -46,7 +47,7 @@ func (r *DriveService) New(ctx context.Context, body DriveNewParams, opts ...opt
 }
 
 // Retrieves details of a specific drive including its status and events.
-func (r *DriveService) Get(ctx context.Context, driveName string, opts ...option.RequestOption) (res *DriveGetResponse, err error) {
+func (r *DriveService) Get(ctx context.Context, driveName string, opts ...option.RequestOption) (res *Drive, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
 		err = errors.New("missing required driveName parameter")
@@ -59,7 +60,7 @@ func (r *DriveService) Get(ctx context.Context, driveName string, opts ...option
 
 // Updates an existing drive. Metadata fields like displayName and labels can be
 // changed. Size can be set if not already configured.
-func (r *DriveService) Update(ctx context.Context, driveName string, body DriveUpdateParams, opts ...option.RequestOption) (res *DriveUpdateResponse, err error) {
+func (r *DriveService) Update(ctx context.Context, driveName string, body DriveUpdateParams, opts ...option.RequestOption) (res *Drive, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
 		err = errors.New("missing required driveName parameter")
@@ -72,7 +73,7 @@ func (r *DriveService) Update(ctx context.Context, driveName string, body DriveU
 
 // Returns all drives in the workspace. Drives provide persistent storage that can
 // be attached to agents, functions, and sandboxes.
-func (r *DriveService) List(ctx context.Context, opts ...option.RequestOption) (res *[]DriveListResponse, err error) {
+func (r *DriveService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Drive, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "drives"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
@@ -114,6 +115,101 @@ func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption
 	path := "drives/jwks.json"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
+}
+
+// Drive providing persistent storage that can be attached to agents, functions,
+// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
+// runtime via the sbx API.
+type Drive struct {
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
+	Metadata Metadata `json:"metadata" api:"required"`
+	// Immutable drive configuration set at creation time
+	Spec DriveSpec `json:"spec" api:"required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEvent `json:"events"`
+	// Current runtime state of the drive
+	State DriveState `json:"state"`
+	// Drive status computed from events
+	Status string `json:"status"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metadata    respjson.Field
+		Spec        respjson.Field
+		Events      respjson.Field
+		State       respjson.Field
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r Drive) RawJSON() string { return r.JSON.raw }
+func (r *Drive) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this Drive to a DriveParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// DriveParam.Overrides()
+func (r Drive) ToParam() DriveParam {
+	return param.Override[DriveParam](json.RawMessage(r.RawJSON()))
+}
+
+// Current runtime state of the drive
+type DriveState struct {
+	// S3-compatible endpoint URL for accessing drive contents
+	S3URL string `json:"s3Url"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		S3URL       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveState) RawJSON() string { return r.JSON.raw }
+func (r *DriveState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Drive providing persistent storage that can be attached to agents, functions,
+// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
+// runtime via the sbx API.
+//
+// The properties Metadata, Spec are required.
+type DriveParam struct {
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
+	// Immutable drive configuration set at creation time
+	Spec DriveSpecParam `json:"spec,omitzero" api:"required"`
+	paramObj
+}
+
+func (r DriveParam) MarshalJSON() (data []byte, err error) {
+	type shadow DriveParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *DriveParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Current runtime state of the drive
+type DriveStateParam struct {
+	paramObj
+}
+
+func (r DriveStateParam) MarshalJSON() (data []byte, err error) {
+	type shadow DriveStateParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *DriveStateParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Immutable drive configuration set at creation time
@@ -167,210 +263,6 @@ func (r DriveSpecParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *DriveSpecParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
-type DriveNewResponse struct {
-	// Common metadata fields shared by all Blaxel resources including name, labels,
-	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata" api:"required"`
-	// Immutable drive configuration set at creation time
-	Spec DriveSpec `json:"spec" api:"required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEvent `json:"events"`
-	// Current runtime state of the drive
-	State DriveNewResponseState `json:"state"`
-	// Drive status computed from events
-	Status string `json:"status"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		State       respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *DriveNewResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Current runtime state of the drive
-type DriveNewResponseState struct {
-	// S3-compatible endpoint URL for accessing drive contents
-	S3URL string `json:"s3Url"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		S3URL       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveNewResponseState) RawJSON() string { return r.JSON.raw }
-func (r *DriveNewResponseState) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
-type DriveGetResponse struct {
-	// Common metadata fields shared by all Blaxel resources including name, labels,
-	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata" api:"required"`
-	// Immutable drive configuration set at creation time
-	Spec DriveSpec `json:"spec" api:"required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEvent `json:"events"`
-	// Current runtime state of the drive
-	State DriveGetResponseState `json:"state"`
-	// Drive status computed from events
-	Status string `json:"status"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		State       respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *DriveGetResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Current runtime state of the drive
-type DriveGetResponseState struct {
-	// S3-compatible endpoint URL for accessing drive contents
-	S3URL string `json:"s3Url"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		S3URL       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveGetResponseState) RawJSON() string { return r.JSON.raw }
-func (r *DriveGetResponseState) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
-type DriveUpdateResponse struct {
-	// Common metadata fields shared by all Blaxel resources including name, labels,
-	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata" api:"required"`
-	// Immutable drive configuration set at creation time
-	Spec DriveSpec `json:"spec" api:"required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEvent `json:"events"`
-	// Current runtime state of the drive
-	State DriveUpdateResponseState `json:"state"`
-	// Drive status computed from events
-	Status string `json:"status"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		State       respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *DriveUpdateResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Current runtime state of the drive
-type DriveUpdateResponseState struct {
-	// S3-compatible endpoint URL for accessing drive contents
-	S3URL string `json:"s3Url"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		S3URL       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveUpdateResponseState) RawJSON() string { return r.JSON.raw }
-func (r *DriveUpdateResponseState) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
-type DriveListResponse struct {
-	// Common metadata fields shared by all Blaxel resources including name, labels,
-	// timestamps, and ownership information
-	Metadata Metadata `json:"metadata" api:"required"`
-	// Immutable drive configuration set at creation time
-	Spec DriveSpec `json:"spec" api:"required"`
-	// Events happening on a resource deployed on Blaxel
-	Events []CoreEvent `json:"events"`
-	// Current runtime state of the drive
-	State DriveListResponseState `json:"state"`
-	// Drive status computed from events
-	Status string `json:"status"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		State       respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveListResponse) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Current runtime state of the drive
-type DriveListResponseState struct {
-	// S3-compatible endpoint URL for accessing drive contents
-	S3URL string `json:"s3Url"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		S3URL       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveListResponseState) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponseState) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -429,35 +321,31 @@ func (r *DriveGetJwksResponse) UnmarshalJSON(data []byte) error {
 }
 
 type DriveNewParams struct {
-	// Common metadata fields shared by all Blaxel resources including name, labels,
-	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
-	// Immutable drive configuration set at creation time
-	Spec DriveSpecParam `json:"spec,omitzero" api:"required"`
+	// Drive providing persistent storage that can be attached to agents, functions,
+	// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
+	// runtime via the sbx API.
+	Drive DriveParam
 	paramObj
 }
 
 func (r DriveNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow DriveNewParams
-	return param.MarshalObject(r, (*shadow)(&r))
+	return shimjson.Marshal(r.Drive)
 }
 func (r *DriveNewParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+	return json.Unmarshal(data, &r.Drive)
 }
 
 type DriveUpdateParams struct {
-	// Common metadata fields shared by all Blaxel resources including name, labels,
-	// timestamps, and ownership information
-	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
-	// Immutable drive configuration set at creation time
-	Spec DriveSpecParam `json:"spec,omitzero" api:"required"`
+	// Drive providing persistent storage that can be attached to agents, functions,
+	// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
+	// runtime via the sbx API.
+	Drive DriveParam
 	paramObj
 }
 
 func (r DriveUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow DriveUpdateParams
-	return param.MarshalObject(r, (*shadow)(&r))
+	return shimjson.Marshal(r.Drive)
 }
 func (r *DriveUpdateParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
+	return json.Unmarshal(data, &r.Drive)
 }
