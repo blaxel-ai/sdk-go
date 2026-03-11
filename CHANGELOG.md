@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.14.0 (2026-03-11)
+
+Full Changelog: [v0.13.0...v0.14.0](https://github.com/blaxel-ai/sdk-go/compare/v0.13.0...v0.14.0)
+
+### Features
+
+* add configurable terminated sandbox retention with quota support ([1965913](https://github.com/blaxel-ai/sdk-go/commit/19659137fca3381ac953466da5e4b56562b29922))
+* Add region and volume to agent ([ff80c1e](https://github.com/blaxel-ai/sdk-go/commit/ff80c1ec7e30952c9ae30c78d0acf73634fa4e8d))
+* Enhances authentication with SSO, Directory Sync, and domain policies ([9b46033](https://github.com/blaxel-ai/sdk-go/commit/9b46033043e4002754efe1ec098b5da123846b8d))
+
+
+### Bug Fixes
+
+* **api:** remove egressIpName from SandboxNetwork descriptions [ENG-1970] (cherry-pick to main) ([ac84637](https://github.com/blaxel-ai/sdk-go/commit/ac84637b2deae41c38e7ced98773823c0a0ef515))
+* fix request delays for retrying to be more respectful of high requested delays ([33842ba](https://github.com/blaxel-ai/sdk-go/commit/33842baa419e0fc0505a2c49f9cd92a2936b252b))
+
+
+### Chores
+
+* **ci:** skip uploading artifacts on stainless-internal branches ([0e74d4a](https://github.com/blaxel-ai/sdk-go/commit/0e74d4a758a711b331ae685a9436d35316afa6db))
+* **internal:** minor cleanup ([78c99fc](https://github.com/blaxel-ai/sdk-go/commit/78c99fc066add92b6d538bed6b03857a9dc81f71))
+* **internal:** use explicit returns ([65de7a6](https://github.com/blaxel-ai/sdk-go/commit/65de7a657e0b66bb721250a847db4c36fb898da0))
+* **internal:** use explicit returns in more places ([9c6239f](https://github.com/blaxel-ai/sdk-go/commit/9c6239f2b4d1d149592380dcabb7d8a2755df854))
+* **test:** do not count install time for mock server timeout ([f4e0f45](https://github.com/blaxel-ai/sdk-go/commit/f4e0f450d010cc8480e7e1b26aa7c439d489db9d))
+* update placeholder string ([ba6fd7e](https://github.com/blaxel-ai/sdk-go/commit/ba6fd7e2cdc850f848f9da471d6ecb4e66354116))
+
 ## 0.13.0 (2026-03-03)
 
 Full Changelog: [v0.12.2...v0.13.0](https://github.com/blaxel-ai/sdk-go/compare/v0.12.2...v0.13.0)
