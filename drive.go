@@ -36,8 +36,8 @@ func NewDriveService(opts ...option.RequestOption) (r DriveService) {
 	return
 }
 
-// Creates a new drive in the workspace. Drives are backed by SeaweedFS buckets and
-// can be mounted at runtime to sandboxes.
+// Creates a new drive in the workspace. Drives can be buckets and can be mounted
+// at runtime to sandboxes.
 func (r *DriveService) New(ctx context.Context, body DriveNewParams, opts ...option.RequestOption) (res *DriveNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "drives"
@@ -94,7 +94,7 @@ func (r *DriveService) Delete(ctx context.Context, driveName string, opts ...opt
 
 // Issues a short-lived JWT access token scoped to a specific drive. The token can
 // be used as Bearer authentication for direct S3 operations against the drive's
-// SeaweedFS bucket.
+// bucket.
 func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opts ...option.RequestOption) (res *DriveNewAccessTokenResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if driveName == "" {
@@ -107,8 +107,8 @@ func (r *DriveService) NewAccessToken(ctx context.Context, driveName string, opt
 }
 
 // Returns the JSON Web Key Set containing the Ed25519 public key used to verify
-// drive access tokens. SeaweedFS or other S3-compatible storage can use this
-// endpoint to validate Bearer tokens.
+// drive access tokens. Other S3-compatible storage can use this endpoint to
+// validate Bearer tokens.
 func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption) (res *DriveGetJwksResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "drives/jwks.json"
@@ -171,8 +171,7 @@ func (r *DriveSpecParam) UnmarshalJSON(data []byte) error {
 }
 
 // Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
+// and sandboxes. Drives can be mounted at runtime via the sbx API.
 type DriveNewResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
@@ -222,8 +221,7 @@ func (r *DriveNewResponseState) UnmarshalJSON(data []byte) error {
 }
 
 // Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
+// and sandboxes. Drives can be mounted at runtime via the sbx API.
 type DriveGetResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
@@ -273,8 +271,7 @@ func (r *DriveGetResponseState) UnmarshalJSON(data []byte) error {
 }
 
 // Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
+// and sandboxes. Drives can be mounted at runtime via the sbx API.
 type DriveUpdateResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
@@ -324,8 +321,7 @@ func (r *DriveUpdateResponseState) UnmarshalJSON(data []byte) error {
 }
 
 // Drive providing persistent storage that can be attached to agents, functions,
-// and sandboxes. Drives are backed by SeaweedFS buckets and can be mounted at
-// runtime via the sbx API.
+// and sandboxes. Drives can be mounted at runtime via the sbx API.
 type DriveListResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
