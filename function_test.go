@@ -40,6 +40,7 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 				IntegrationConnections: []string{"string"},
 				Policies:               []string{"string"},
 				Public:                 blaxel.Bool(false),
+				Region:                 blaxel.String("us-pdx-1"),
 				Revision: blaxel.RevisionConfigurationParam{
 					Active:           blaxel.String("rev-abc123"),
 					Canary:           blaxel.String("canary"),
@@ -143,6 +144,7 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 					IntegrationConnections: []string{"string"},
 					Policies:               []string{"string"},
 					Public:                 blaxel.Bool(false),
+					Region:                 blaxel.String("us-pdx-1"),
 					Revision: blaxel.RevisionConfigurationParam{
 						Active:           blaxel.String("rev-abc123"),
 						Canary:           blaxel.String("canary"),
