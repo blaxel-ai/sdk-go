@@ -43,6 +43,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Type:   blaxel.ExpirationPolicyTypeTtlIdle,
 						Value:  blaxel.String("24h"),
 					}},
+					TerminatedRetention: blaxel.String("24h"),
 				},
 				Network: blaxel.SandboxNetworkParam{
 					EgressGatewayName: "my-egress-gateway",
@@ -143,6 +144,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Type:   blaxel.ExpirationPolicyTypeTtlIdle,
 							Value:  blaxel.String("24h"),
 						}},
+						TerminatedRetention: blaxel.String("24h"),
 					},
 					Network: blaxel.SandboxNetworkParam{
 						EgressGatewayName: "my-egress-gateway",

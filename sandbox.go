@@ -345,11 +345,15 @@ type SandboxLifecycle struct {
 	// List of expiration policies. Multiple policies can be combined; whichever
 	// condition is met first triggers the action.
 	ExpirationPolicies []ExpirationPolicy `json:"expirationPolicies"`
+	// Duration to keep the sandbox record after termination for log access (e.g.,
+	// '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.
+	TerminatedRetention string `json:"terminatedRetention"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ExpirationPolicies respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
+		ExpirationPolicies  respjson.Field
+		TerminatedRetention respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
 	} `json:"-"`
 }
 
@@ -371,6 +375,9 @@ func (r SandboxLifecycle) ToParam() SandboxLifecycleParam {
 // Lifecycle configuration controlling automatic sandbox deletion based on idle
 // time, max age, or specific dates
 type SandboxLifecycleParam struct {
+	// Duration to keep the sandbox record after termination for log access (e.g.,
+	// '1h', '24h', '7d'). Defaults to 5m. Subject to maximum quota limits.
+	TerminatedRetention param.Opt[string] `json:"terminatedRetention,omitzero"`
 	// List of expiration policies. Multiple policies can be combined; whichever
 	// condition is met first triggers the action.
 	ExpirationPolicies []ExpirationPolicyParam `json:"expirationPolicies,omitzero"`
