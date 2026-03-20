@@ -125,10 +125,15 @@ func (r *ProcessLogs) UnmarshalJSON(data []byte) error {
 
 // The property Command is required.
 type ProcessRequestParam struct {
-	Command           string            `json:"command" api:"required"`
-	MaxRestarts       param.Opt[int64]  `json:"maxRestarts,omitzero"`
-	Name              param.Opt[string] `json:"name,omitzero"`
-	RestartOnFailure  param.Opt[bool]   `json:"restartOnFailure,omitzero"`
+	Command string `json:"command" api:"required"`
+	// Disable scale-to-zero while process runs. Default timeout is 600s (10 minutes).
+	// Set timeout to 0 for infinite.
+	KeepAlive        param.Opt[bool]   `json:"keepAlive,omitzero"`
+	MaxRestarts      param.Opt[int64]  `json:"maxRestarts,omitzero"`
+	Name             param.Opt[string] `json:"name,omitzero"`
+	RestartOnFailure param.Opt[bool]   `json:"restartOnFailure,omitzero"`
+	// Timeout in seconds. When keepAlive is true, defaults to 600s (10 minutes). Set
+	// to 0 for infinite (no auto-kill).
 	Timeout           param.Opt[int64]  `json:"timeout,omitzero"`
 	WaitForCompletion param.Opt[bool]   `json:"waitForCompletion,omitzero"`
 	WorkingDir        param.Opt[string] `json:"workingDir,omitzero"`
@@ -154,13 +159,15 @@ type ProcessResponse struct {
 	Pid         string `json:"pid" api:"required"`
 	StartedAt   string `json:"startedAt" api:"required"`
 	// Any of "failed", "killed", "stopped", "running", "completed".
-	Status           ProcessResponseStatus `json:"status" api:"required"`
-	Stderr           string                `json:"stderr" api:"required"`
-	Stdout           string                `json:"stdout" api:"required"`
-	WorkingDir       string                `json:"workingDir" api:"required"`
-	MaxRestarts      int64                 `json:"maxRestarts"`
-	RestartCount     int64                 `json:"restartCount"`
-	RestartOnFailure bool                  `json:"restartOnFailure"`
+	Status     ProcessResponseStatus `json:"status" api:"required"`
+	Stderr     string                `json:"stderr" api:"required"`
+	Stdout     string                `json:"stdout" api:"required"`
+	WorkingDir string                `json:"workingDir" api:"required"`
+	// Whether scale-to-zero is disabled for this process
+	KeepAlive        bool  `json:"keepAlive"`
+	MaxRestarts      int64 `json:"maxRestarts"`
+	RestartCount     int64 `json:"restartCount"`
+	RestartOnFailure bool  `json:"restartOnFailure"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Command          respjson.Field
@@ -174,6 +181,7 @@ type ProcessResponse struct {
 		Stderr           respjson.Field
 		Stdout           respjson.Field
 		WorkingDir       respjson.Field
+		KeepAlive        respjson.Field
 		MaxRestarts      respjson.Field
 		RestartCount     respjson.Field
 		RestartOnFailure respjson.Field
