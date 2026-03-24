@@ -600,6 +600,9 @@ func (r *JobExecutionTaskSpec) UnmarshalJSON(data []byte) error {
 // Runtime configuration defining how batch job tasks are executed with parallelism
 // and retry settings
 type JobRuntime struct {
+	// Percentage of VM RAM allocated for disk storage (tmpfs overlay). Valid range
+	// 10-95, default 50. Only applies to mk3.1 (microVM) generation.
+	DiskPercent int64 `json:"diskPercent"`
 	// Environment variables injected into job tasks. Supports Kubernetes EnvVar format
 	// with valueFrom references.
 	Envs []shared.Env `json:"envs"`
@@ -624,6 +627,7 @@ type JobRuntime struct {
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		DiskPercent        respjson.Field
 		Envs               respjson.Field
 		Generation         respjson.Field
 		Image              respjson.Field
@@ -664,6 +668,9 @@ const (
 // Runtime configuration defining how batch job tasks are executed with parallelism
 // and retry settings
 type JobRuntimeParam struct {
+	// Percentage of VM RAM allocated for disk storage (tmpfs overlay). Valid range
+	// 10-95, default 50. Only applies to mk3.1 (microVM) generation.
+	DiskPercent param.Opt[int64] `json:"diskPercent,omitzero"`
 	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
 	// auto-populated during deployment.
 	Image param.Opt[string] `json:"image,omitzero"`

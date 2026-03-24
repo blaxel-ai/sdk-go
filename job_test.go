@@ -47,6 +47,7 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					Traffic:          blaxel.Int(100),
 				},
 				Runtime: blaxel.JobRuntimeParam{
+					DiskPercent: blaxel.Int(80),
 					Envs: []shared.EnvParam{{
 						Name:   blaxel.String("MY_ENV_VAR"),
 						Secret: blaxel.Bool(true),
@@ -154,6 +155,7 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						Traffic:          blaxel.Int(100),
 					},
 					Runtime: blaxel.JobRuntimeParam{
+						DiskPercent: blaxel.Int(80),
 						Envs: []shared.EnvParam{{
 							Name:   blaxel.String("MY_ENV_VAR"),
 							Secret: blaxel.Bool(true),

@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.16.0 (2026-03-24)
+
+Full Changelog: [v0.15.0...v0.16.0](https://github.com/blaxel-ai/sdk-go/compare/v0.15.0...v0.16.0)
+
+### Features
+
+* Cdrappier/increase job speed ([32e7d60](https://github.com/blaxel-ai/sdk-go/commit/32e7d60512a628975ab5d319da190a5b962310e4))
+* Remove seaweedfs from doc generated ([6e00399](https://github.com/blaxel-ai/sdk-go/commit/6e00399a3ed932d75fe8e7abd60067b2fb9671b6))
+* Thomas/add filter billing metrics on resource info ([f9724db](https://github.com/blaxel-ai/sdk-go/commit/f9724db573e2117e44352e91164b029e8c86bea5))
+
+
+### Chores
+
+* **ci:** skip lint on metadata-only changes ([b56cc28](https://github.com/blaxel-ai/sdk-go/commit/b56cc28c645cd9399c76d91ba0b40b9ec8e21dc1))
+* **internal:** tweak CI branches ([2624941](https://github.com/blaxel-ai/sdk-go/commit/26249417f8fcc52174268866d42aaa03279d6b1f))
+* **internal:** update gitignore ([3c32bd3](https://github.com/blaxel-ai/sdk-go/commit/3c32bd3de7c45de038e8502c2ea0a5cec39676e3))
+* **tests:** bump steady to v0.19.4 ([2b33e36](https://github.com/blaxel-ai/sdk-go/commit/2b33e3654aa1813dbcc97f316b086f6f7e2ff5cb))
+* **tests:** bump steady to v0.19.5 ([1e09115](https://github.com/blaxel-ai/sdk-go/commit/1e091159c837d22085e3f42b39aa495f55aed1e6))
+* **tests:** bump steady to v0.19.6 ([10ebe39](https://github.com/blaxel-ai/sdk-go/commit/10ebe3930c7b03ea238c8ccc25cc3c1a4e9a5220))
+* **tests:** bump steady to v0.19.7 ([85cf24a](https://github.com/blaxel-ai/sdk-go/commit/85cf24abe824ef63942bc3238759587f17ee5251))
+
+
+### Refactors
+
+* **tests:** switch from prism to steady ([47207a8](https://github.com/blaxel-ai/sdk-go/commit/47207a8b743b34daf31caf3e48b9ea51b8be89b7))
+
 ## 0.15.0 (2026-03-11)
 
 Full Changelog: [v0.14.0...v0.15.0](https://github.com/blaxel-ai/sdk-go/compare/v0.14.0...v0.15.0)
