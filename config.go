@@ -295,13 +295,24 @@ func CurrentContext() (ContextConfig, error) {
 	return config.Context, nil
 }
 
-// IsTrackingEnabled returns true if tracking is enabled (not explicitly disabled)
+// IsTrackingEnabled returns true if tracking is explicitly enabled.
+// It checks the DO_NOT_TRACK environment variable, then config.yaml,
+// and defaults to false (opt-in tracking) when neither is configured.
 func IsTrackingEnabled() bool {
-	// Tracking is disabled if DO_NOT_TRACK is set
-	if os.Getenv("DO_NOT_TRACK") == "1" {
+	envVal := os.Getenv("DO_NOT_TRACK")
+	if envVal == "1" || strings.ToLower(envVal) == "true" {
 		return false
 	}
-	return true
+	if envVal == "0" || strings.ToLower(envVal) == "false" {
+		return true
+	}
+	// Check config.yaml
+	config, err := LoadConfig()
+	if err == nil && IsTrackingConfigured() {
+		return config.Tracking
+	}
+	// Default: tracking disabled (opt-in)
+	return false
 }
 
 // isTrackingConfigured checks if tracking has been explicitly configured
