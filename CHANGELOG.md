@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.16.1 (2026-03-26)
+
+Full Changelog: [v0.16.0...v0.16.1](https://github.com/blaxel-ai/sdk-go/compare/v0.16.0...v0.16.1)
+
+### Bug Fixes
+
+* **tracking:** default tracking to false and check config.yaml ([#24](https://github.com/blaxel-ai/sdk-go/issues/24)) ([4dc4c42](https://github.com/blaxel-ai/sdk-go/commit/4dc4c42bf32012e8bb6a85f9dd354b825b0cca38))
+
+
+### Chores
+
+* **client:** fix multipart serialisation of Default() fields ([8d79964](https://github.com/blaxel-ai/sdk-go/commit/8d79964837bf709396c468d167a67657dfe30d53))
+* **internal:** support default value struct tag ([fdc1409](https://github.com/blaxel-ai/sdk-go/commit/fdc14090651b64f5992c8f55eb5b19196bd658c8))
+
 ## 0.16.0 (2026-03-24)
 
 Full Changelog: [v0.15.0...v0.16.0](https://github.com/blaxel-ai/sdk-go/compare/v0.15.0...v0.16.0)
