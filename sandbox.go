@@ -819,7 +819,8 @@ func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Configuration for attaching a volume to a sandbox at a specific filesystem path
+// Configuration for attaching a persistent volume to a sandbox at a specific
+// filesystem path
 type VolumeAttachment struct {
 	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath string `json:"mountPath"`
@@ -853,7 +854,8 @@ func (r VolumeAttachment) ToParam() VolumeAttachmentParam {
 	return param.Override[VolumeAttachmentParam](json.RawMessage(r.RawJSON()))
 }
 
-// Configuration for attaching a volume to a sandbox at a specific filesystem path
+// Configuration for attaching a persistent volume to a sandbox at a specific
+// filesystem path
 type VolumeAttachmentParam struct {
 	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath param.Opt[string] `json:"mountPath,omitzero"`
