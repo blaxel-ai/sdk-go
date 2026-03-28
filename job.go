@@ -708,8 +708,13 @@ func (r *JobRuntimeParam) UnmarshalJSON(data []byte) error {
 // settings, and deployment region
 type JobSpec struct {
 	// When false, the job is disabled and new executions cannot be triggered
-	Enabled  bool     `json:"enabled"`
-	Policies []string `json:"policies"`
+	Enabled bool `json:"enabled"`
+	// Configuration for running GitHub Actions workflow jobs on Blaxel infrastructure.
+	// When repositories are configured, the job acts as a self-hosted GitHub Actions
+	// runner. Workflow jobs use runs-on with the Blaxel job name to target a specific
+	// runner.
+	GitHubRunner JobSpecGitHubRunner `json:"githubRunner"`
+	Policies     []string            `json:"policies"`
 	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
 	Region string `json:"region"`
 	// Revision configuration
@@ -718,17 +723,20 @@ type JobSpec struct {
 	// and retry settings
 	Runtime JobRuntime `json:"runtime"`
 	// Triggers to use your agent
-	Triggers []Trigger `json:"triggers"`
+	Triggers []Trigger       `json:"triggers"`
+	Volumes  []JobSpecVolume `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Enabled     respjson.Field
-		Policies    respjson.Field
-		Region      respjson.Field
-		Revision    respjson.Field
-		Runtime     respjson.Field
-		Triggers    respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Enabled      respjson.Field
+		GitHubRunner respjson.Field
+		Policies     respjson.Field
+		Region       respjson.Field
+		Revision     respjson.Field
+		Runtime      respjson.Field
+		Triggers     respjson.Field
+		Volumes      respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
 	} `json:"-"`
 }
 
@@ -747,21 +755,83 @@ func (r JobSpec) ToParam() JobSpecParam {
 	return param.Override[JobSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// Configuration for running GitHub Actions workflow jobs on Blaxel infrastructure.
+// When repositories are configured, the job acts as a self-hosted GitHub Actions
+// runner. Workflow jobs use runs-on with the Blaxel job name to target a specific
+// runner.
+type JobSpecGitHubRunner struct {
+	// Repositories in owner/repo format that this runner is associated with. The
+	// runner will pick up workflow jobs from any of these repositories. If non-empty,
+	// the runner is considered enabled.
+	Repositories []string `json:"repositories"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Repositories respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobSpecGitHubRunner) RawJSON() string { return r.JSON.raw }
+func (r *JobSpecGitHubRunner) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Ephemeral volume for a job. Temporary disk-backed storage that is created when
+// the job starts and destroyed when it completes.
+type JobSpecVolume struct {
+	// Absolute filesystem path where the volume will be mounted inside the container
+	MountPath string `json:"mountPath" api:"required"`
+	// Identifier for the volume, used to reference it internally
+	Name string `json:"name" api:"required"`
+	// Storage capacity in megabytes
+	SizeMB int64 `json:"sizeMb" api:"required"`
+	// Type of volume. Currently only "ephemeral" is supported.
+	//
+	// Any of "ephemeral".
+	Type string `json:"type" api:"required"`
+	// If true, the volume is mounted read-only
+	ReadOnly bool `json:"readOnly"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MountPath   respjson.Field
+		Name        respjson.Field
+		SizeMB      respjson.Field
+		Type        respjson.Field
+		ReadOnly    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobSpecVolume) RawJSON() string { return r.JSON.raw }
+func (r *JobSpecVolume) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Configuration for a batch job including execution parameters, parallelism
 // settings, and deployment region
 type JobSpecParam struct {
 	// When false, the job is disabled and new executions cannot be triggered
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	// Region where the job should be created (e.g. us-was-1, eu-lon-1)
-	Region   param.Opt[string] `json:"region,omitzero"`
-	Policies []string          `json:"policies,omitzero"`
+	Region param.Opt[string] `json:"region,omitzero"`
+	// Configuration for running GitHub Actions workflow jobs on Blaxel infrastructure.
+	// When repositories are configured, the job acts as a self-hosted GitHub Actions
+	// runner. Workflow jobs use runs-on with the Blaxel job name to target a specific
+	// runner.
+	GitHubRunner JobSpecGitHubRunnerParam `json:"githubRunner,omitzero"`
+	Policies     []string                 `json:"policies,omitzero"`
 	// Revision configuration
 	Revision RevisionConfigurationParam `json:"revision,omitzero"`
 	// Runtime configuration defining how batch job tasks are executed with parallelism
 	// and retry settings
 	Runtime JobRuntimeParam `json:"runtime,omitzero"`
 	// Triggers to use your agent
-	Triggers []TriggerParam `json:"triggers,omitzero"`
+	Triggers []TriggerParam       `json:"triggers,omitzero"`
+	Volumes  []JobSpecVolumeParam `json:"volumes,omitzero"`
 	paramObj
 }
 
@@ -771,6 +841,60 @@ func (r JobSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *JobSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for running GitHub Actions workflow jobs on Blaxel infrastructure.
+// When repositories are configured, the job acts as a self-hosted GitHub Actions
+// runner. Workflow jobs use runs-on with the Blaxel job name to target a specific
+// runner.
+type JobSpecGitHubRunnerParam struct {
+	// Repositories in owner/repo format that this runner is associated with. The
+	// runner will pick up workflow jobs from any of these repositories. If non-empty,
+	// the runner is considered enabled.
+	Repositories []string `json:"repositories,omitzero"`
+	paramObj
+}
+
+func (r JobSpecGitHubRunnerParam) MarshalJSON() (data []byte, err error) {
+	type shadow JobSpecGitHubRunnerParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *JobSpecGitHubRunnerParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Ephemeral volume for a job. Temporary disk-backed storage that is created when
+// the job starts and destroyed when it completes.
+//
+// The properties MountPath, Name, SizeMB, Type are required.
+type JobSpecVolumeParam struct {
+	// Absolute filesystem path where the volume will be mounted inside the container
+	MountPath string `json:"mountPath" api:"required"`
+	// Identifier for the volume, used to reference it internally
+	Name string `json:"name" api:"required"`
+	// Storage capacity in megabytes
+	SizeMB int64 `json:"sizeMb" api:"required"`
+	// Type of volume. Currently only "ephemeral" is supported.
+	//
+	// Any of "ephemeral".
+	Type string `json:"type,omitzero" api:"required"`
+	// If true, the volume is mounted read-only
+	ReadOnly param.Opt[bool] `json:"readOnly,omitzero"`
+	paramObj
+}
+
+func (r JobSpecVolumeParam) MarshalJSON() (data []byte, err error) {
+	type shadow JobSpecVolumeParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *JobSpecVolumeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[JobSpecVolumeParam](
+		"type", "ephemeral",
+	)
 }
 
 // Gateway endpoint to external LLM provider APIs (OpenAI, Anthropic, etc.) with
