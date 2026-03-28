@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.17.0 (2026-03-28)
+
+Full Changelog: [v0.16.1...v0.17.0](https://github.com/blaxel-ai/sdk-go/compare/v0.16.1...v0.17.0)
+
+### Features
+
+* GitHub Actions Self-Hosted Runner Integration (ENG-2198) ([ead4c2e](https://github.com/blaxel-ai/sdk-go/commit/ead4c2e1ee621a916a09a22701d70e9e9c289588))
+* **internal:** support comma format in multipart form encoding ([e01b695](https://github.com/blaxel-ai/sdk-go/commit/e01b695c01f70e330f1689de968612e5a59b0691))
+* Majoffre/support proxy config ([243b2d5](https://github.com/blaxel-ai/sdk-go/commit/243b2d5f7100b724b41d7a83983b9a2c51877ced))
+
+
+### Bug Fixes
+
+* prevent duplicate ? in query params ([f1f5eef](https://github.com/blaxel-ai/sdk-go/commit/f1f5eefdee01bba41b25605802b0cbe737ce5c03))
+
+
+### Chores
+
+* **ci:** support opting out of skipping builds on metadata-only commits ([992e67f](https://github.com/blaxel-ai/sdk-go/commit/992e67f97a6e17f14fbeb281fa61be81531d4b7c))
+* remove unnecessary error check for url parsing ([965fae5](https://github.com/blaxel-ai/sdk-go/commit/965fae5ca669fca09fc9712959e436affdc3cf34))
+* update docs for api:"required" ([f753bbe](https://github.com/blaxel-ai/sdk-go/commit/f753bbef8845aeb4e8c5b81249294b705c7fe2ff))
+
 ## 0.16.1 (2026-03-26)
 
 Full Changelog: [v0.16.0...v0.16.1](https://github.com/blaxel-ai/sdk-go/compare/v0.16.0...v0.16.1)
