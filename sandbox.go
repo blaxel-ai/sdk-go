@@ -392,21 +392,30 @@ func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Network configuration for a sandbox including egress IP binding. All fields
-// (vpcName, egressGatewayName) must be specified together to assign a dedicated
-// IP.
+// Network configuration for a sandbox including domain filtering, egress IP
+// binding, and proxy settings
 type SandboxNetwork struct {
-	// Name of the egress gateway in the VPC. Must be specified together with vpcName.
-	EgressGatewayName string `json:"egressGatewayName" api:"required"`
-	// Name of the VPC where the egress gateway is provisioned. Must be specified
-	// together with egressGatewayName.
-	VpcName string `json:"vpcName" api:"required"`
+	// List of allowed external domains (allowlist). When set, only these domains are
+	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	AllowedDomains []string `json:"allowedDomains"`
+	// Egress configuration for routing sandbox outbound traffic through a dedicated IP
+	// gateway
+	Egress SandboxNetworkEgress `json:"egress"`
+	// List of forbidden external domains (denylist). When set, all domains except
+	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
+	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	ForbiddenDomains []string `json:"forbiddenDomains"`
+	// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
+	// with MITM inspection and per-destination header/body injection
+	Proxy SandboxNetworkProxy `json:"proxy"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		EgressGatewayName respjson.Field
-		VpcName           respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
+		AllowedDomains   respjson.Field
+		Egress           respjson.Field
+		ForbiddenDomains respjson.Field
+		Proxy            respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
@@ -425,17 +434,134 @@ func (r SandboxNetwork) ToParam() SandboxNetworkParam {
 	return param.Override[SandboxNetworkParam](json.RawMessage(r.RawJSON()))
 }
 
-// Network configuration for a sandbox including egress IP binding. All fields
-// (vpcName, egressGatewayName) must be specified together to assign a dedicated
-// IP.
-//
-// The properties EgressGatewayName, VpcName are required.
+// Egress configuration for routing sandbox outbound traffic through a dedicated IP
+// gateway
+type SandboxNetworkEgress struct {
+	// Name of the egress gateway to route traffic through. The gateway must exist in
+	// the default VPC.
+	Gateway string `json:"gateway"`
+	// Egress mode. Use 'dedicated' for a dedicated egress IP.
+	Mode string `json:"mode"`
+	// Per-destination egress policies (not yet supported)
+	Policies []SandboxNetworkEgressPolicy `json:"policies"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Gateway     respjson.Field
+		Mode        respjson.Field
+		Policies    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkEgress) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkEgress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Egress policy routing specific destinations through dedicated or shared gateways
+// (not yet supported)
+type SandboxNetworkEgressPolicy struct {
+	// Destination domains or IPs this policy applies to
+	Destinations []string `json:"destinations"`
+	// Egress mode for these destinations (dedicated or shared)
+	Mode string `json:"mode"`
+	// Name of this egress policy
+	Name string `json:"name"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Destinations respjson.Field
+		Mode         respjson.Field
+		Name         respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkEgressPolicy) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkEgressPolicy) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
+// with MITM inspection and per-destination header/body injection
+type SandboxNetworkProxy struct {
+	// Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to
+	// these destinations goes direct, not through the CONNECT tunnel. Supports
+	// wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12,
+	// 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by
+	// default.
+	Bypass []string `json:"bypass"`
+	// Per-destination routing rules with header/body injection and secrets. Use
+	// destinations ["*"] for global rules that apply to all destinations.
+	Routing []SandboxNetworkProxyRouting `json:"routing"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Bypass      respjson.Field
+		Routing     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkProxy) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkProxy) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Routing rule that injects headers and body fields into requests matching the
+// given destinations. Use destinations ["*"] for a global rule that applies to all
+// proxied traffic.
+type SandboxNetworkProxyRouting struct {
+	// Body fields to inject into matching requests. Values may contain {{SECRET:name}}
+	// references resolved from this rule's secrets.
+	Body map[string]string `json:"body"`
+	// Destination domains this rule applies to. Use ["*"] for a global rule that
+	// matches all destinations.
+	Destinations []string `json:"destinations"`
+	// Headers to inject into matching requests. Values may contain {{SECRET:name}}
+	// references resolved from this rule's secrets.
+	Headers map[string]string `json:"headers"`
+	// Named secret values for this routing rule, referenced in headers/body via
+	// {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API
+	// responses.
+	Secrets map[string]string `json:"secrets"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Body         respjson.Field
+		Destinations respjson.Field
+		Headers      respjson.Field
+		Secrets      respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkProxyRouting) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkProxyRouting) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Network configuration for a sandbox including domain filtering, egress IP
+// binding, and proxy settings
 type SandboxNetworkParam struct {
-	// Name of the egress gateway in the VPC. Must be specified together with vpcName.
-	EgressGatewayName string `json:"egressGatewayName" api:"required"`
-	// Name of the VPC where the egress gateway is provisioned. Must be specified
-	// together with egressGatewayName.
-	VpcName string `json:"vpcName" api:"required"`
+	// List of allowed external domains (allowlist). When set, only these domains are
+	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	AllowedDomains []string `json:"allowedDomains,omitzero"`
+	// Egress configuration for routing sandbox outbound traffic through a dedicated IP
+	// gateway
+	Egress SandboxNetworkEgressParam `json:"egress,omitzero"`
+	// List of forbidden external domains (denylist). When set, all domains except
+	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
+	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	ForbiddenDomains []string `json:"forbiddenDomains,omitzero"`
+	// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
+	// with MITM inspection and per-destination header/body injection
+	Proxy SandboxNetworkProxyParam `json:"proxy,omitzero"`
 	paramObj
 }
 
@@ -444,6 +570,98 @@ func (r SandboxNetworkParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *SandboxNetworkParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Egress configuration for routing sandbox outbound traffic through a dedicated IP
+// gateway
+type SandboxNetworkEgressParam struct {
+	// Name of the egress gateway to route traffic through. The gateway must exist in
+	// the default VPC.
+	Gateway param.Opt[string] `json:"gateway,omitzero"`
+	// Egress mode. Use 'dedicated' for a dedicated egress IP.
+	Mode param.Opt[string] `json:"mode,omitzero"`
+	// Per-destination egress policies (not yet supported)
+	Policies []SandboxNetworkEgressPolicyParam `json:"policies,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkEgressParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkEgressParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkEgressParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Egress policy routing specific destinations through dedicated or shared gateways
+// (not yet supported)
+type SandboxNetworkEgressPolicyParam struct {
+	// Egress mode for these destinations (dedicated or shared)
+	Mode param.Opt[string] `json:"mode,omitzero"`
+	// Name of this egress policy
+	Name param.Opt[string] `json:"name,omitzero"`
+	// Destination domains or IPs this policy applies to
+	Destinations []string `json:"destinations,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkEgressPolicyParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkEgressPolicyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkEgressPolicyParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
+// with MITM inspection and per-destination header/body injection
+type SandboxNetworkProxyParam struct {
+	// Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to
+	// these destinations goes direct, not through the CONNECT tunnel. Supports
+	// wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12,
+	// 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by
+	// default.
+	Bypass []string `json:"bypass,omitzero"`
+	// Per-destination routing rules with header/body injection and secrets. Use
+	// destinations ["*"] for global rules that apply to all destinations.
+	Routing []SandboxNetworkProxyRoutingParam `json:"routing,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkProxyParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkProxyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkProxyParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Routing rule that injects headers and body fields into requests matching the
+// given destinations. Use destinations ["*"] for a global rule that applies to all
+// proxied traffic.
+type SandboxNetworkProxyRoutingParam struct {
+	// Body fields to inject into matching requests. Values may contain {{SECRET:name}}
+	// references resolved from this rule's secrets.
+	Body map[string]string `json:"body,omitzero"`
+	// Destination domains this rule applies to. Use ["*"] for a global rule that
+	// matches all destinations.
+	Destinations []string `json:"destinations,omitzero"`
+	// Headers to inject into matching requests. Values may contain {{SECRET:name}}
+	// references resolved from this rule's secrets.
+	Headers map[string]string `json:"headers,omitzero"`
+	// Named secret values for this routing rule, referenced in headers/body via
+	// {{SECRET:name}}. Stored encrypted at rest. Write-only: never returned in API
+	// responses.
+	Secrets map[string]string `json:"secrets,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkProxyRoutingParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkProxyRoutingParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkProxyRoutingParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -534,9 +752,8 @@ type SandboxSpec struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycle `json:"lifecycle"`
-	// Network configuration for a sandbox including egress IP binding. All fields
-	// (vpcName, egressGatewayName) must be specified together to assign a dedicated
-	// IP.
+	// Network configuration for a sandbox including domain filtering, egress IP
+	// binding, and proxy settings
 	Network SandboxNetwork `json:"network"`
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
@@ -584,9 +801,8 @@ type SandboxSpecParam struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
-	// Network configuration for a sandbox including egress IP binding. All fields
-	// (vpcName, egressGatewayName) must be specified together to assign a dedicated
-	// IP.
+	// Network configuration for a sandbox including domain filtering, egress IP
+	// binding, and proxy settings
 	Network SandboxNetworkParam `json:"network,omitzero"`
 	// Runtime configuration defining how the sandbox VM is provisioned and its
 	// resource limits
@@ -603,7 +819,8 @@ func (r *SandboxSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Configuration for attaching a volume to a sandbox at a specific filesystem path
+// Configuration for attaching a persistent volume to a sandbox at a specific
+// filesystem path
 type VolumeAttachment struct {
 	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath string `json:"mountPath"`
@@ -637,7 +854,8 @@ func (r VolumeAttachment) ToParam() VolumeAttachmentParam {
 	return param.Override[VolumeAttachmentParam](json.RawMessage(r.RawJSON()))
 }
 
-// Configuration for attaching a volume to a sandbox at a specific filesystem path
+// Configuration for attaching a persistent volume to a sandbox at a specific
+// filesystem path
 type VolumeAttachmentParam struct {
 	// Absolute filesystem path where the volume will be mounted inside the sandbox
 	MountPath param.Opt[string] `json:"mountPath,omitzero"`

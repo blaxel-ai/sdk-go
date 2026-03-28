@@ -36,7 +36,10 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 				},
 			},
 			Spec: blaxel.JobSpecParam{
-				Enabled:  blaxel.Bool(true),
+				Enabled: blaxel.Bool(true),
+				GitHubRunner: blaxel.JobSpecGitHubRunnerParam{
+					Repositories: []string{"string"},
+				},
 				Policies: []string{"string"},
 				Region:   blaxel.String("us-was-1"),
 				Revision: blaxel.RevisionConfigurationParam{
@@ -78,6 +81,13 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 					},
 					Enabled: blaxel.Bool(true),
 					Type:    blaxel.TriggerTypeHTTP,
+				}},
+				Volumes: []blaxel.JobSpecVolumeParam{{
+					MountPath: "/mnt/data",
+					Name:      "scratch",
+					SizeMB:    102400,
+					Type:      "ephemeral",
+					ReadOnly:  blaxel.Bool(false),
 				}},
 			},
 		},
@@ -144,7 +154,10 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 					},
 				},
 				Spec: blaxel.JobSpecParam{
-					Enabled:  blaxel.Bool(true),
+					Enabled: blaxel.Bool(true),
+					GitHubRunner: blaxel.JobSpecGitHubRunnerParam{
+						Repositories: []string{"string"},
+					},
 					Policies: []string{"string"},
 					Region:   blaxel.String("us-was-1"),
 					Revision: blaxel.RevisionConfigurationParam{
@@ -186,6 +199,13 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 						},
 						Enabled: blaxel.Bool(true),
 						Type:    blaxel.TriggerTypeHTTP,
+					}},
+					Volumes: []blaxel.JobSpecVolumeParam{{
+						MountPath: "/mnt/data",
+						Name:      "scratch",
+						SizeMB:    102400,
+						Type:      "ephemeral",
+						ReadOnly:  blaxel.Bool(false),
 					}},
 				},
 			},
