@@ -12,6 +12,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
@@ -34,6 +35,17 @@ func NewImageService(opts ...option.RequestOption) (r ImageService) {
 	r.Options = opts
 	r.Tags = NewImageTagService(opts...)
 	return
+}
+
+// Builds a container image without creating a deployment. Returns a presigned URL
+// for uploading source code. After upload, the image will be built and stored in
+// the registry, but no agent, function, sandbox, or job will be created or
+// updated.
+func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...option.RequestOption) (res *ImageNewResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "images"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return res, err
 }
 
 // Returns detailed information about a container image including all available
@@ -113,6 +125,8 @@ type ImageMetadata struct {
 	CreatedAt string `json:"createdAt"`
 	// The display name of the image (registry/workspace/repository).
 	DisplayName string `json:"displayName"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEvent `json:"events"`
 	// The date and time when the image was last deployed (most recent across all
 	// tags).
 	LastDeployedAt string `json:"lastDeployedAt"`
@@ -120,6 +134,11 @@ type ImageMetadata struct {
 	Name string `json:"name"`
 	// The resource type of the image.
 	ResourceType string `json:"resourceType"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	Status Status `json:"status"`
 	// The date and time when the image was last updated.
 	UpdatedAt string `json:"updatedAt"`
 	// The workspace of the image.
@@ -128,9 +147,11 @@ type ImageMetadata struct {
 	JSON struct {
 		CreatedAt      respjson.Field
 		DisplayName    respjson.Field
+		Events         respjson.Field
 		LastDeployedAt respjson.Field
 		Name           respjson.Field
 		ResourceType   respjson.Field
+		Status         respjson.Field
 		UpdatedAt      respjson.Field
 		Workspace      respjson.Field
 		ExtraFields    map[string]respjson.Field
@@ -190,6 +211,32 @@ func (r *ImageSpecTag) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type ImageNewResponse struct {
+	// The registered image reference (only present when image was provided in request)
+	Image string `json:"image"`
+	// Status message
+	Message string `json:"message"`
+	// Name of the image
+	Name string `json:"name"`
+	// Resource type
+	ResourceType string `json:"resourceType"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Image        respjson.Field
+		Message      respjson.Field
+		Name         respjson.Field
+		ResourceType respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ImageNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *ImageNewResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type ImageCleanupResponse struct {
 	// Number of images deleted
 	Deleted int64 `json:"deleted"`
@@ -207,6 +254,28 @@ type ImageCleanupResponse struct {
 // Returns the unmodified JSON received from the API
 func (r ImageCleanupResponse) RawJSON() string { return r.JSON.raw }
 func (r *ImageCleanupResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ImageNewParams struct {
+	// Name of the image to build
+	Name string `json:"name" api:"required"`
+	// Resource type (agent, function, sandbox, job)
+	ResourceType string `json:"resourceType" api:"required"`
+	// Runtime generation (e.g., mk3). Defaults to mk3 if not specified.
+	Generation param.Opt[string] `json:"generation,omitzero"`
+	// A pre-built Docker image reference (e.g., docker.io/myorg/myimage:latest). When
+	// provided, the build step is skipped and the image is used directly as the source
+	// for the resource runtime.
+	Image param.Opt[string] `json:"image,omitzero"`
+	paramObj
+}
+
+func (r ImageNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow ImageNewParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ImageNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
