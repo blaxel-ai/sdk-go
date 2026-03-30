@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.0 (2026-03-30)
+
+Full Changelog: [v0.17.0...v0.18.0](https://github.com/blaxel-ai/sdk-go/compare/v0.17.0...v0.18.0)
+
+### Features
+
+* add POST /v0/images endpoint for image-only builds (ENG-2192) ([bf8fb9b](https://github.com/blaxel-ai/sdk-go/commit/bf8fb9b3447a818fc64db4aca80f9b741070bb1c))
+
 ## 0.17.0 (2026-03-28)
 
 Full Changelog: [v0.16.1...v0.17.0](https://github.com/blaxel-ai/sdk-go/compare/v0.16.1...v0.17.0)
