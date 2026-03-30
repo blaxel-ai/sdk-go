@@ -106,7 +106,7 @@ type VpcEgressgatewayNewResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -137,7 +137,7 @@ type VpcEgressgatewayGetResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -168,7 +168,7 @@ type VpcEgressgatewayListResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -199,7 +199,7 @@ type VpcEgressgatewayDeleteResponse struct {
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
-	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED".
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
 	Status Status `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
