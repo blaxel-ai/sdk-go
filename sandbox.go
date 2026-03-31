@@ -948,7 +948,7 @@ func (r SandboxNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Sandbox)
 }
 func (r *SandboxNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Sandbox)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // URLQuery serializes [SandboxNewParams]'s query parameters as `url.Values`.
@@ -985,5 +985,5 @@ func (r SandboxUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Sandbox)
 }
 func (r *SandboxUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Sandbox)
+	return apijson.UnmarshalRoot(data, r)
 }

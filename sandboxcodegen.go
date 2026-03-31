@@ -4,7 +4,6 @@ package blaxel
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -199,7 +198,7 @@ func (r SandboxCodegenFastapplyParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.ApplyEditRequest)
 }
 func (r *SandboxCodegenFastapplyParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.ApplyEditRequest)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxCodegenRerankingParams struct {

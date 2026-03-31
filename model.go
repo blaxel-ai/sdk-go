@@ -4,12 +4,12 @@ package blaxel
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"slices"
 
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
@@ -116,7 +116,7 @@ func (r ModelNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Model)
 }
 func (r *ModelNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Model)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type ModelUpdateParams struct {
@@ -130,5 +130,5 @@ func (r ModelUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Model)
 }
 func (r *ModelUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Model)
+	return apijson.UnmarshalRoot(data, r)
 }

@@ -274,7 +274,7 @@ func (r VolumeNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Volume)
 }
 func (r *VolumeNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Volume)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type VolumeUpdateParams struct {
@@ -289,5 +289,5 @@ func (r VolumeUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Volume)
 }
 func (r *VolumeUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Volume)
+	return apijson.UnmarshalRoot(data, r)
 }

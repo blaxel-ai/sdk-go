@@ -5,7 +5,6 @@ package blaxel
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -336,7 +335,7 @@ func (r SandboxFilesystemMultipartCompleteParams) MarshalJSON() (data []byte, er
 	return shimjson.Marshal(r.CompleteRequest)
 }
 func (r *SandboxFilesystemMultipartCompleteParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.CompleteRequest)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxFilesystemMultipartInitiateParams struct {
@@ -348,7 +347,7 @@ func (r SandboxFilesystemMultipartInitiateParams) MarshalJSON() (data []byte, er
 	return shimjson.Marshal(r.InitiateRequest)
 }
 func (r *SandboxFilesystemMultipartInitiateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.InitiateRequest)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxFilesystemMultipartUploadPartParams struct {

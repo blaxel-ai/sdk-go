@@ -1159,7 +1159,7 @@ func (r JobNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Job)
 }
 func (r *JobNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Job)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type JobGetParams struct {
@@ -1188,5 +1188,5 @@ func (r JobUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Job)
 }
 func (r *JobUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Job)
+	return apijson.UnmarshalRoot(data, r)
 }
