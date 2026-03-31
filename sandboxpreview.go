@@ -341,7 +341,7 @@ func (r SandboxPreviewNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Preview)
 }
 func (r *SandboxPreviewNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Preview)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxPreviewGetParams struct {
@@ -360,7 +360,7 @@ func (r SandboxPreviewUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Preview)
 }
 func (r *SandboxPreviewUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Preview)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxPreviewDeleteParams struct {

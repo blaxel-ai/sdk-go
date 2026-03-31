@@ -380,7 +380,7 @@ func (r FunctionNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Function)
 }
 func (r *FunctionNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Function)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type FunctionGetParams struct {
@@ -409,5 +409,5 @@ func (r FunctionUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Function)
 }
 func (r *FunctionUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Function)
+	return apijson.UnmarshalRoot(data, r)
 }

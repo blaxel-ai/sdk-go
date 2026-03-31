@@ -4,7 +4,6 @@ package blaxel
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -251,5 +250,5 @@ func (r SandboxProcessNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.ProcessRequest)
 }
 func (r *SandboxProcessNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.ProcessRequest)
+	return apijson.UnmarshalRoot(data, r)
 }

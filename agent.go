@@ -810,7 +810,7 @@ func (r AgentNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Agent)
 }
 func (r *AgentNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Agent)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type AgentGetParams struct {
@@ -839,5 +839,5 @@ func (r AgentUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Agent)
 }
 func (r *AgentUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Agent)
+	return apijson.UnmarshalRoot(data, r)
 }

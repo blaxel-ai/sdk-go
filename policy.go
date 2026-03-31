@@ -372,7 +372,7 @@ func (r PolicyNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Policy)
 }
 func (r *PolicyNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Policy)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type PolicyUpdateParams struct {
@@ -386,5 +386,5 @@ func (r PolicyUpdateParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.Policy)
 }
 func (r *PolicyUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.Policy)
+	return apijson.UnmarshalRoot(data, r)
 }
