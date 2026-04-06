@@ -11,6 +11,32 @@ from applications written in Go.
 
 It is generated with [Stainless](https://www.stainless.com/).
 
+## Prerequisites
+
+To use this SDK, you need a [Blaxel account](https://app.blaxel.ai) and the following environment variables:
+
+| Variable | Description |
+|---|---|
+| `BL_WORKSPACE` | Your Blaxel workspace name |
+| `BL_API_KEY` | Your Blaxel API key |
+
+You can create an API key from the [Blaxel console](https://app.blaxel.ai/profile/security). Your workspace name is visible in the URL when you log in to the console (e.g. `app.blaxel.ai/{workspace}`).
+
+Set them as environment variables:
+
+```bash
+export BL_WORKSPACE=my-workspace
+export BL_API_KEY=my-api-key
+```
+
+Alternatively, you can authenticate via the [Blaxel CLI](https://docs.blaxel.ai/cli-reference/introduction):
+
+```bash
+bl login YOUR-WORKSPACE
+```
+
+When you deploy on Blaxel, authentication is handled automatically.
+
 ## Installation
 
 <!-- x-release-please-start-version -->
