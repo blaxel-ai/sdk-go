@@ -283,6 +283,10 @@ type Sandbox struct {
 	ExpiresIn int64 `json:"expiresIn"`
 	// Last time the sandbox was used (read-only, managed by the system)
 	LastUsedAt string `json:"lastUsedAt"`
+	// Current state of the sandbox (read-only, managed by the system)
+	//
+	// Any of "RUNNING", "STANDBY".
+	State SandboxState `json:"state"`
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
@@ -295,6 +299,7 @@ type Sandbox struct {
 		Events      respjson.Field
 		ExpiresIn   respjson.Field
 		LastUsedAt  respjson.Field
+		State       respjson.Field
 		Status      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -315,6 +320,14 @@ func (r *Sandbox) UnmarshalJSON(data []byte) error {
 func (r Sandbox) ToParam() SandboxParam {
 	return param.Override[SandboxParam](json.RawMessage(r.RawJSON()))
 }
+
+// Current state of the sandbox (read-only, managed by the system)
+type SandboxState string
+
+const (
+	SandboxStateRunning SandboxState = "RUNNING"
+	SandboxStateStandby SandboxState = "STANDBY"
+)
 
 // Lightweight virtual machine for secure AI code execution. Sandboxes resume from
 // standby in under 25ms and automatically scale to zero after inactivity,
