@@ -315,6 +315,19 @@ func (r *SandboxService) FromSession(session SessionWithToken, opts ...option.Re
 // SandboxInstance Methods
 // ============================================================================
 
+// Fetch makes an HTTP request to a resource served on a sandbox port.
+// The request is proxied through the sandbox's /port/{port} endpoint.
+func (r *SandboxInstance) Fetch(ctx context.Context, port int, path string, opts ...option.RequestOption) (*http.Response, error) {
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	reqPath := fmt.Sprintf("port/%d%s", port, path)
+	allOpts := slices.Concat(r.options, opts)
+	var res *http.Response
+	err := requestconfig.ExecuteNewRequest(ctx, http.MethodGet, reqPath, nil, &res, allOpts...)
+	return res, err
+}
+
 // Delete permanently deletes this sandbox. This action cannot be undone.
 func (r *SandboxInstance) Delete(ctx context.Context, opts ...option.RequestOption) error {
 	_, err := r.sandboxService.Delete(ctx, r.Metadata.Name, opts...)
