@@ -1430,6 +1430,63 @@ func (r *SandboxInstanceSystemService) Health(ctx context.Context, opts ...optio
 	return r.service.Health(ctx, opts...)
 }
 
+// UpgradeAndWait triggers an upgrade and waits for it to complete by polling the
+// health endpoint. If the upgrade fails transiently, it automatically retries up
+// to maxRetries times. maxWait is the total wall-clock time to wait for the
+// upgrade to succeed (including retries). Pass 0 for defaults (60s, 3 retries).
+func (r *SandboxInstanceSystemService) UpgradeAndWait(ctx context.Context, body SandboxSystemUpgradeParams, maxWait time.Duration, maxRetries int, opts ...option.RequestOption) (*HealthResponse, error) {
+	if maxWait == 0 {
+		maxWait = 60 * time.Second
+	}
+	if maxRetries == 0 {
+		maxRetries = 3
+	}
+	pollInterval := 500 * time.Millisecond
+	retries := 0
+
+	// Trigger the initial upgrade
+	_, err := r.Upgrade(ctx, body, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to trigger upgrade: %w", err)
+	}
+
+	deadline := time.Now().Add(maxWait)
+	var lastHealth *HealthResponse
+
+	for {
+		if time.Now().After(deadline) {
+			return nil, fmt.Errorf("upgrade did not complete within %v, last health: %+v", maxWait, lastHealth)
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(pollInterval):
+		}
+
+		health, err := r.Health(ctx, opts...)
+		if err != nil {
+			continue
+		}
+		lastHealth = health
+
+		if health.UpgradeCount > 0 {
+			return health, nil
+		}
+
+		if health.LastUpgrade.Status == "failed" {
+			if retries >= maxRetries {
+				return nil, fmt.Errorf("upgrade failed after %d retries: %s", retries, health.LastUpgrade.Error)
+			}
+			retries++
+			_, err = r.Upgrade(ctx, body, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("failed to re-trigger upgrade (retry %d): %w", retries, err)
+			}
+		}
+	}
+}
+
 // ============================================================================
 // Constructors
 // ============================================================================
