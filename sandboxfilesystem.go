@@ -747,7 +747,7 @@ func (r SandboxFilesystemWriteParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.FilesystemWriteRequest)
 }
 func (r *SandboxFilesystemWriteParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.FilesystemWriteRequest)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxFilesystemWriteTreeParams struct {
@@ -759,5 +759,5 @@ func (r SandboxFilesystemWriteTreeParams) MarshalJSON() (data []byte, err error)
 	return shimjson.Marshal(r.TreeRequest)
 }
 func (r *SandboxFilesystemWriteTreeParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.TreeRequest)
+	return apijson.UnmarshalRoot(data, r)
 }

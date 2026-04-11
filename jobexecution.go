@@ -4,7 +4,6 @@ package blaxel
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -145,7 +144,7 @@ func (r JobExecutionNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.CreateJobExecutionRequest)
 }
 func (r *JobExecutionNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.CreateJobExecutionRequest)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type JobExecutionGetParams struct {

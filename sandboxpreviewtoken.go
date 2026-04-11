@@ -260,7 +260,7 @@ func (r SandboxPreviewTokenNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.PreviewToken)
 }
 func (r *SandboxPreviewTokenNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.PreviewToken)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type SandboxPreviewTokenGetParams struct {

@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.19.0 (2026-04-11)
+
+Full Changelog: [v0.18.0...v0.19.0](https://github.com/blaxel-ai/sdk-go/compare/v0.18.0...v0.19.0)
+
+### Features
+
+* Cdrappier/state in dynamo k8s ([0101e2a](https://github.com/blaxel-ai/sdk-go/commit/0101e2ab4a20746e80bcc3ed74efe2c802891fd2))
+
+
+### Bug Fixes
+
+* fix issue with unmarshaling in some cases ([ba8612d](https://github.com/blaxel-ai/sdk-go/commit/ba8612df12ddf516cdeb2bda88c22893f1b309a7))
+
+
+### Chores
+
+* **tests:** bump steady to v0.20.1 ([a28d558](https://github.com/blaxel-ai/sdk-go/commit/a28d558f078d44d5c3187bfccdb4370356b1c7b1))
+* **tests:** bump steady to v0.20.2 ([cc04fd6](https://github.com/blaxel-ai/sdk-go/commit/cc04fd6c20f337fb6decc9fa4bfdc4b1006dc6ae))
+
+
+### Documentation
+
+* add Prerequisites section with BL_WORKSPACE and BL_API_KEY (ENG-2261) ([0305fee](https://github.com/blaxel-ai/sdk-go/commit/0305feeb7e7986b651385461f4e5e5f6f4950425))
+
 ## 0.18.0 (2026-03-30)
 
 Full Changelog: [v0.17.0...v0.18.0](https://github.com/blaxel-ai/sdk-go/compare/v0.17.0...v0.18.0)

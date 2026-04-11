@@ -387,7 +387,7 @@ func (r VolumeTemplateNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.VolumeTemplate)
 }
 func (r *VolumeTemplateNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.VolumeTemplate)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // URLQuery serializes [VolumeTemplateNewParams]'s query parameters as
@@ -418,7 +418,7 @@ func (r VolumeTemplateUpsertParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.VolumeTemplate)
 }
 func (r *VolumeTemplateUpsertParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.VolumeTemplate)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // URLQuery serializes [VolumeTemplateUpsertParams]'s query parameters as

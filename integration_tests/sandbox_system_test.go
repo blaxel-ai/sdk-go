@@ -11,47 +11,6 @@ import (
 	blaxel "github.com/blaxel-ai/sdk-go"
 )
 
-// waitForUpgradeComplete waits for sandbox upgrade to complete by polling the health endpoint
-// using the sandbox's System.Health method which includes proper authentication
-func waitForUpgradeComplete(ctx context.Context, sandbox *blaxel.SandboxInstance, maxWaitTime time.Duration) (*blaxel.HealthResponse, error) {
-	fmt.Println("[TEST] Waiting for health upgrade count > 0...")
-	startTime := time.Now()
-	pollInterval := 500 * time.Millisecond
-	var healthData *blaxel.HealthResponse
-
-	for time.Since(startTime) < maxWaitTime {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
-		health, err := sandbox.System.Health(ctx)
-		if err != nil {
-			fmt.Printf("[TEST] Health check error: %v (elapsed: %dms)\n", err, time.Since(startTime).Milliseconds())
-			time.Sleep(pollInterval)
-			continue
-		}
-
-		healthData = health
-		fmt.Printf("[TEST] Health check - upgradeCount: %d (elapsed: %dms)\n", healthData.UpgradeCount, time.Since(startTime).Milliseconds())
-
-		if healthData.UpgradeCount > 0 {
-			fmt.Printf("[TEST] Upgrade completed (took %dms)\n", time.Since(startTime).Milliseconds())
-			return healthData, nil
-		}
-
-		if healthData.LastUpgrade.Status == "failed" {
-			fmt.Printf("[TEST] Health check - last upgrade failed, health data: %+v\n", healthData)
-			return nil, fmt.Errorf("upgrade failed: %+v", healthData)
-		}
-
-		time.Sleep(pollInterval)
-	}
-
-	return nil, fmt.Errorf("upgrade did not complete within %v. Last health data: %+v", maxWaitTime, healthData)
-}
-
 func TestSandboxSystem(t *testing.T) {
 	ctx := context.Background()
 	client := newTestClient(t)
@@ -186,22 +145,13 @@ func TestSandboxSystem(t *testing.T) {
 				t.Fatalf("pre-upgrade preview returned status %d", preUpgradeResp.StatusCode)
 			}
 
-			// Upgrade the sandbox system
-			t.Logf("[TEST] Calling sandbox.System.Upgrade()...")
-			upgradeResult, err := sandbox.System.Upgrade(ctx, blaxel.SandboxSystemUpgradeParams{})
-			if err != nil {
-				t.Fatalf("failed to upgrade sandbox: %v", err)
-			}
-			t.Logf("[TEST] Upgrade call completed, result: %+v", upgradeResult)
-
-			// Wait for health to show upgrade count > 0
-			healthData, err := waitForUpgradeComplete(ctx, sandbox, maxWaitTime)
+			// Upgrade the sandbox system and wait for completion (with automatic retries)
+			t.Log("[TEST] Calling sandbox.System.UpgradeAndWait()...")
+			healthData, err := sandbox.System.UpgradeAndWait(ctx, blaxel.SandboxSystemUpgradeParams{}, 30*time.Second, 3)
 			if err != nil {
 				t.Fatalf("upgrade did not complete: %v", err)
 			}
-			if healthData.UpgradeCount <= 0 {
-				t.Fatalf("expected upgradeCount > 0, got %d", healthData.UpgradeCount)
-			}
+			t.Logf("[TEST] Upgrade completed, upgradeCount: %d", healthData.UpgradeCount)
 
 			// Wait a bit for everything to stabilize after upgrade
 			t.Log("[TEST] Waiting 5s for stabilization...")
@@ -292,22 +242,13 @@ func TestSandboxSystem(t *testing.T) {
 				t.Fatalf("expected process status 'running', got %s", processBeforeUpgrade.Status)
 			}
 
-			// Upgrade the sandbox system
-			t.Logf("[TEST] Calling sandbox.System.Upgrade()...")
-			upgradeResult, err := sandbox.System.Upgrade(ctx, blaxel.SandboxSystemUpgradeParams{})
-			if err != nil {
-				t.Fatalf("failed to upgrade sandbox: %v", err)
-			}
-			t.Logf("[TEST] Upgrade call completed, result: %+v", upgradeResult)
-
-			// Wait for the upgrade to complete (check health)
-			healthData, err := waitForUpgradeComplete(ctx, sandbox, 10*time.Second)
+			// Upgrade the sandbox system and wait for completion (with automatic retries)
+			t.Log("[TEST] Calling sandbox.System.UpgradeAndWait()...")
+			healthData, err := sandbox.System.UpgradeAndWait(ctx, blaxel.SandboxSystemUpgradeParams{}, 30*time.Second, 3)
 			if err != nil {
 				t.Fatalf("upgrade did not complete: %v", err)
 			}
-			if healthData.UpgradeCount <= 0 {
-				t.Fatalf("expected upgradeCount > 0, got %d", healthData.UpgradeCount)
-			}
+			t.Logf("[TEST] Upgrade completed, upgradeCount: %d", healthData.UpgradeCount)
 
 			// Check that the sleep process is still visible in the API after upgrade
 			t.Log("[TEST] Checking process status after upgrade...")

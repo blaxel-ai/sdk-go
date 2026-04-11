@@ -224,7 +224,7 @@ func (r IntegrationConnectionNewParams) MarshalJSON() (data []byte, err error) {
 	return shimjson.Marshal(r.IntegrationConnection)
 }
 func (r *IntegrationConnectionNewParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.IntegrationConnection)
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type IntegrationConnectionUpdateParams struct {
@@ -238,5 +238,5 @@ func (r IntegrationConnectionUpdateParams) MarshalJSON() (data []byte, err error
 	return shimjson.Marshal(r.IntegrationConnection)
 }
 func (r *IntegrationConnectionUpdateParams) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &r.IntegrationConnection)
+	return apijson.UnmarshalRoot(data, r)
 }
