@@ -127,6 +127,14 @@ Methods:
 
 - <code title="delete /images/{resourceType}/{imageName}/tags/{tagName}">client.Images.Tags.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageTagService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, tagName <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageTagDeleteParams">ImageTagDeleteParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Image">Image</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+## Share
+
+Methods:
+
+- <code title="post /images/{resourceType}/{imageName}/share">client.Images.Share.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageShareService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, imageName <a href="https://pkg.go.dev/builtin#string">string</a>, params <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageShareNewParams">ImageShareNewParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Image">Image</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /images/{resourceType}/{imageName}/share">client.Images.Share.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageShareService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, imageName <a href="https://pkg.go.dev/builtin#string">string</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageShareListParams">ImageShareListParams</a>) (\*[]<a href="https://pkg.go.dev/builtin#string">string</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /images/{resourceType}/{imageName}/share/{targetWorkspace}">client.Images.Share.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageShareService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, targetWorkspace <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#ImageShareDeleteParams">ImageShareDeleteParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Image">Image</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 # Jobs
 
 Params Types:
