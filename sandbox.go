@@ -695,19 +695,23 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
+	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
+	// immediate termination.
+	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
 	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
 	// '30m', '24h', '7d')
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Envs        respjson.Field
-		Expires     respjson.Field
-		Image       respjson.Field
-		Memory      respjson.Field
-		Ports       respjson.Field
-		Ttl         respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Envs                          respjson.Field
+		Expires                       respjson.Field
+		Image                         respjson.Field
+		Memory                        respjson.Field
+		Ports                         respjson.Field
+		TerminationGracePeriodSeconds respjson.Field
+		Ttl                           respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
 	} `json:"-"`
 }
 
@@ -738,6 +742,9 @@ type SandboxRuntimeParam struct {
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
 	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
+	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
+	// immediate termination.
+	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
 	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
 	// '30m', '24h', '7d')
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
