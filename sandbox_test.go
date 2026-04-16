@@ -205,7 +205,8 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Name:     blaxel.String("http"),
 						Protocol: blaxel.PortProtocolHTTP,
 					}},
-					Ttl: blaxel.String("24h"),
+					TerminationGracePeriodSeconds: blaxel.Int(30),
+					Ttl:                           blaxel.String("24h"),
 				},
 				Volumes: []blaxel.VolumeAttachmentParam{{
 					MountPath: blaxel.String("/mnt/data"),
@@ -447,7 +448,8 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Name:     blaxel.String("http"),
 							Protocol: blaxel.PortProtocolHTTP,
 						}},
-						Ttl: blaxel.String("24h"),
+						TerminationGracePeriodSeconds: blaxel.Int(30),
+						Ttl:                           blaxel.String("24h"),
 					},
 					Volumes: []blaxel.VolumeAttachmentParam{{
 						MountPath: blaxel.String("/mnt/data"),
