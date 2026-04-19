@@ -13,7 +13,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-func TestImageShareNewWithOptionalParams(t *testing.T) {
+func TestImageSharePendingListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,15 +25,9 @@ func TestImageShareNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.Share.New(
-		context.TODO(),
-		"imageName",
-		blaxel.ImageShareNewParams{
-			ResourceType:    "resourceType",
-			TargetWorkspace: "targetWorkspace",
-			TargetAccountID: blaxel.String("targetAccountId"),
-		},
-	)
+	_, err := client.ImageShares.Pending.List(context.TODO(), blaxel.ImageSharePendingListParams{
+		Direction: blaxel.ImageSharePendingListParamsDirectionIncoming,
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -43,7 +37,7 @@ func TestImageShareNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestImageShareList(t *testing.T) {
+func TestImageSharePendingAccept(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -55,13 +49,7 @@ func TestImageShareList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.Share.List(
-		context.TODO(),
-		"imageName",
-		blaxel.ImageShareListParams{
-			ResourceType: "resourceType",
-		},
-	)
+	_, err := client.ImageShares.Pending.Accept(context.TODO(), "pendingShareId")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -71,7 +59,7 @@ func TestImageShareList(t *testing.T) {
 	}
 }
 
-func TestImageShareDelete(t *testing.T) {
+func TestImageSharePendingDecline(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -83,14 +71,7 @@ func TestImageShareDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.Share.Delete(
-		context.TODO(),
-		"targetWorkspace",
-		blaxel.ImageShareDeleteParams{
-			ResourceType: "resourceType",
-			ImageName:    "imageName",
-		},
-	)
+	err := client.ImageShares.Pending.Decline(context.TODO(), "pendingShareId")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
