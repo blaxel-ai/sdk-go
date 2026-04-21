@@ -35,8 +35,10 @@ func NewImageShareService(opts ...option.RequestOption) (r ImageShareService) {
 }
 
 // Shares a container image with another workspace by copying the metadata record.
-// The underlying storage (S3) data is not duplicated. The target workspace must
-// belong to the same account.
+// The underlying storage (S3) data is not duplicated. For same-account targets the
+// share is applied immediately. For cross-account targets, a pending image share
+// is created and must be explicitly accepted by an admin of the target workspace;
+// the correct target account ID must be supplied as an anti-spam measure.
 func (r *ImageShareService) New(ctx context.Context, imageName string, params ImageShareNewParams, opts ...option.RequestOption) (res *Image, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if params.ResourceType == "" {
@@ -93,6 +95,9 @@ type ImageShareNewParams struct {
 	ResourceType string `path:"resourceType" api:"required" json:"-"`
 	// Name of the workspace to share the image with
 	TargetWorkspace string `json:"targetWorkspace" api:"required"`
+	// Account ID of the target workspace. Required when the target workspace belongs
+	// to a different account than the source workspace (anti-spam).
+	TargetAccountID param.Opt[string] `json:"targetAccountId,omitzero"`
 	paramObj
 }
 

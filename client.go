@@ -18,27 +18,28 @@ import (
 // interacting with the blaxel API. You should not instantiate this client
 // directly, and instead use the [NewClient] method instead.
 type Client struct {
-	Options         []option.RequestOption
-	Agents          AgentService
-	Functions       FunctionService
-	Integrations    IntegrationService
-	Images          ImageService
-	Jobs            JobService
-	Models          ModelService
-	Policies        PolicyService
-	PublicIPs       PublicIPService
-	VolumeTemplates VolumeTemplateService
-	Volumes         VolumeService
-	Templates       TemplateService
-	Workspaces      WorkspaceService
-	Sandboxes       SandboxService
-	Health          HealthService
-	Upgrade         UpgradeService
-	Vpcs            VpcService
-	Egressgateways  EgressgatewayService
-	Egressips       EgressipService
-	Network         NetworkService
-	Drives          DriveService
+	Options            []option.RequestOption
+	Agents             AgentService
+	Functions          FunctionService
+	Integrations       IntegrationService
+	Images             ImageService
+	Jobs               JobService
+	Models             ModelService
+	Policies           PolicyService
+	PublicIPs          PublicIPService
+	VolumeTemplates    VolumeTemplateService
+	Volumes            VolumeService
+	Templates          TemplateService
+	Workspaces         WorkspaceService
+	Sandboxes          SandboxService
+	Health             HealthService
+	Upgrade            UpgradeService
+	Vpcs               VpcService
+	Egressgateways     EgressgatewayService
+	Egressips          EgressipService
+	Network            NetworkService
+	Drives             DriveService
+	PendingImageShares PendingImageShareService
 }
 
 // DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_CREDENTIALS,
@@ -96,6 +97,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Egressips = NewEgressipService(opts...)
 	r.Network = NewNetworkService(opts...)
 	r.Drives = NewDriveService(opts...)
+	r.PendingImageShares = NewPendingImageShareService(opts...)
 
 	return
 }

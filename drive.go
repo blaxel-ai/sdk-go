@@ -25,6 +25,7 @@ import (
 // the [NewDriveService] method instead.
 type DriveService struct {
 	Options []option.RequestOption
+	Mount   DriveMountService
 }
 
 // NewDriveService generates a new service that applies the given options to each
@@ -33,6 +34,7 @@ type DriveService struct {
 func NewDriveService(opts ...option.RequestOption) (r DriveService) {
 	r = DriveService{}
 	r.Options = opts
+	r.Mount = NewDriveMountService(opts...)
 	return
 }
 
