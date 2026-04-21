@@ -7,11 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
@@ -38,14 +41,14 @@ func NewIntegrationService(opts ...option.RequestOption) (r IntegrationService) 
 
 // Returns metadata about an integration provider including available endpoints,
 // authentication methods, and supported models or features.
-func (r *IntegrationService) Get(ctx context.Context, integrationName string, opts ...option.RequestOption) (res *IntegrationGetResponse, err error) {
+func (r *IntegrationService) Get(ctx context.Context, integrationName string, query IntegrationGetParams, opts ...option.RequestOption) (res *IntegrationGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if integrationName == "" {
 		err = errors.New("missing required integrationName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("integrations/%s", integrationName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -224,4 +227,19 @@ type IntegrationGetResponseRepository struct {
 func (r IntegrationGetResponseRepository) RawJSON() string { return r.JSON.raw }
 func (r *IntegrationGetResponseRepository) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type IntegrationGetParams struct {
+	// Runtime generation (e.g. mk3). When set to mk3, returns only OpenAI-compatible
+	// endpoints for model gateway models.
+	Generation param.Opt[string] `query:"generation,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [IntegrationGetParams]'s query parameters as `url.Values`.
+func (r IntegrationGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
