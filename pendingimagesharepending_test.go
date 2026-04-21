@@ -13,7 +13,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-func TestPendingImageShareListWithOptionalParams(t *testing.T) {
+func TestPendingImageSharePendingListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,8 +25,8 @@ func TestPendingImageShareListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.PendingImageShares.List(context.TODO(), blaxel.PendingImageShareListParams{
-		Direction: blaxel.PendingImageShareListParamsDirectionIncoming,
+	_, err := client.PendingImageShares.Pending.List(context.TODO(), blaxel.PendingImageSharePendingListParams{
+		Direction: blaxel.PendingImageSharePendingListParamsDirectionIncoming,
 	})
 	if err != nil {
 		var apierr *blaxel.Error
@@ -37,7 +37,7 @@ func TestPendingImageShareListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestPendingImageShareAcceptWithOptionalParams(t *testing.T) {
+func TestPendingImageSharePendingAcceptWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -49,10 +49,10 @@ func TestPendingImageShareAcceptWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.PendingImageShares.Accept(
+	_, err := client.PendingImageShares.Pending.Accept(
 		context.TODO(),
 		"pendingShareId",
-		blaxel.PendingImageShareAcceptParams{
+		blaxel.PendingImageSharePendingAcceptParams{
 			Force: blaxel.Bool(true),
 		},
 	)
@@ -65,7 +65,7 @@ func TestPendingImageShareAcceptWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestPendingImageShareDecline(t *testing.T) {
+func TestPendingImageSharePendingDecline(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -77,7 +77,7 @@ func TestPendingImageShareDecline(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	err := client.PendingImageShares.Decline(context.TODO(), "pendingShareId")
+	err := client.PendingImageShares.Pending.Decline(context.TODO(), "pendingShareId")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
