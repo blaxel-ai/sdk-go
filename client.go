@@ -37,7 +37,6 @@ type Client struct {
 	Egressips          EgressipService
 	Network            NetworkService
 	Drives             DriveService
-	ImageShares        ImageShareService
 	PendingImageShares PendingImageShareService
 }
 
@@ -90,7 +89,6 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Egressips = NewEgressipService(opts...)
 	r.Network = NewNetworkService(opts...)
 	r.Drives = NewDriveService(opts...)
-	r.ImageShares = NewImageShareService(opts...)
 	r.PendingImageShares = NewPendingImageShareService(opts...)
 
 	return

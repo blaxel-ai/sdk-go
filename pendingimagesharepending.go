@@ -18,21 +18,21 @@ import (
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
-// ImageSharePendingService contains methods and other services that help with
-// interacting with the blaxel API.
+// PendingImageSharePendingService contains methods and other services that help
+// with interacting with the blaxel API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewImageSharePendingService] method instead.
-type ImageSharePendingService struct {
+// the [NewPendingImageSharePendingService] method instead.
+type PendingImageSharePendingService struct {
 	Options []option.RequestOption
 }
 
-// NewImageSharePendingService generates a new service that applies the given
-// options to each request. These options are applied after the parent client's
-// options (if there is one), and before any request-specific options.
-func NewImageSharePendingService(opts ...option.RequestOption) (r ImageSharePendingService) {
-	r = ImageSharePendingService{}
+// NewPendingImageSharePendingService generates a new service that applies the
+// given options to each request. These options are applied after the parent
+// client's options (if there is one), and before any request-specific options.
+func NewPendingImageSharePendingService(opts ...option.RequestOption) (r PendingImageSharePendingService) {
+	r = PendingImageSharePendingService{}
 	r.Options = opts
 	return
 }
@@ -40,7 +40,7 @@ func NewImageSharePendingService(opts ...option.RequestOption) (r ImageSharePend
 // Lists pending cross-account image shares targeting the caller's workspace
 // (incoming) or originating from it (outgoing). Expired shares are cleaned up
 // opportunistically.
-func (r *ImageSharePendingService) List(ctx context.Context, query ImageSharePendingListParams, opts ...option.RequestOption) (res *[]ImageSharePendingListResponse, err error) {
+func (r *PendingImageSharePendingService) List(ctx context.Context, query PendingImageSharePendingListParams, opts ...option.RequestOption) (res *[]PendingImageSharePendingListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "pending-image-shares"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
@@ -49,7 +49,7 @@ func (r *ImageSharePendingService) List(ctx context.Context, query ImageSharePen
 
 // Accepts a pending cross-account image share and copies the image metadata to the
 // target workspace. Caller must be an admin of the target workspace.
-func (r *ImageSharePendingService) Accept(ctx context.Context, pendingShareID string, body ImageSharePendingAcceptParams, opts ...option.RequestOption) (res *Image, err error) {
+func (r *PendingImageSharePendingService) Accept(ctx context.Context, pendingShareID string, body PendingImageSharePendingAcceptParams, opts ...option.RequestOption) (res *Image, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if pendingShareID == "" {
 		err = errors.New("missing required pendingShareId parameter")
@@ -62,7 +62,7 @@ func (r *ImageSharePendingService) Accept(ctx context.Context, pendingShareID st
 
 // Declines a pending cross-account image share. Caller must be an admin of the
 // target workspace.
-func (r *ImageSharePendingService) Decline(ctx context.Context, pendingShareID string, opts ...option.RequestOption) (err error) {
+func (r *PendingImageSharePendingService) Decline(ctx context.Context, pendingShareID string, opts ...option.RequestOption) (err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
 	if pendingShareID == "" {
@@ -75,7 +75,7 @@ func (r *ImageSharePendingService) Decline(ctx context.Context, pendingShareID s
 }
 
 // Rendered pending image share with source/target workspace metadata
-type ImageSharePendingListResponse struct {
+type PendingImageSharePendingListResponse struct {
 	// Unique identifier for the pending image share
 	ID string `json:"id"`
 	// Creation date
@@ -127,22 +127,22 @@ type ImageSharePendingListResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ImageSharePendingListResponse) RawJSON() string { return r.JSON.raw }
-func (r *ImageSharePendingListResponse) UnmarshalJSON(data []byte) error {
+func (r PendingImageSharePendingListResponse) RawJSON() string { return r.JSON.raw }
+func (r *PendingImageSharePendingListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ImageSharePendingListParams struct {
+type PendingImageSharePendingListParams struct {
 	// Direction of pending shares: "incoming" (default) or "outgoing"
 	//
 	// Any of "incoming", "outgoing".
-	Direction ImageSharePendingListParamsDirection `query:"direction,omitzero" json:"-"`
+	Direction PendingImageSharePendingListParamsDirection `query:"direction,omitzero" json:"-"`
 	paramObj
 }
 
-// URLQuery serializes [ImageSharePendingListParams]'s query parameters as
+// URLQuery serializes [PendingImageSharePendingListParams]'s query parameters as
 // `url.Values`.
-func (r ImageSharePendingListParams) URLQuery() (v url.Values, err error) {
+func (r PendingImageSharePendingListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -150,23 +150,23 @@ func (r ImageSharePendingListParams) URLQuery() (v url.Values, err error) {
 }
 
 // Direction of pending shares: "incoming" (default) or "outgoing"
-type ImageSharePendingListParamsDirection string
+type PendingImageSharePendingListParamsDirection string
 
 const (
-	ImageSharePendingListParamsDirectionIncoming ImageSharePendingListParamsDirection = "incoming"
-	ImageSharePendingListParamsDirectionOutgoing ImageSharePendingListParamsDirection = "outgoing"
+	PendingImageSharePendingListParamsDirectionIncoming PendingImageSharePendingListParamsDirection = "incoming"
+	PendingImageSharePendingListParamsDirectionOutgoing PendingImageSharePendingListParamsDirection = "outgoing"
 )
 
-type ImageSharePendingAcceptParams struct {
+type PendingImageSharePendingAcceptParams struct {
 	// When true, overwrite conflicting tags in the target workspace instead of
 	// returning 409.
 	Force param.Opt[bool] `query:"force,omitzero" json:"-"`
 	paramObj
 }
 
-// URLQuery serializes [ImageSharePendingAcceptParams]'s query parameters as
+// URLQuery serializes [PendingImageSharePendingAcceptParams]'s query parameters as
 // `url.Values`.
-func (r ImageSharePendingAcceptParams) URLQuery() (v url.Values, err error) {
+func (r PendingImageSharePendingAcceptParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
