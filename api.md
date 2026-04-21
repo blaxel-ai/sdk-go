@@ -602,3 +602,31 @@ Methods:
 - <code title="delete /drives/{driveName}">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveDeleteResponse">DriveDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="post /drives/{driveName}/access-token">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.NewAccessToken">NewAccessToken</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, driveName <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveNewAccessTokenResponse">DriveNewAccessTokenResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /drives/jwks.json">client.Drives.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveService.GetJwks">GetJwks</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveGetJwksResponse">DriveGetJwksResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+## Mount
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountListResponse">DriveMountListResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountAttachResponse">DriveMountAttachResponse</a>
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountDetachResponse">DriveMountDetachResponse</a>
+
+Methods:
+
+- <code title="get /drives/mount">client.Drives.Mount.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountListResponse">DriveMountListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="post /drives/mount">client.Drives.Mount.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountService.Attach">Attach</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountAttachParams">DriveMountAttachParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountAttachResponse">DriveMountAttachResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="delete /drives/mount/{mountPath}">client.Drives.Mount.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountService.Detach">Detach</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, mountPath <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#DriveMountDetachResponse">DriveMountDetachResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# PendingImageShares
+
+## Pending
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingListResponse">PendingImageSharePendingListResponse</a>
+
+Methods:
+
+- <code title="get /pending-image-shares">client.PendingImageShares.Pending.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingListParams">PendingImageSharePendingListParams</a>) (\*[]<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingListResponse">PendingImageSharePendingListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="post /pending-image-shares/{pendingShareId}/accept">client.PendingImageShares.Pending.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingService.Accept">Accept</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, pendingShareID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingAcceptParams">PendingImageSharePendingAcceptParams</a>) (\*<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go">blaxel</a>.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#Image">Image</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="post /pending-image-shares/{pendingShareId}/decline">client.PendingImageShares.Pending.<a href="https://pkg.go.dev/github.com/blaxel-ai/sdk-go#PendingImageSharePendingService.Decline">Decline</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, pendingShareID <a href="https://pkg.go.dev/builtin#string">string</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>

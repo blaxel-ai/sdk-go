@@ -13,7 +13,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-func TestImageShareNewWithOptionalParams(t *testing.T) {
+func TestDriveMountList(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,15 +25,7 @@ func TestImageShareNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.Share.New(
-		context.TODO(),
-		"imageName",
-		blaxel.ImageShareNewParams{
-			ResourceType:    "resourceType",
-			TargetWorkspace: "targetWorkspace",
-			TargetAccountID: blaxel.String("targetAccountId"),
-		},
-	)
+	_, err := client.Drives.Mount.List(context.TODO())
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -43,7 +35,7 @@ func TestImageShareNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestImageShareList(t *testing.T) {
+func TestDriveMountAttachWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -55,13 +47,12 @@ func TestImageShareList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.Share.List(
-		context.TODO(),
-		"imageName",
-		blaxel.ImageShareListParams{
-			ResourceType: "resourceType",
-		},
-	)
+	_, err := client.Drives.Mount.Attach(context.TODO(), blaxel.DriveMountAttachParams{
+		DriveName: "driveName",
+		MountPath: "mountPath",
+		DrivePath: blaxel.String("drivePath"),
+		ReadOnly:  blaxel.Bool(true),
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -71,7 +62,7 @@ func TestImageShareList(t *testing.T) {
 	}
 }
 
-func TestImageShareDelete(t *testing.T) {
+func TestDriveMountDetach(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -83,14 +74,7 @@ func TestImageShareDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Images.Share.Delete(
-		context.TODO(),
-		"targetWorkspace",
-		blaxel.ImageShareDeleteParams{
-			ResourceType: "resourceType",
-			ImageName:    "imageName",
-		},
-	)
+	_, err := client.Drives.Mount.Detach(context.TODO(), "mountPath")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {

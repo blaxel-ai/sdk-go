@@ -614,8 +614,6 @@ type JobRuntime struct {
 	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
 	// auto-populated during deployment.
 	Image string `json:"image"`
-	// Maximum number of tasks that can run simultaneously within a single execution
-	MaxConcurrentTasks int64 `json:"maxConcurrentTasks"`
 	// Number of automatic retry attempts for failed tasks before marking as failed
 	MaxRetries int64 `json:"maxRetries"`
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
@@ -627,17 +625,16 @@ type JobRuntime struct {
 	Timeout int64 `json:"timeout"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		DiskPercent        respjson.Field
-		Envs               respjson.Field
-		Generation         respjson.Field
-		Image              respjson.Field
-		MaxConcurrentTasks respjson.Field
-		MaxRetries         respjson.Field
-		Memory             respjson.Field
-		Ports              respjson.Field
-		Timeout            respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
+		DiskPercent respjson.Field
+		Envs        respjson.Field
+		Generation  respjson.Field
+		Image       respjson.Field
+		MaxRetries  respjson.Field
+		Memory      respjson.Field
+		Ports       respjson.Field
+		Timeout     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
 	} `json:"-"`
 }
 
@@ -674,8 +671,6 @@ type JobRuntimeParam struct {
 	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
 	// auto-populated during deployment.
 	Image param.Opt[string] `json:"image,omitzero"`
-	// Maximum number of tasks that can run simultaneously within a single execution
-	MaxConcurrentTasks param.Opt[int64] `json:"maxConcurrentTasks,omitzero"`
 	// Number of automatic retry attempts for failed tasks before marking as failed
 	MaxRetries param.Opt[int64] `json:"maxRetries,omitzero"`
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
