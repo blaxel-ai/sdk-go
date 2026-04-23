@@ -13,7 +13,6 @@ import (
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
-	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
 // ImageShareService contains methods and other services that help with interacting
@@ -56,7 +55,7 @@ func (r *ImageShareService) New(ctx context.Context, imageName string, params Im
 }
 
 // Returns the list of workspaces that a container image is currently shared with.
-func (r *ImageShareService) List(ctx context.Context, imageName string, query ImageShareListParams, opts ...option.RequestOption) (res *[]ImageShareListResponse, err error) {
+func (r *ImageShareService) List(ctx context.Context, imageName string, query ImageShareListParams, opts ...option.RequestOption) (res *[]string, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if query.ResourceType == "" {
 		err = errors.New("missing required resourceType parameter")
@@ -90,39 +89,6 @@ func (r *ImageShareService) Delete(ctx context.Context, targetWorkspace string, 
 	path := fmt.Sprintf("images/%s/%s/share/%s", body.ResourceType, body.ImageName, targetWorkspace)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
-}
-
-type ImageShareListResponse struct {
-	// ID of the account that owns the target workspace.
-	AccountID string `json:"accountId" api:"required"`
-	// "active" when the share is applied in the target workspace, "pending" when it is
-	// awaiting accept on a cross-account share.
-	Status string `json:"status" api:"required"`
-	// The workspace the image is shared with.
-	Workspace string `json:"workspace" api:"required"`
-	// Email of the account owner for the target workspace (when available).
-	AccountOwnerEmail string `json:"accountOwnerEmail"`
-	// ID of the pending share record when status is "pending".
-	PendingShareID string `json:"pendingShareId"`
-	// Display name of the target workspace.
-	WorkspaceDisplayName string `json:"workspaceDisplayName"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AccountID            respjson.Field
-		Status               respjson.Field
-		Workspace            respjson.Field
-		AccountOwnerEmail    respjson.Field
-		PendingShareID       respjson.Field
-		WorkspaceDisplayName respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ImageShareListResponse) RawJSON() string { return r.JSON.raw }
-func (r *ImageShareListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
 }
 
 type ImageShareNewParams struct {
