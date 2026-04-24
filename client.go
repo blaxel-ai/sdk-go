@@ -52,7 +52,7 @@ func DefaultClientOptions() []option.RequestOption {
 	workspace := GetDefaultWorkspace()
 	InitializeEnvironment(workspace)
 
-	defaults := []option.RequestOption{option.WithBaseURL(GetBaseURL())}
+	defaults := []option.RequestOption{option.WithHTTPClient(defaultHTTPClient()), option.WithBaseURL(GetBaseURL())}
 	if o, ok := os.LookupEnv("BL_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
 	}
