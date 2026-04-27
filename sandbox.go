@@ -687,6 +687,10 @@ type SandboxRuntime struct {
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires string `json:"expires"`
+	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
+	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// sandbox runs on. Immutable after creation.
+	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
 	Image string `json:"image"`
@@ -705,6 +709,7 @@ type SandboxRuntime struct {
 	JSON struct {
 		Envs                          respjson.Field
 		Expires                       respjson.Field
+		ExtraArgs                     respjson.Field
 		Image                         respjson.Field
 		Memory                        respjson.Field
 		Ports                         respjson.Field
@@ -751,6 +756,10 @@ type SandboxRuntimeParam struct {
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
+	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
+	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// sandbox runs on. Immutable after creation.
+	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
