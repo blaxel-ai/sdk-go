@@ -198,8 +198,11 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Value:  blaxel.String("my-value"),
 					}},
 					Expires: blaxel.String("2025-12-31T23:59:59Z"),
-					Image:   blaxel.String("blaxel/base-image:latest"),
-					Memory:  blaxel.Int(4096),
+					ExtraArgs: map[string]string{
+						"foo": "string",
+					},
+					Image:  blaxel.String("blaxel/base-image:latest"),
+					Memory: blaxel.Int(4096),
 					Ports: []blaxel.PortParam{{
 						Target:   8080,
 						Name:     blaxel.String("http"),
@@ -441,8 +444,11 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Value:  blaxel.String("my-value"),
 						}},
 						Expires: blaxel.String("2025-12-31T23:59:59Z"),
-						Image:   blaxel.String("blaxel/base-image:latest"),
-						Memory:  blaxel.Int(4096),
+						ExtraArgs: map[string]string{
+							"foo": "string",
+						},
+						Image:  blaxel.String("blaxel/base-image:latest"),
+						Memory: blaxel.Int(4096),
 						Ports: []blaxel.PortParam{{
 							Target:   8080,
 							Name:     blaxel.String("http"),
