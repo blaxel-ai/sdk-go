@@ -352,15 +352,13 @@ and `X-Blaxel-Error-Code` response headers, plus agent-readable metadata from
 the JSON body:
 
 ```go
-import "github.com/blaxel-ai/sdk-go/internal/apierror"
-
 var apierr *blaxel.Error
 if errors.As(err, &apierr) && apierr.IsGatewayError() {
 	fmt.Println("Gateway error code:", apierr.BlaxelErrorCode)
 	fmt.Println("Retryable:", apierr.Retryable)
 	fmt.Println("Action:", apierr.Action)
 
-	if apierr.BlaxelErrorCode == apierror.ErrWorkloadUnavailable {
+	if apierr.BlaxelErrorCode == blaxel.ErrWorkloadUnavailable {
 		// retry with backoff
 	}
 }
@@ -375,7 +373,7 @@ if errors.As(err, &apierr) && apierr.IsGatewayError() {
 | `DoNot`            | `string` | Anti-pattern warning (may be empty) |
 | `DocsURL`          | `string` | Link to relevant documentation (may be empty) |
 
-The 10 stable error code constants are available in `internal/apierror`:
+The 10 stable error code constants are available in the `blaxel` package:
 `ErrRouteNotFound`, `ErrWorkloadNotFound`, `ErrWorkspaceNotFound`,
 `ErrWorkloadUnavailable`, `ErrAuthenticationRequired`,
 `ErrAuthenticationFailed`, `ErrForbidden`, `ErrBadRequest`,
