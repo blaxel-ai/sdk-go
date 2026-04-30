@@ -344,6 +344,43 @@ if err != nil {
 When other errors occur, they are returned unwrapped; for example,
 if HTTP transport fails, you might receive `*url.Error` wrapping `*net.OpError`.
 
+#### Gateway errors
+
+Errors synthesized by the Blaxel gateway proxy (as opposed to the upstream
+workload) carry additional structured fields parsed from the `X-Blaxel-Source`
+and `X-Blaxel-Error-Code` response headers, plus agent-readable metadata from
+the JSON body:
+
+```go
+import "github.com/blaxel-ai/sdk-go/internal/apierror"
+
+var apierr *blaxel.Error
+if errors.As(err, &apierr) && apierr.IsGatewayError() {
+	fmt.Println("Gateway error code:", apierr.BlaxelErrorCode)
+	fmt.Println("Retryable:", apierr.Retryable)
+	fmt.Println("Action:", apierr.Action)
+
+	if apierr.BlaxelErrorCode == apierror.ErrWorkloadUnavailable {
+		// retry with backoff
+	}
+}
+```
+
+| Field              | Type     | Description |
+|--------------------|----------|-------------|
+| `BlaxelErrorCode`  | `string` | Stable error code (e.g. `WORKLOAD_UNAVAILABLE`) |
+| `BlaxelSource`     | `string` | `"platform"` when the error comes from the gateway |
+| `Retryable`        | `bool`   | Whether retrying the request may succeed |
+| `Action`           | `string` | Directive telling the caller what to do next |
+| `DoNot`            | `string` | Anti-pattern warning (may be empty) |
+| `DocsURL`          | `string` | Link to relevant documentation (may be empty) |
+
+The 10 stable error code constants are available in `internal/apierror`:
+`ErrRouteNotFound`, `ErrWorkloadNotFound`, `ErrWorkspaceNotFound`,
+`ErrWorkloadUnavailable`, `ErrAuthenticationRequired`,
+`ErrAuthenticationFailed`, `ErrForbidden`, `ErrBadRequest`,
+`ErrUsageLimitExceeded`, `ErrPolicyViolation`.
+
 ### Timeouts
 
 Requests do not time out by default; use context to configure a timeout for a request lifecycle.

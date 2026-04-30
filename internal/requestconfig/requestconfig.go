@@ -540,6 +540,27 @@ func (cfg *RequestConfig) Execute() (err error) {
 		if err != nil {
 			return err
 		}
+
+		// Parse gateway-specific headers and body fields.
+		aerr.BlaxelErrorCode = res.Header.Get("X-Blaxel-Error-Code")
+		aerr.BlaxelSource = res.Header.Get("X-Blaxel-Source")
+		if aerr.BlaxelSource == "platform" {
+			var body struct {
+				Error struct {
+					Retryable bool   `json:"retryable"`
+					Action    string `json:"action"`
+					DoNot     string `json:"do_not"`
+					DocsURL   string `json:"docs_url"`
+				} `json:"error"`
+			}
+			if json.Unmarshal(contents, &body) == nil {
+				aerr.Retryable = body.Error.Retryable
+				aerr.Action = body.Error.Action
+				aerr.DoNot = body.Error.DoNot
+				aerr.DocsURL = body.Error.DocsURL
+			}
+		}
+
 		return &aerr
 	}
 
