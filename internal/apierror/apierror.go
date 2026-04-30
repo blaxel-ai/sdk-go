@@ -25,20 +25,22 @@ type Error struct {
 	Request    *http.Request
 	Response   *http.Response
 
-	// Gateway error body fields (populated when Origin == "platform")
-	ErrorCode string `json:"code"`
-	Message   string `json:"message"`
-	Origin    string `json:"origin"`
-	Retryable bool   `json:"retryable"`
-	Action    string `json:"action"`
-	DoNot     string `json:"do_not"`
-	DocsURL   string `json:"docs_url"`
-	Status    int    `json:"status"`
+	// Gateway error body fields (populated when the response contains {"error": {...}})
+	ErrorCode        string `json:"code"`
+	Message          string `json:"message"`
+	Origin           string `json:"origin"`
+	Retryable        bool   `json:"retryable"`
+	Action           string `json:"action"`
+	DoNot            string `json:"do_not"`
+	DocsURL          string `json:"docs_url"`
+	Status           int    `json:"status"`
+	hasErrorEnvelope bool
 }
 
 // IsGatewayError returns true if the error originated from the Blaxel platform gateway.
+// Detection is based on the presence of the {"error": {...}} envelope in the response body.
 func (r *Error) IsGatewayError() bool {
-	return r.Origin == "platform"
+	return r.hasErrorEnvelope
 }
 
 // IsRetryable returns true if the gateway indicates the request can be retried.
@@ -70,9 +72,14 @@ func (r *Error) UnmarshalJSON(data []byte) error {
 			Status    int    `json:"status"`
 		}
 		if err := json.Unmarshal(envelope.Error, &inner); err == nil {
+			r.hasErrorEnvelope = true
 			r.ErrorCode = inner.Code
 			r.Message = inner.Message
-			r.Origin = inner.Origin
+			if inner.Origin != "" {
+				r.Origin = inner.Origin
+			} else {
+				r.Origin = "platform"
+			}
 			r.Retryable = inner.Retryable
 			r.Action = inner.Action
 			r.DoNot = inner.DoNot

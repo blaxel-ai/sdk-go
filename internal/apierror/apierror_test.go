@@ -89,6 +89,32 @@ func TestUnmarshalGatewayErrorRetryable(t *testing.T) {
 	}
 }
 
+func TestUnmarshalGatewayErrorMissingOrigin(t *testing.T) {
+	body := `{
+		"error": {
+			"code": "BAD_REQUEST",
+			"message": "Invalid parameters",
+			"retryable": false,
+			"status": 400
+		}
+	}`
+
+	var apiErr Error
+	if err := json.Unmarshal([]byte(body), &apiErr); err != nil {
+		t.Fatalf("UnmarshalJSON failed: %v", err)
+	}
+
+	if !apiErr.IsGatewayError() {
+		t.Error("IsGatewayError() = false, want true (envelope present)")
+	}
+	if apiErr.Origin != "platform" {
+		t.Errorf("Origin = %q, want %q (should default when absent)", apiErr.Origin, "platform")
+	}
+	if apiErr.ErrorCode != ErrBadRequest {
+		t.Errorf("ErrorCode = %q, want %q", apiErr.ErrorCode, ErrBadRequest)
+	}
+}
+
 func TestUnmarshalNonGatewayError(t *testing.T) {
 	body := `{"message": "something went wrong"}`
 
