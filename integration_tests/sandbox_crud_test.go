@@ -447,7 +447,7 @@ func TestSandboxCRUD(t *testing.T) {
 			}
 			trackSandbox(name)
 
-			sandboxes, err := client.Sandboxes.List(ctx)
+			sandboxes, err := client.Sandboxes.List(ctx, blaxel.SandboxListParams{})
 			if err != nil {
 				t.Fatalf("failed to list sandboxes: %v", err)
 			}
