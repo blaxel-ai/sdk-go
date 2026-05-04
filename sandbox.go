@@ -86,11 +86,12 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 }
 
 // Returns all sandboxes in the workspace. Each sandbox includes its configuration,
-// status, and endpoint URL.
-func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Sandbox, err error) {
+// status, and endpoint URL. Terminated sandboxes are hidden by default; pass
+// `showTerminated=true` to include them.
+func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *[]Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -1015,4 +1016,18 @@ func (r SandboxUpdateParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *SandboxUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type SandboxListParams struct {
+	// If true, include terminated sandboxes in the response. Defaults to false.
+	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxListParams]'s query parameters as `url.Values`.
+func (r SandboxListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
