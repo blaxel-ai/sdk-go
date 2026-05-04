@@ -304,7 +304,7 @@ When the API returns a non-success status code, we return an error with type
 To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
-_, err := client.Sandboxes.List(context.TODO())
+_, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{})
 if err != nil {
 	var apierr *blaxel.Error
 	if errors.As(err, &apierr) {
@@ -331,6 +331,7 @@ ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
 client.Sandboxes.List(
 	ctx,
+	blaxel.SandboxListParams{},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
 )
@@ -385,7 +386,11 @@ client := blaxel.NewClient(
 )
 
 // Override per-request:
-client.Sandboxes.List(context.TODO(), option.WithMaxRetries(5))
+client.Sandboxes.List(
+	context.TODO(),
+	blaxel.SandboxListParams{},
+	option.WithMaxRetries(5),
+)
 ```
 
 ### Accessing raw response data (e.g. response headers)
@@ -396,7 +401,11 @@ you need to examine response headers, status codes, or other details.
 ```go
 // Create a variable to store the HTTP response
 var response *http.Response
-sandboxes, err := client.Sandboxes.List(context.TODO(), option.WithResponseInto(&response))
+sandboxes, err := client.Sandboxes.List(
+	context.TODO(),
+	blaxel.SandboxListParams{},
+	option.WithResponseInto(&response),
+)
 if err != nil {
 	// handle error
 }
