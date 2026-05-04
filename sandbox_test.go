@@ -475,7 +475,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxList(t *testing.T) {
+func TestSandboxListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -487,7 +487,9 @@ func TestSandboxList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Sandboxes.List(context.TODO())
+	_, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{
+		ShowTerminated: blaxel.Bool(true),
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
