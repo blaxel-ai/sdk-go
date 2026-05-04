@@ -67,6 +67,9 @@ type Workspace struct {
 	CreatedBy string `json:"createdBy"`
 	// Workspace display name
 	DisplayName string `json:"displayName"`
+	// When true, region weights override the user-specified region on sandbox
+	// creation. Use this to force traffic away from a down region.
+	ForceRegionWeights bool `json:"forceRegionWeights"`
 	// Group-to-role mappings for directory sync (SCIM) group membership
 	GroupMappings []WorkspaceGroupMapping `json:"groupMappings"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
@@ -76,6 +79,11 @@ type Workspace struct {
 	Name string `json:"name"`
 	// Workspace write region
 	Region string `json:"region"`
+	// Region weight configuration for weighted round-robin distribution of sandbox
+	// creation requests. Keys are region names, values are relative weights. Example:
+	// {"us-pdx-1": 9, "us-was-1": 13} routes ~41% to pdx and ~59% to was. When empty,
+	// the platform default region is used.
+	RegionWeights map[string]int64 `json:"regionWeights"`
 	// Runtime configuration for the workspace infrastructure
 	Runtime WorkspaceRuntime `json:"runtime"`
 	// Workspace status (created, account_binded, account_configured,
@@ -92,22 +100,24 @@ type Workspace struct {
 	UpdatedBy string `json:"updatedBy"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID            respjson.Field
-		AccountID     respjson.Field
-		CreatedAt     respjson.Field
-		CreatedBy     respjson.Field
-		DisplayName   respjson.Field
-		GroupMappings respjson.Field
-		Labels        respjson.Field
-		Name          respjson.Field
-		Region        respjson.Field
-		Runtime       respjson.Field
-		Status        respjson.Field
-		StatusReason  respjson.Field
-		UpdatedAt     respjson.Field
-		UpdatedBy     respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
+		ID                 respjson.Field
+		AccountID          respjson.Field
+		CreatedAt          respjson.Field
+		CreatedBy          respjson.Field
+		DisplayName        respjson.Field
+		ForceRegionWeights respjson.Field
+		GroupMappings      respjson.Field
+		Labels             respjson.Field
+		Name               respjson.Field
+		Region             respjson.Field
+		RegionWeights      respjson.Field
+		Runtime            respjson.Field
+		Status             respjson.Field
+		StatusReason       respjson.Field
+		UpdatedAt          respjson.Field
+		UpdatedBy          respjson.Field
+		ExtraFields        map[string]respjson.Field
+		raw                string
 	} `json:"-"`
 }
 
