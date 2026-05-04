@@ -86,11 +86,12 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 }
 
 // Returns all sandboxes in the workspace. Each sandbox includes its configuration,
-// status, and endpoint URL.
-func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Sandbox, err error) {
+// status, and endpoint URL. Terminated sandboxes are hidden by default; pass
+// `showTerminated=true` to include them.
+func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *[]Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -687,6 +688,10 @@ type SandboxRuntime struct {
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires string `json:"expires"`
+	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
+	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// sandbox runs on. Immutable after creation.
+	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
 	Image string `json:"image"`
@@ -695,19 +700,24 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
+	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
+	// immediate termination.
+	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
 	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
 	// '30m', '24h', '7d')
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Envs        respjson.Field
-		Expires     respjson.Field
-		Image       respjson.Field
-		Memory      respjson.Field
-		Ports       respjson.Field
-		Ttl         respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Envs                          respjson.Field
+		Expires                       respjson.Field
+		ExtraArgs                     respjson.Field
+		Image                         respjson.Field
+		Memory                        respjson.Field
+		Ports                         respjson.Field
+		TerminationGracePeriodSeconds respjson.Field
+		Ttl                           respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
 	} `json:"-"`
 }
 
@@ -738,12 +748,19 @@ type SandboxRuntimeParam struct {
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
 	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
+	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
+	// immediate termination.
+	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
 	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
 	// '30m', '24h', '7d')
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
+	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
+	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
+	// sandbox runs on. Immutable after creation.
+	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
@@ -999,4 +1016,18 @@ func (r SandboxUpdateParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *SandboxUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type SandboxListParams struct {
+	// If true, include terminated sandboxes in the response. Defaults to false.
+	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [SandboxListParams]'s query parameters as `url.Values`.
+func (r SandboxListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }

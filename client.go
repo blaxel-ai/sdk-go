@@ -18,27 +18,28 @@ import (
 // interacting with the blaxel API. You should not instantiate this client
 // directly, and instead use the [NewClient] method instead.
 type Client struct {
-	Options         []option.RequestOption
-	Agents          AgentService
-	Functions       FunctionService
-	Integrations    IntegrationService
-	Images          ImageService
-	Jobs            JobService
-	Models          ModelService
-	Policies        PolicyService
-	PublicIPs       PublicIPService
-	VolumeTemplates VolumeTemplateService
-	Volumes         VolumeService
-	Templates       TemplateService
-	Workspaces      WorkspaceService
-	Sandboxes       SandboxService
-	Health          HealthService
-	Upgrade         UpgradeService
-	Vpcs            VpcService
-	Egressgateways  EgressgatewayService
-	Egressips       EgressipService
-	Network         NetworkService
-	Drives          DriveService
+	Options            []option.RequestOption
+	Agents             AgentService
+	Functions          FunctionService
+	Integrations       IntegrationService
+	Images             ImageService
+	Jobs               JobService
+	Models             ModelService
+	Policies           PolicyService
+	PublicIPs          PublicIPService
+	VolumeTemplates    VolumeTemplateService
+	Volumes            VolumeService
+	Templates          TemplateService
+	Workspaces         WorkspaceService
+	Sandboxes          SandboxService
+	Health             HealthService
+	Upgrade            UpgradeService
+	Vpcs               VpcService
+	Egressgateways     EgressgatewayService
+	Egressips          EgressipService
+	Network            NetworkService
+	Drives             DriveService
+	PendingImageShares PendingImageShareService
 }
 
 // DefaultClientOptions read from the environment (BL_API_KEY, BL_CLIENT_CREDENTIALS,
@@ -51,7 +52,7 @@ func DefaultClientOptions() []option.RequestOption {
 	workspace := GetDefaultWorkspace()
 	InitializeEnvironment(workspace)
 
-	defaults := []option.RequestOption{option.WithBaseURL(GetBaseURL())}
+	defaults := []option.RequestOption{option.WithHTTPClient(defaultHTTPClient()), option.WithBaseURL(GetBaseURL())}
 	if o, ok := os.LookupEnv("BL_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
 	}
@@ -63,6 +64,14 @@ func DefaultClientOptions() []option.RequestOption {
 	// Add workspace header if specified
 	if workspace != "" {
 		defaults = append(defaults, option.WithWorkspace(workspace))
+	}
+	if o, ok := os.LookupEnv("BLAXEL_CUSTOM_HEADERS"); ok {
+		for _, line := range strings.Split(o, "\n") {
+			colon := strings.Index(line, ":")
+			if colon >= 0 {
+				defaults = append(defaults, option.WithHeader(strings.TrimSpace(line[:colon]), strings.TrimSpace(line[colon+1:])))
+			}
+		}
 	}
 	return defaults
 }
@@ -96,6 +105,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Egressips = NewEgressipService(opts...)
 	r.Network = NewNetworkService(opts...)
 	r.Drives = NewDriveService(opts...)
+	r.PendingImageShares = NewPendingImageShareService(opts...)
 
 	return
 }

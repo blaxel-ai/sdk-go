@@ -25,6 +25,7 @@ import (
 type ImageService struct {
 	Options []option.RequestOption
 	Tags    ImageTagService
+	Share   ImageShareService
 }
 
 // NewImageService generates a new service that applies the given options to each
@@ -34,6 +35,7 @@ func NewImageService(opts ...option.RequestOption) (r ImageService) {
 	r = ImageService{}
 	r.Options = opts
 	r.Tags = NewImageTagService(opts...)
+	r.Share = NewImageShareService(opts...)
 	return
 }
 
@@ -134,6 +136,9 @@ type ImageMetadata struct {
 	Name string `json:"name"`
 	// The resource type of the image.
 	ResourceType string `json:"resourceType"`
+	// If this image is shared from another workspace, this field contains the name of
+	// the source workspace. Empty for non-shared images.
+	SourceWorkspace string `json:"sourceWorkspace"`
 	// Deployment status of a resource deployed on Blaxel
 	//
 	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
@@ -145,17 +150,18 @@ type ImageMetadata struct {
 	Workspace string `json:"workspace"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		CreatedAt      respjson.Field
-		DisplayName    respjson.Field
-		Events         respjson.Field
-		LastDeployedAt respjson.Field
-		Name           respjson.Field
-		ResourceType   respjson.Field
-		Status         respjson.Field
-		UpdatedAt      respjson.Field
-		Workspace      respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
+		CreatedAt       respjson.Field
+		DisplayName     respjson.Field
+		Events          respjson.Field
+		LastDeployedAt  respjson.Field
+		Name            respjson.Field
+		ResourceType    respjson.Field
+		SourceWorkspace respjson.Field
+		Status          respjson.Field
+		UpdatedAt       respjson.Field
+		Workspace       respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
 	} `json:"-"`
 }
 
