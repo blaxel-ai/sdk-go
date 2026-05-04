@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.20.0 (2026-05-04)
+
+Full Changelog: [v0.19.0...v0.20.0](https://github.com/blaxel-ai/sdk-go/compare/v0.19.0...v0.20.0)
+
+### Features
+
+* Cdrappier/sms ([bdcc95a](https://github.com/blaxel-ai/sdk-go/commit/bdcc95a9a99b1d13c7b82df3923369f5f5e9a621))
+* Cdrappier/termination grace period ([9cb23ca](https://github.com/blaxel-ai/sdk-go/commit/9cb23ca22ba3f0f2160e94aaabeb52f7feff4b4c))
+* **ENG-2296:** Add cross-workspace image sharing (metadata copy) ([d73be2b](https://github.com/blaxel-ai/sdk-go/commit/d73be2bd54179e669af4d628520459f21595b2a9))
+* ENG-2337: cross-account image sharing with approval flow ([dfe9c86](https://github.com/blaxel-ai/sdk-go/commit/dfe9c861c745da55b35837197ea01b85f1473831))
+* expose kernel selection via extraArgs on sandbox runtime ([ad7d08a](https://github.com/blaxel-ai/sdk-go/commit/ad7d08aeee8c436943da81d81e60cf29a61e9134))
+* **go:** add default http client with timeout ([d1b9921](https://github.com/blaxel-ai/sdk-go/commit/d1b99219d8fc591efaa733ac2e69c08a71b4b7cc))
+* support setting headers via env ([1f819d4](https://github.com/blaxel-ai/sdk-go/commit/1f819d41f97965b465a2ef44f06c8303899288a7))
+* **workspace:** explicit error when workspace name is forbidden (ENG-2347) ([661f880](https://github.com/blaxel-ai/sdk-go/commit/661f88042f98f03d57097d878418d4a6c53ef771))
+
+
+### Bug Fixes
+
+* **openapi:** wire ImageShareTarget as ListImageShares response item ([33978a2](https://github.com/blaxel-ai/sdk-go/commit/33978a2465324706510d10d67bee8b8e0215510c))
+
+
+### Chores
+
+* avoid embedding reflect.Type for dead code elimination ([92c1c46](https://github.com/blaxel-ai/sdk-go/commit/92c1c46098597104b30d589128ff2886280cc151))
+* **internal:** more robust bootstrap script ([feb04a6](https://github.com/blaxel-ai/sdk-go/commit/feb04a6b0e0fb4b3bf705ceaa6583ef1095fec54))
+* **tests:** bump steady to v0.22.1 ([fc72c5e](https://github.com/blaxel-ai/sdk-go/commit/fc72c5eb85366269fe25187f27e11fcfcd574849))
+
 ## 0.19.0 (2026-04-11)
 
 Full Changelog: [v0.18.0...v0.19.0](https://github.com/blaxel-ai/sdk-go/compare/v0.18.0...v0.19.0)
