@@ -540,6 +540,15 @@ func (cfg *RequestConfig) Execute() (err error) {
 		if err != nil {
 			return err
 		}
+
+		// The X-Blaxel-Source header is the canonical signal that the response
+		// was synthesized by the Blaxel gateway proxy. Use the X-Blaxel-Error-Code
+		// header as a fallback when the body envelope did not provide a code.
+		aerr.BlaxelSource = res.Header.Get("X-Blaxel-Source")
+		if aerr.ErrorCode == "" {
+			aerr.ErrorCode = res.Header.Get("X-Blaxel-Error-Code")
+		}
+
 		return &aerr
 	}
 

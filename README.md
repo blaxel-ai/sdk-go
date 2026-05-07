@@ -347,8 +347,8 @@ if HTTP transport fails, you might receive `*url.Error` wrapping `*net.OpError`.
 #### Gateway errors
 
 When the error originates from the Blaxel platform gateway, `*blaxel.Error` automatically
-parses typed fields from the response body so you can inspect error details without manually
-parsing JSON:
+parses typed fields from both the `X-Blaxel-Source` / `X-Blaxel-Error-Code` response headers
+and the JSON body envelope, so you can inspect error details without manually parsing JSON:
 
 ```go
 _, err := client.Sandboxes.Get(context.TODO(), "missing-sandbox")
@@ -374,10 +374,22 @@ if err != nil {
 }
 ```
 
-Available error code constants: `ErrRouteNotFound`, `ErrWorkloadNotFound`,
-`ErrWorkspaceNotFound`, `ErrWorkloadUnavailable`, `ErrAuthenticationRequired`,
-`ErrAuthenticationFailed`, `ErrForbidden`, `ErrBadRequest`, `ErrUsageLimitExceeded`,
-`ErrPolicyViolation`.
+| Field          | Type     | Description |
+|----------------|----------|-------------|
+| `ErrorCode`    | `string` | Stable error code (e.g. `WORKLOAD_UNAVAILABLE`) |
+| `Message`      | `string` | Human-readable error message |
+| `Origin`       | `string` | `"platform"` when the error comes from the gateway |
+| `BlaxelSource` | `string` | Raw value of the `X-Blaxel-Source` response header |
+| `Retryable`    | `bool`   | Whether retrying the request may succeed |
+| `Action`       | `string` | Directive telling the caller what to do next |
+| `DoNot`        | `string` | Anti-pattern warning (may be empty) |
+| `DocsURL`      | `string` | Link to relevant documentation (may be empty) |
+| `Status`       | `int`    | HTTP status code reported by the gateway |
+
+Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
+`ErrWorkloadNotFound`, `ErrWorkspaceNotFound`, `ErrWorkloadUnavailable`,
+`ErrAuthenticationRequired`, `ErrAuthenticationFailed`, `ErrForbidden`,
+`ErrBadRequest`, `ErrUsageLimitExceeded`, `ErrPolicyViolation`.
 
 ### Timeouts
 

@@ -15,6 +15,10 @@ import (
 // Error represents an error that originates from the API, i.e. when a request is
 // made and the API returns a response with a HTTP status code. Other errors are
 // not wrapped by this SDK.
+//
+// Errors synthesized by the Blaxel gateway proxy carry typed metadata sourced
+// from both the X-Blaxel-Source / X-Blaxel-Error-Code response headers and the
+// `{"error": {...}}` JSON body envelope.
 type Error struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -25,22 +29,27 @@ type Error struct {
 	Request    *http.Request
 	Response   *http.Response
 
-	// Gateway error body fields (populated when the response contains {"error": {...}})
-	ErrorCode        string `json:"code"`
-	Message          string `json:"message"`
-	Origin           string `json:"origin"`
-	Retryable        bool   `json:"retryable"`
-	Action           string `json:"action"`
-	DoNot            string `json:"do_not"`
-	DocsURL          string `json:"docs_url"`
-	Status           int    `json:"status"`
+	// Gateway error fields. Populated when the response is a Blaxel gateway error,
+	// detected via the X-Blaxel-Source: platform header or the {"error": {...}}
+	// body envelope.
+	ErrorCode    string `json:"code"`
+	Message      string `json:"message"`
+	Origin       string `json:"origin"`
+	Retryable    bool   `json:"retryable"`
+	Action       string `json:"action"`
+	DoNot        string `json:"do_not"`
+	DocsURL      string `json:"docs_url"`
+	Status       int    `json:"status"`
+	BlaxelSource string
+
 	hasErrorEnvelope bool
 }
 
-// IsGatewayError returns true if the error originated from the Blaxel platform gateway.
-// Detection is based on the presence of the {"error": {...}} envelope in the response body.
+// IsGatewayError returns true when this error was synthesized by the Blaxel
+// gateway proxy. Detection uses the X-Blaxel-Source header when available,
+// falling back to the presence of the JSON body envelope.
 func (r *Error) IsGatewayError() bool {
-	return r.hasErrorEnvelope
+	return r.BlaxelSource == "platform" || r.hasErrorEnvelope
 }
 
 // IsRetryable returns true if the gateway indicates the request can be retried.

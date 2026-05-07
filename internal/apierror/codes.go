@@ -1,6 +1,14 @@
 package apierror
 
-// Gateway error codes returned by the Blaxel platform.
+// Stable error codes emitted by the Blaxel gateway proxy via the
+// X-Blaxel-Error-Code response header and the error.code JSON body field.
+//
+// Use these constants to match gateway errors programmatically:
+//
+//	var apierr *apierror.Error
+//	if errors.As(err, &apierr) && apierr.ErrorCode == apierror.ErrWorkloadUnavailable {
+//	    // handle cold-start / unavailable workload
+//	}
 const (
 	ErrRouteNotFound          = "ROUTE_NOT_FOUND"
 	ErrWorkloadNotFound       = "WORKLOAD_NOT_FOUND"
