@@ -61,7 +61,8 @@ func newTestClient(t *testing.T) blaxel.Client {
 	return client
 }
 
-// waitForSandboxDeletion waits for a sandbox to be fully deleted
+// waitForSandboxDeletion waits for a sandbox to reach TERMINATED status or
+// to no longer be reachable via the API.
 func waitForSandboxDeletion(ctx context.Context, client blaxel.Client, sandboxName string, maxAttempts int) bool {
 	for i := 0; i < maxAttempts; i++ {
 		select {
@@ -69,9 +70,11 @@ func waitForSandboxDeletion(ctx context.Context, client blaxel.Client, sandboxNa
 			return false
 		default:
 		}
-		_, err := client.Sandboxes.Get(ctx, sandboxName, blaxel.SandboxGetParams{})
+		sb, err := client.Sandboxes.Get(ctx, sandboxName, blaxel.SandboxGetParams{})
 		if err != nil {
-			// Sandbox no longer exists
+			return true
+		}
+		if sb.Status == blaxel.StatusTerminated {
 			return true
 		}
 		time.Sleep(1 * time.Second)
