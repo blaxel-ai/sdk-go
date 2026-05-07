@@ -198,14 +198,18 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 						Value:  blaxel.String("my-value"),
 					}},
 					Expires: blaxel.String("2025-12-31T23:59:59Z"),
-					Image:   blaxel.String("blaxel/base-image:latest"),
-					Memory:  blaxel.Int(4096),
+					ExtraArgs: map[string]string{
+						"foo": "string",
+					},
+					Image:  blaxel.String("blaxel/base-image:latest"),
+					Memory: blaxel.Int(4096),
 					Ports: []blaxel.PortParam{{
 						Target:   8080,
 						Name:     blaxel.String("http"),
 						Protocol: blaxel.PortProtocolHTTP,
 					}},
-					Ttl: blaxel.String("24h"),
+					TerminationGracePeriodSeconds: blaxel.Int(30),
+					Ttl:                           blaxel.String("24h"),
 				},
 				Volumes: []blaxel.VolumeAttachmentParam{{
 					MountPath: blaxel.String("/mnt/data"),
@@ -440,14 +444,18 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 							Value:  blaxel.String("my-value"),
 						}},
 						Expires: blaxel.String("2025-12-31T23:59:59Z"),
-						Image:   blaxel.String("blaxel/base-image:latest"),
-						Memory:  blaxel.Int(4096),
+						ExtraArgs: map[string]string{
+							"foo": "string",
+						},
+						Image:  blaxel.String("blaxel/base-image:latest"),
+						Memory: blaxel.Int(4096),
 						Ports: []blaxel.PortParam{{
 							Target:   8080,
 							Name:     blaxel.String("http"),
 							Protocol: blaxel.PortProtocolHTTP,
 						}},
-						Ttl: blaxel.String("24h"),
+						TerminationGracePeriodSeconds: blaxel.Int(30),
+						Ttl:                           blaxel.String("24h"),
 					},
 					Volumes: []blaxel.VolumeAttachmentParam{{
 						MountPath: blaxel.String("/mnt/data"),
@@ -467,7 +475,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestSandboxList(t *testing.T) {
+func TestSandboxListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -479,7 +487,9 @@ func TestSandboxList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Sandboxes.List(context.TODO())
+	_, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{
+		ShowTerminated: blaxel.Bool(true),
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
