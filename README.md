@@ -344,6 +344,41 @@ if err != nil {
 When other errors occur, they are returned unwrapped; for example,
 if HTTP transport fails, you might receive `*url.Error` wrapping `*net.OpError`.
 
+#### Gateway errors
+
+When the error originates from the Blaxel platform gateway, `*blaxel.Error` automatically
+parses typed fields from the response body so you can inspect error details without manually
+parsing JSON:
+
+```go
+_, err := client.Sandboxes.Get(context.TODO(), "missing-sandbox")
+if err != nil {
+	var apierr *blaxel.Error
+	if errors.As(err, &apierr) && apierr.IsGatewayError() {
+		fmt.Println("Code:     ", apierr.ErrorCode)  // e.g. "WORKLOAD_NOT_FOUND"
+		fmt.Println("Message:  ", apierr.Message)
+		fmt.Println("Retryable:", apierr.IsRetryable())
+		fmt.Println("Action:   ", apierr.Action)
+		fmt.Println("DocsURL:  ", apierr.DocsURL)
+
+		// Match against well-known error codes
+		switch apierr.ErrorCode {
+		case blaxel.ErrWorkloadNotFound:
+			// handle missing workload
+		case blaxel.ErrUsageLimitExceeded:
+			// handle quota
+		case blaxel.ErrAuthenticationRequired:
+			// handle auth
+		}
+	}
+}
+```
+
+Available error code constants: `ErrRouteNotFound`, `ErrWorkloadNotFound`,
+`ErrWorkspaceNotFound`, `ErrWorkloadUnavailable`, `ErrAuthenticationRequired`,
+`ErrAuthenticationFailed`, `ErrForbidden`, `ErrBadRequest`, `ErrUsageLimitExceeded`,
+`ErrPolicyViolation`.
+
 ### Timeouts
 
 Requests do not time out by default; use context to configure a timeout for a request lifecycle.
