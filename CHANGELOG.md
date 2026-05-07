@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.20.0 (2026-05-07)
+
+Full Changelog: [v0.19.0...v0.20.0](https://github.com/blaxel-ai/sdk-go/compare/v0.19.0...v0.20.0)
+
+### Features
+
+* add typed gateway error fields to Error struct ([#32](https://github.com/blaxel-ai/sdk-go/issues/32)) ([5532564](https://github.com/blaxel-ai/sdk-go/commit/5532564f95c9006457cc300c35a31925f505b919))
+* Cdrappier/sms ([a58c0cf](https://github.com/blaxel-ai/sdk-go/commit/a58c0cf48bd18443cf8324830f2a2b2b124bc64d))
+* Cdrappier/termination grace period ([439b8b3](https://github.com/blaxel-ai/sdk-go/commit/439b8b3f02626609e9961627178033c36c1ec8dd))
+* **ENG-2296:** Add cross-workspace image sharing (metadata copy) ([78f3f69](https://github.com/blaxel-ai/sdk-go/commit/78f3f693892de1a7966e747c946bbef08431ba03))
+* ENG-2337: cross-account image sharing with approval flow ([cd4ab22](https://github.com/blaxel-ai/sdk-go/commit/cd4ab22717527e47d9f55332eab529502124860a))
+* expose gateway error codes as typed fields on apierror.Error ([#33](https://github.com/blaxel-ai/sdk-go/issues/33)) ([0caa620](https://github.com/blaxel-ai/sdk-go/commit/0caa6207e3200fc6c35c05aab5fc862fb24261f5))
+* expose kernel selection via extraArgs on sandbox runtime ([6c9a091](https://github.com/blaxel-ai/sdk-go/commit/6c9a091b19742e0770f8bdae58b07b7adc5211f0))
+* **go:** add default http client with timeout ([5eba19a](https://github.com/blaxel-ai/sdk-go/commit/5eba19af681a8aa177d27cafc823df18acf28e75))
+* support setting headers via env ([37c3335](https://github.com/blaxel-ai/sdk-go/commit/37c3335f971504ce752641e3eb4223f6f65b4253))
+* **workspace:** explicit error when workspace name is forbidden (ENG-2347) ([4110ef8](https://github.com/blaxel-ai/sdk-go/commit/4110ef8a24ce1c73edfabdecab2a9947c5c3c53e))
+
+
+### Bug Fixes
+
+* **go:** avoid panic when http.DefaultTransport is wrapped ([a8dcb81](https://github.com/blaxel-ai/sdk-go/commit/a8dcb81e5eeb2525a3e15e0d63fb5d5ab90b608d))
+* **integration:** treat TERMINATED status as deleted in waitForSandboxDeletion ([#35](https://github.com/blaxel-ai/sdk-go/issues/35)) ([4aa13ab](https://github.com/blaxel-ai/sdk-go/commit/4aa13ab8e3ce6127568d1e2fb703b8c9def92650))
+* **openapi:** wire ImageShareTarget as ListImageShares response item ([14bf355](https://github.com/blaxel-ai/sdk-go/commit/14bf3550c076f085af21026799277dc6941cfc80))
+* pass required SandboxListParams to Sandboxes.List in integration test ([#34](https://github.com/blaxel-ai/sdk-go/issues/34)) ([683d103](https://github.com/blaxel-ai/sdk-go/commit/683d10361dff3b7f9a3c88e49e56a346d74e39a3))
+
+
+### Chores
+
+* avoid embedding reflect.Type for dead code elimination ([5ff0f62](https://github.com/blaxel-ai/sdk-go/commit/5ff0f624d8b960f761d652dcbac8f19fddc0edc4))
+* **internal:** more robust bootstrap script ([7f924e7](https://github.com/blaxel-ai/sdk-go/commit/7f924e7b52b3f2434bea598319d0f74ae5eb275c))
+* redact api-key headers in debug logs ([8073452](https://github.com/blaxel-ai/sdk-go/commit/807345215be80f4d1503d1e6fc5205758522f059))
+* **tests:** bump steady to v0.22.1 ([3008677](https://github.com/blaxel-ai/sdk-go/commit/30086778e4f1698ec3820bf6851e3f9c922d52e0))
+
 ## 0.19.0 (2026-04-11)
 
 Full Changelog: [v0.18.0...v0.19.0](https://github.com/blaxel-ai/sdk-go/compare/v0.18.0...v0.19.0)
