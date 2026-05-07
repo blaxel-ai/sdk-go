@@ -16,7 +16,7 @@ type paramObj = param.APIObject
 
 type Error = apierror.Error
 
-// Stable gateway error codes emitted via the X-Blaxel-Error-Code header.
+// Stable gateway error codes emitted by the Blaxel platform.
 // Use these to match gateway-synthesized errors programmatically.
 const (
 	ErrRouteNotFound          = apierror.ErrRouteNotFound

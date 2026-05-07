@@ -6,7 +6,7 @@ package apierror
 // Use these constants to match gateway errors programmatically:
 //
 //	var apierr *apierror.Error
-//	if errors.As(err, &apierr) && apierr.BlaxelErrorCode == apierror.ErrWorkloadUnavailable {
+//	if errors.As(err, &apierr) && apierr.ErrorCode == apierror.ErrWorkloadUnavailable {
 //	    // handle cold-start / unavailable workload
 //	}
 const (

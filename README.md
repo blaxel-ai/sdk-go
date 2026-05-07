@@ -346,38 +346,50 @@ if HTTP transport fails, you might receive `*url.Error` wrapping `*net.OpError`.
 
 #### Gateway errors
 
-Errors synthesized by the Blaxel gateway proxy (as opposed to the upstream
-workload) carry additional structured fields parsed from the `X-Blaxel-Source`
-and `X-Blaxel-Error-Code` response headers, plus agent-readable metadata from
-the JSON body:
+When the error originates from the Blaxel platform gateway, `*blaxel.Error` automatically
+parses typed fields from both the `X-Blaxel-Source` / `X-Blaxel-Error-Code` response headers
+and the JSON body envelope, so you can inspect error details without manually parsing JSON:
 
 ```go
-var apierr *blaxel.Error
-if errors.As(err, &apierr) && apierr.IsGatewayError() {
-	fmt.Println("Gateway error code:", apierr.BlaxelErrorCode)
-	fmt.Println("Retryable:", apierr.Retryable)
-	fmt.Println("Action:", apierr.Action)
+_, err := client.Sandboxes.Get(context.TODO(), "missing-sandbox")
+if err != nil {
+	var apierr *blaxel.Error
+	if errors.As(err, &apierr) && apierr.IsGatewayError() {
+		fmt.Println("Code:     ", apierr.ErrorCode)  // e.g. "WORKLOAD_NOT_FOUND"
+		fmt.Println("Message:  ", apierr.Message)
+		fmt.Println("Retryable:", apierr.IsRetryable())
+		fmt.Println("Action:   ", apierr.Action)
+		fmt.Println("DocsURL:  ", apierr.DocsURL)
 
-	if apierr.BlaxelErrorCode == blaxel.ErrWorkloadUnavailable {
-		// retry with backoff
+		// Match against well-known error codes
+		switch apierr.ErrorCode {
+		case blaxel.ErrWorkloadNotFound:
+			// handle missing workload
+		case blaxel.ErrUsageLimitExceeded:
+			// handle quota
+		case blaxel.ErrAuthenticationRequired:
+			// handle auth
+		}
 	}
 }
 ```
 
-| Field              | Type     | Description |
-|--------------------|----------|-------------|
-| `BlaxelErrorCode`  | `string` | Stable error code (e.g. `WORKLOAD_UNAVAILABLE`) |
-| `BlaxelSource`     | `string` | `"platform"` when the error comes from the gateway |
-| `Retryable`        | `bool`   | Whether retrying the request may succeed |
-| `Action`           | `string` | Directive telling the caller what to do next |
-| `DoNot`            | `string` | Anti-pattern warning (may be empty) |
-| `DocsURL`          | `string` | Link to relevant documentation (may be empty) |
+| Field          | Type     | Description |
+|----------------|----------|-------------|
+| `ErrorCode`    | `string` | Stable error code (e.g. `WORKLOAD_UNAVAILABLE`) |
+| `Message`      | `string` | Human-readable error message |
+| `Origin`       | `string` | `"platform"` when the error comes from the gateway |
+| `BlaxelSource` | `string` | Raw value of the `X-Blaxel-Source` response header |
+| `Retryable`    | `bool`   | Whether retrying the request may succeed |
+| `Action`       | `string` | Directive telling the caller what to do next |
+| `DoNot`        | `string` | Anti-pattern warning (may be empty) |
+| `DocsURL`      | `string` | Link to relevant documentation (may be empty) |
+| `Status`       | `int`    | HTTP status code reported by the gateway |
 
-The 10 stable error code constants are available in the `blaxel` package:
-`ErrRouteNotFound`, `ErrWorkloadNotFound`, `ErrWorkspaceNotFound`,
-`ErrWorkloadUnavailable`, `ErrAuthenticationRequired`,
-`ErrAuthenticationFailed`, `ErrForbidden`, `ErrBadRequest`,
-`ErrUsageLimitExceeded`, `ErrPolicyViolation`.
+Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
+`ErrWorkloadNotFound`, `ErrWorkspaceNotFound`, `ErrWorkloadUnavailable`,
+`ErrAuthenticationRequired`, `ErrAuthenticationFailed`, `ErrForbidden`,
+`ErrBadRequest`, `ErrUsageLimitExceeded`, `ErrPolicyViolation`.
 
 ### Timeouts
 
