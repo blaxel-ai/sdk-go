@@ -664,7 +664,8 @@ const (
 
 // Trigger configuration
 type Trigger struct {
-	// The id of the trigger
+	// Identifier of the trigger. Optional — the server auto-generates a unique id when
+	// one is not provided, and disambiguates duplicates within a resource.
 	ID string `json:"id"`
 	// Trigger configuration
 	Configuration TriggerConfiguration `json:"configuration"`
@@ -750,7 +751,8 @@ const (
 
 // Trigger configuration
 type TriggerParam struct {
-	// The id of the trigger
+	// Identifier of the trigger. Optional — the server auto-generates a unique id when
+	// one is not provided, and disambiguates duplicates within a resource.
 	ID param.Opt[string] `json:"id,omitzero"`
 	// Enable or disable the trigger (default: true)
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
