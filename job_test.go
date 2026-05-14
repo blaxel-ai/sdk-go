@@ -56,10 +56,11 @@ func TestJobNewWithOptionalParams(t *testing.T) {
 						Secret: blaxel.Bool(true),
 						Value:  blaxel.String("my-value"),
 					}},
-					Generation: blaxel.JobRuntimeGenerationMk3,
-					Image:      blaxel.String("image"),
-					MaxRetries: blaxel.Int(3),
-					Memory:     blaxel.Int(2048),
+					Generation:         blaxel.JobRuntimeGenerationMk3,
+					Image:              blaxel.String("image"),
+					MaxConcurrentTasks: blaxel.Int(10),
+					MaxRetries:         blaxel.Int(3),
+					Memory:             blaxel.Int(2048),
 					Ports: []blaxel.PortParam{{
 						Target:   8080,
 						Name:     blaxel.String("http"),
@@ -173,10 +174,11 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 							Secret: blaxel.Bool(true),
 							Value:  blaxel.String("my-value"),
 						}},
-						Generation: blaxel.JobRuntimeGenerationMk3,
-						Image:      blaxel.String("image"),
-						MaxRetries: blaxel.Int(3),
-						Memory:     blaxel.Int(2048),
+						Generation:         blaxel.JobRuntimeGenerationMk3,
+						Image:              blaxel.String("image"),
+						MaxConcurrentTasks: blaxel.Int(10),
+						MaxRetries:         blaxel.Int(3),
+						Memory:             blaxel.Int(2048),
 						Ports: []blaxel.PortParam{{
 							Target:   8080,
 							Name:     blaxel.String("http"),
@@ -218,7 +220,7 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestJobListWithOptionalParams(t *testing.T) {
+func TestJobList(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -230,12 +232,7 @@ func TestJobListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Jobs.List(context.TODO(), blaxel.JobListParams{
-		Cursor: blaxel.String("cursor"),
-		Limit:  blaxel.Int(1),
-		Q:      blaxel.String("q"),
-		Sort:   blaxel.JobListParamsSortCreatedAtDesc,
-	})
+	_, err := client.Jobs.List(context.TODO())
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {

@@ -85,16 +85,12 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 	return res, err
 }
 
-// Returns sandboxes in the workspace. Each sandbox includes its configuration,
-// status, and endpoint URL. Terminated sandboxes are hidden by default; pass
-// `showTerminated=true` to include them. Starting with API version 2026-04-28 the
-// response is wrapped in `{data, meta}` and supports cursor pagination via the
-// `cursor` and `limit` query parameters; older versions keep returning a bare
-// array of all sandboxes.
-func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *SandboxListResponse, err error) {
+// Returns all sandboxes in the workspace. Each sandbox includes its configuration,
+// status, and endpoint URL.
+func (r *SandboxService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Sandbox, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
 
@@ -691,10 +687,6 @@ type SandboxRuntime struct {
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires string `json:"expires"`
-	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
-	// sandbox runs on. Immutable after creation.
-	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
 	Image string `json:"image"`
@@ -703,24 +695,19 @@ type SandboxRuntime struct {
 	Memory int64 `json:"memory"`
 	// Set of ports for a resource
 	Ports []Port `json:"ports"`
-	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
-	// immediate termination.
-	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
 	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
 	// '30m', '24h', '7d')
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Envs                          respjson.Field
-		Expires                       respjson.Field
-		ExtraArgs                     respjson.Field
-		Image                         respjson.Field
-		Memory                        respjson.Field
-		Ports                         respjson.Field
-		TerminationGracePeriodSeconds respjson.Field
-		Ttl                           respjson.Field
-		ExtraFields                   map[string]respjson.Field
-		raw                           string
+		Envs        respjson.Field
+		Expires     respjson.Field
+		Image       respjson.Field
+		Memory      respjson.Field
+		Ports       respjson.Field
+		Ttl         respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
 	} `json:"-"`
 }
 
@@ -751,19 +738,12 @@ type SandboxRuntimeParam struct {
 	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
 	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
 	Memory param.Opt[int64] `json:"memory,omitzero"`
-	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
-	// immediate termination.
-	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
 	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
 	// '30m', '24h', '7d')
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
-	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
-	// sandbox runs on. Immutable after creation.
-	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
 	paramObj
@@ -908,58 +888,6 @@ func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Cursor-paginated list of sandboxes. Returned starting with API version
-// 2026-04-28; older API versions return a bare array.
-type SandboxListResponse struct {
-	// Page of sandboxes. Items use the lite shape (no inline event history) to keep
-	// the page payload small, matching the unpaginated response.
-	Data []Sandbox `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta SandboxListResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxListResponse) RawJSON() string { return r.JSON.raw }
-func (r *SandboxListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type SandboxListResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxListResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *SandboxListResponseMeta) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Pre-configured sandbox template available in the Sandbox Hub for quick
 // deployment with predefined tools and configurations
 type SandboxGetHubResponse struct {
@@ -1072,49 +1000,3 @@ func (r SandboxUpdateParams) MarshalJSON() (data []byte, err error) {
 func (r *SandboxUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type SandboxListParams struct {
-	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
-	// the same query (workspace + filters); the server rejects cursors bound to a
-	// different query or older than 24h. Omit on the first page.
-	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
-	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
-	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
-	// Substring search across `metadata.name`, `metadata.displayName` and labels
-	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
-	// characters fall back to the unfiltered listing. Bound into the cursor
-	// fingerprint so a cursor opened with one query cannot be reused with another.
-	// Only honoured starting on Blaxel-Version 2026-04-28.
-	Q param.Opt[string] `query:"q,omitzero" json:"-"`
-	// If true, include terminated sandboxes in the response. Defaults to false.
-	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
-	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
-	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
-	// bound to the sort, so a cursor opened with one value cannot be reused with
-	// another. Only honoured starting on Blaxel-Version 2026-04-28.
-	//
-	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
-	Sort SandboxListParamsSort `query:"sort,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [SandboxListParams]'s query parameters as `url.Values`.
-func (r SandboxListParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
-// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
-// bound to the sort, so a cursor opened with one value cannot be reused with
-// another. Only honoured starting on Blaxel-Version 2026-04-28.
-type SandboxListParamsSort string
-
-const (
-	SandboxListParamsSortCreatedAtDesc SandboxListParamsSort = "createdAt:desc"
-	SandboxListParamsSortCreatedAtAsc  SandboxListParamsSort = "createdAt:asc"
-	SandboxListParamsSortNameAsc       SandboxListParamsSort = "name:asc"
-	SandboxListParamsSortNameDesc      SandboxListParamsSort = "name:desc"
-)
