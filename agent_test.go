@@ -19,6 +19,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
 	}
+	t.Logf("Checking test server at %s", baseURL)
 	if !testutil.CheckTestServer(t, baseURL) {
 		return
 	}
