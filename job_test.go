@@ -218,7 +218,7 @@ func TestJobUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestJobList(t *testing.T) {
+func TestJobListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -230,7 +230,12 @@ func TestJobList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Jobs.List(context.TODO())
+	_, err := client.Jobs.List(context.TODO(), blaxel.JobListParams{
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.JobListParamsSortCreatedAtDesc,
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
