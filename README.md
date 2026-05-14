@@ -11,6 +11,32 @@ from applications written in Go.
 
 It is generated with [Stainless](https://www.stainless.com/).
 
+## Prerequisites
+
+To use this SDK, you need a [Blaxel account](https://app.blaxel.ai) and the following environment variables:
+
+| Variable | Description |
+|---|---|
+| `BL_WORKSPACE` | Your Blaxel workspace name |
+| `BL_API_KEY` | Your Blaxel API key |
+
+You can create an API key from the [Blaxel console](https://app.blaxel.ai/profile/security). Your workspace name is visible in the URL when you log in to the console (e.g. `app.blaxel.ai/{workspace}`).
+
+Set them as environment variables:
+
+```bash
+export BL_WORKSPACE=my-workspace
+export BL_API_KEY=my-api-key
+```
+
+Alternatively, you can authenticate via the [Blaxel CLI](https://docs.blaxel.ai/cli-reference/introduction):
+
+```bash
+bl login YOUR-WORKSPACE
+```
+
+When you deploy on Blaxel, authentication is handled automatically.
+
 ## Installation
 
 <!-- x-release-please-start-version -->
@@ -491,6 +517,42 @@ You may also replace the default `http.Client` with
 `option.WithHTTPClient(client)`. Only one http client is
 accepted (this overwrites any previous client) and receives requests after any
 middleware has been applied.
+
+## Data collection
+
+### Error tracking
+
+The SDK includes error tracking that captures exceptions originating from the SDK itself (not your application code). It collects data including the error type, message, stack trace, SDK version, workspace name, and so on. No user or application data is collected.
+
+Error tracking is off by default since v0.16.1. To explicitly disable it in older versions:
+
+```bash
+export DO_NOT_TRACK=1
+```
+
+Or add to `~/.blaxel/config.yaml`:
+
+```yaml
+tracking: false
+```
+
+Where both settings exist, the `DO_NOT_TRACK` variable takes precedence.
+
+### Telemetry
+
+Telemetry, delivered via OpenTelemetry, is controlled by the `BL_ENABLE_OPENTELEMETRY` environment variable.
+
+When you deploy an agent to Blaxel, the platform automatically injects `BL_ENABLE_OPENTELEMETRY=true` into the environment.
+
+When developing locally, this environment variable is not set and therefore defaults to `false`.
+
+To explicitly disable telemetry, override the variable in your Blaxel deployment:
+
+```bash
+export BL_ENABLE_OPENTELEMETRY=false
+```
+
+For more information, refer to [our documentation](https://docs.blaxel.ai/Security/Data-collection-and-privacy).
 
 ## Semantic versioning
 
