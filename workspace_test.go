@@ -13,7 +13,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-func TestWorkspaceGetWithOptionalParams(t *testing.T) {
+func TestWorkspaceGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,13 +25,7 @@ func TestWorkspaceGetWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Workspaces.Get(
-		context.TODO(),
-		"workspaceName",
-		blaxel.WorkspaceGetParams{
-			CountResources: blaxel.Bool(true),
-		},
-	)
+	_, err := client.Workspaces.Get(context.TODO(), "workspaceName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
