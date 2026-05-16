@@ -69,6 +69,13 @@ type Workspace struct {
 	DisplayName string `json:"displayName"`
 	// Group-to-role mappings for directory sync (SCIM) group membership
 	GroupMappings []WorkspaceGroupMapping `json:"groupMappings"`
+	// Whether this workspace agrees in general to deploy in HIPAA-unsafe
+	// (non-HIPAA-compliant) regions/products. When true, the workspace acknowledges
+	// that non-HIPAA-compliant deploys are permitted and that protected health
+	// information must not be processed in those deploys. When false (default),
+	// non-HIPAA-compliant deploys are blocked unless the request explicitly sets the
+	// X-Blaxel-Acknowledge-Not-Hipaa header.
+	HipaaUnsafe bool `json:"hipaaUnsafe"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
@@ -98,6 +105,7 @@ type Workspace struct {
 		CreatedBy     respjson.Field
 		DisplayName   respjson.Field
 		GroupMappings respjson.Field
+		HipaaUnsafe   respjson.Field
 		Labels        respjson.Field
 		Name          respjson.Field
 		Region        respjson.Field
