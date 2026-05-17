@@ -192,7 +192,7 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestFunctionList(t *testing.T) {
+func TestFunctionListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -204,7 +204,12 @@ func TestFunctionList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Functions.List(context.TODO())
+	_, err := client.Functions.List(context.TODO(), blaxel.FunctionListParams{
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.FunctionListParamsSortCreatedAtDesc,
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
