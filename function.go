@@ -77,13 +77,15 @@ func (r *FunctionService) Update(ctx context.Context, functionName string, body 
 	return res, err
 }
 
-// Returns all MCP server functions deployed in the workspace. Each function
-// includes its deployment status, transport protocol (websocket or http-stream),
-// and endpoint URL.
-func (r *FunctionService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Function, err error) {
+// Returns MCP server functions deployed in the workspace. Each function includes
+// its deployment status, transport protocol (websocket or http-stream), and
+// endpoint URL. Starting with API version 2026-04-28 the response is wrapped in
+// `{data, meta}` and supports cursor pagination via the `cursor` and `limit` query
+// parameters; older versions keep returning a bare array with all functions.
+func (r *FunctionService) List(ctx context.Context, query FunctionListParams, opts ...option.RequestOption) (res *FunctionListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "functions"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -368,6 +370,57 @@ func (r *FunctionSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Cursor-paginated list of MCP server functions. Returned starting with API
+// version 2026-04-28; older API versions return a bare array.
+type FunctionListResponse struct {
+	// Page of functions.
+	Data []Function `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta FunctionListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionListResponse) RawJSON() string { return r.JSON.raw }
+func (r *FunctionListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type FunctionListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *FunctionListResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type FunctionNewParams struct {
 	// MCP server deployment that exposes tools for AI agents via the Model Context
 	// Protocol (MCP). Deployed as a serverless auto-scaling endpoint using streamable
@@ -411,3 +464,47 @@ func (r FunctionUpdateParams) MarshalJSON() (data []byte, err error) {
 func (r *FunctionUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+type FunctionListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort FunctionListParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [FunctionListParams]'s query parameters as `url.Values`.
+func (r FunctionListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type FunctionListParamsSort string
+
+const (
+	FunctionListParamsSortCreatedAtDesc FunctionListParamsSort = "createdAt:desc"
+	FunctionListParamsSortCreatedAtAsc  FunctionListParamsSort = "createdAt:asc"
+	FunctionListParamsSortNameAsc       FunctionListParamsSort = "name:asc"
+	FunctionListParamsSortNameDesc      FunctionListParamsSort = "name:desc"
+)

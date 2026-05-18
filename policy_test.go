@@ -14,7 +14,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/shared"
 )
 
-func TestPolicyNew(t *testing.T) {
+func TestPolicyNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -56,6 +56,13 @@ func TestPolicyNew(t *testing.T) {
 				Sandbox:       blaxel.Bool(false),
 				Type:          blaxel.PolicySpecTypeLocation,
 			},
+			Usage: blaxel.PolicyUsageParam{
+				Agents:    blaxel.Int(0),
+				Functions: blaxel.Int(0),
+				Jobs:      blaxel.Int(0),
+				Models:    blaxel.Int(0),
+				Sandboxes: blaxel.Int(0),
+			},
 		},
 	})
 	if err != nil {
@@ -89,7 +96,7 @@ func TestPolicyGet(t *testing.T) {
 	}
 }
 
-func TestPolicyUpdate(t *testing.T) {
+func TestPolicyUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -134,6 +141,13 @@ func TestPolicyUpdate(t *testing.T) {
 					Sandbox:       blaxel.Bool(false),
 					Type:          blaxel.PolicySpecTypeLocation,
 				},
+				Usage: blaxel.PolicyUsageParam{
+					Agents:    blaxel.Int(0),
+					Functions: blaxel.Int(0),
+					Jobs:      blaxel.Int(0),
+					Models:    blaxel.Int(0),
+					Sandboxes: blaxel.Int(0),
+				},
 			},
 		},
 	)
@@ -146,7 +160,7 @@ func TestPolicyUpdate(t *testing.T) {
 	}
 }
 
-func TestPolicyList(t *testing.T) {
+func TestPolicyListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -158,7 +172,12 @@ func TestPolicyList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Policies.List(context.TODO())
+	_, err := client.Policies.List(context.TODO(), blaxel.PolicyListParams{
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.PolicyListParamsSortCreatedAtDesc,
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
@@ -181,6 +200,28 @@ func TestPolicyDelete(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Policies.Delete(context.TODO(), "policyName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestPolicyListUsages(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Policies.ListUsages(context.TODO(), "policyName")
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
