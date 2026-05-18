@@ -8,9 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
@@ -75,12 +77,15 @@ func (r *PolicyService) Update(ctx context.Context, policyName string, body Poli
 	return res, err
 }
 
-// Returns all governance policies in the workspace. Policies control deployment
+// Returns governance policies in the workspace. Policies control deployment
 // locations, hardware flavors, and token limits for agents, functions, and models.
-func (r *PolicyService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Policy, err error) {
+// Starting with API version 2026-04-28 the response is wrapped in `{data, meta}`
+// and supports cursor pagination via the `cursor` and `limit` query parameters;
+// older versions keep returning a bare array with all policies.
+func (r *PolicyService) List(ctx context.Context, query PolicyListParams, opts ...option.RequestOption) (res *PolicyListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "policies"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -97,6 +102,20 @@ func (r *PolicyService) Delete(ctx context.Context, policyName string, opts ...o
 	return res, err
 }
 
+// Returns the names of every resource (agent, function, model, sandbox, job)
+// currently referencing the given policy. Replaces the client-side fan-out the
+// policies UI used to do over the listings.
+func (r *PolicyService) ListUsages(ctx context.Context, policyName string, opts ...option.RequestOption) (res *PolicyListUsagesResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if policyName == "" {
+		err = errors.New("missing required policyName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("policies/%s/usages", policyName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // Rule that controls how a deployment is made and served (e.g. location
 // restrictions)
 type Policy struct {
@@ -105,10 +124,15 @@ type Policy struct {
 	Metadata Metadata `json:"metadata" api:"required"`
 	// Policy specification
 	Spec PolicySpec `json:"spec" api:"required"`
+	// Per-resource counts of how many resources reference a policy. Computed by the
+	// policies listing endpoint to avoid client-side fan-out across the
+	// agents/models/functions/sandboxes/jobs listings.
+	Usage PolicyUsage `json:"usage"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Metadata    respjson.Field
 		Spec        respjson.Field
+		Usage       respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -129,6 +153,33 @@ func (r Policy) ToParam() PolicyParam {
 	return param.Override[PolicyParam](json.RawMessage(r.RawJSON()))
 }
 
+// Per-resource counts of how many resources reference a policy. Computed by the
+// policies listing endpoint to avoid client-side fan-out across the
+// agents/models/functions/sandboxes/jobs listings.
+type PolicyUsage struct {
+	Agents    int64 `json:"agents"`
+	Functions int64 `json:"functions"`
+	Jobs      int64 `json:"jobs"`
+	Models    int64 `json:"models"`
+	Sandboxes int64 `json:"sandboxes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Agents      respjson.Field
+		Functions   respjson.Field
+		Jobs        respjson.Field
+		Models      respjson.Field
+		Sandboxes   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r PolicyUsage) RawJSON() string { return r.JSON.raw }
+func (r *PolicyUsage) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Rule that controls how a deployment is made and served (e.g. location
 // restrictions)
 //
@@ -139,6 +190,10 @@ type PolicyParam struct {
 	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
 	// Policy specification
 	Spec PolicySpecParam `json:"spec,omitzero" api:"required"`
+	// Per-resource counts of how many resources reference a policy. Computed by the
+	// policies listing endpoint to avoid client-side fan-out across the
+	// agents/models/functions/sandboxes/jobs listings.
+	Usage PolicyUsageParam `json:"usage,omitzero"`
 	paramObj
 }
 
@@ -147,6 +202,26 @@ func (r PolicyParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *PolicyParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Per-resource counts of how many resources reference a policy. Computed by the
+// policies listing endpoint to avoid client-side fan-out across the
+// agents/models/functions/sandboxes/jobs listings.
+type PolicyUsageParam struct {
+	Agents    param.Opt[int64] `json:"agents,omitzero"`
+	Functions param.Opt[int64] `json:"functions,omitzero"`
+	Jobs      param.Opt[int64] `json:"jobs,omitzero"`
+	Models    param.Opt[int64] `json:"models,omitzero"`
+	Sandboxes param.Opt[int64] `json:"sandboxes,omitzero"`
+	paramObj
+}
+
+func (r PolicyUsageParam) MarshalJSON() (data []byte, err error) {
+	type shadow PolicyUsageParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *PolicyUsageParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -361,6 +436,89 @@ func (r *PolicySpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Cursor-paginated list of policies. Returned starting with API version
+// 2026-04-28; older API versions return a bare array.
+type PolicyListResponse struct {
+	// Page of policies.
+	Data []Policy `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta PolicyListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r PolicyListResponse) RawJSON() string { return r.JSON.raw }
+func (r *PolicyListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type PolicyListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r PolicyListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *PolicyListResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Resources currently referencing a policy. Returned by GET
+// /policies/{name}/usages so the policies UI can render attachments without
+// fetching the agents/models/functions listings full.
+type PolicyListUsagesResponse struct {
+	// Names of agents whose spec.policies contains this policy.
+	Agents []map[string]any `json:"agents"`
+	// Names of functions whose spec.policies contains this policy.
+	Functions []map[string]any `json:"functions"`
+	// Names of jobs whose spec.policies contains this policy.
+	Jobs []map[string]any `json:"jobs"`
+	// Names of models whose spec.policies contains this policy.
+	Models []map[string]any `json:"models"`
+	// Names of sandboxes whose spec.policies contains this policy.
+	Sandboxes []map[string]any `json:"sandboxes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Agents      respjson.Field
+		Functions   respjson.Field
+		Jobs        respjson.Field
+		Models      respjson.Field
+		Sandboxes   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r PolicyListUsagesResponse) RawJSON() string { return r.JSON.raw }
+func (r *PolicyListUsagesResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type PolicyNewParams struct {
 	// Rule that controls how a deployment is made and served (e.g. location
 	// restrictions)
@@ -388,3 +546,47 @@ func (r PolicyUpdateParams) MarshalJSON() (data []byte, err error) {
 func (r *PolicyUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+type PolicyListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort PolicyListParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [PolicyListParams]'s query parameters as `url.Values`.
+func (r PolicyListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type PolicyListParamsSort string
+
+const (
+	PolicyListParamsSortCreatedAtDesc PolicyListParamsSort = "createdAt:desc"
+	PolicyListParamsSortCreatedAtAsc  PolicyListParamsSort = "createdAt:asc"
+	PolicyListParamsSortNameAsc       PolicyListParamsSort = "name:asc"
+	PolicyListParamsSortNameDesc      PolicyListParamsSort = "name:desc"
+)

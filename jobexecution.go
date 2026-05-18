@@ -69,9 +69,11 @@ func (r *JobExecutionService) Get(ctx context.Context, executionID string, query
 	return res, err
 }
 
-// Returns paginated list of executions for a batch job, sorted by creation time.
-// Each execution contains status, task counts, and timing information.
-func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobExecutionListParams, opts ...option.RequestOption) (res *[]JobExecution, err error) {
+// Returns executions for a batch job. Starting with API version 2026-04-28 the
+// response is wrapped in `{data, meta}` and supports cursor pagination via the
+// `cursor` and `limit` query parameters; older versions keep the legacy
+// offset/limit contract and return a bare array.
+func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobExecutionListParams, opts ...option.RequestOption) (res *JobExecutionListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
@@ -97,6 +99,25 @@ func (r *JobExecutionService) Delete(ctx context.Context, executionID string, bo
 	}
 	path := fmt.Sprintf("jobs/%s/executions/%s", body.JobID, executionID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return res, err
+}
+
+// Returns one cursor-paginated page of an execution's tasks. Tasks are derived
+// from event history each request; only the in-memory slicing is paginated, the
+// events scan still fetches the whole event log behind the scenes. Available
+// starting with API version 2026-04-28.
+func (r *JobExecutionService) ListTasks(ctx context.Context, executionID string, params JobExecutionListTasksParams, opts ...option.RequestOption) (res *JobExecutionListTasksResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if params.JobID == "" {
+		err = errors.New("missing required jobId parameter")
+		return nil, err
+	}
+	if executionID == "" {
+		err = errors.New("missing required executionId parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("jobs/%s/executions/%s/tasks", params.JobID, executionID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }
 
@@ -134,6 +155,227 @@ func (r *JobExecutionNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Cursor-paginated list of job executions. Returned starting with API version
+// 2026-04-28; older API versions keep the legacy offset-based contract and return
+// a bare array.
+type JobExecutionListResponse struct {
+	// Page of job executions.
+	Data []JobExecution `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta JobExecutionListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListResponse) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type JobExecutionListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Cursor-paginated list of an execution's tasks. Tasks are derived from event
+// history; pagination slices the in-memory list and the cursor is a base64-JSON
+// offset bound to (workspace, job, execution).
+type JobExecutionListTasksResponse struct {
+	// Page of execution tasks.
+	Data []JobExecutionListTasksResponseData `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta JobExecutionListTasksResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListTasksResponse) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Job execution task
+type JobExecutionListTasksResponseData struct {
+	// Task conditions
+	Conditions []JobExecutionListTasksResponseDataCondition `json:"conditions"`
+	// Job execution task metadata
+	Metadata JobExecutionListTasksResponseDataMetadata `json:"metadata"`
+	// Job execution task specification
+	Spec JobExecutionListTasksResponseDataSpec `json:"spec"`
+	// Job execution task status
+	//
+	// Any of "unspecified", "pending", "reconciling", "failed", "succeeded",
+	// "running", "cancelled".
+	Status string `json:"status"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Conditions  respjson.Field
+		Metadata    respjson.Field
+		Spec        respjson.Field
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListTasksResponseData) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Job execution task condition
+type JobExecutionListTasksResponseDataCondition struct {
+	// Execution reason
+	ExecutionReason string `json:"executionReason"`
+	// Condition message
+	Message string `json:"message"`
+	// Condition reason
+	Reason string `json:"reason"`
+	// Condition severity
+	Severity string `json:"severity"`
+	// Condition state
+	State string `json:"state"`
+	// Condition type
+	Type string `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExecutionReason respjson.Field
+		Message         respjson.Field
+		Reason          respjson.Field
+		Severity        respjson.Field
+		State           respjson.Field
+		Type            respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListTasksResponseDataCondition) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseDataCondition) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Job execution task metadata
+type JobExecutionListTasksResponseDataMetadata struct {
+	// Completion timestamp
+	CompletedAt string `json:"completedAt"`
+	// Creation timestamp
+	CreatedAt string `json:"createdAt"`
+	// Task name
+	Name string `json:"name"`
+	// Scheduled timestamp
+	ScheduledAt string `json:"scheduledAt"`
+	// Start timestamp
+	StartedAt string `json:"startedAt"`
+	// Last update timestamp
+	UpdatedAt string `json:"updatedAt"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CompletedAt respjson.Field
+		CreatedAt   respjson.Field
+		Name        respjson.Field
+		ScheduledAt respjson.Field
+		StartedAt   respjson.Field
+		UpdatedAt   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListTasksResponseDataMetadata) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseDataMetadata) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Job execution task specification
+type JobExecutionListTasksResponseDataSpec struct {
+	// Maximum number of retries
+	MaxRetries int64 `json:"maxRetries"`
+	// Task timeout duration
+	Timeout string `json:"timeout"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MaxRetries  respjson.Field
+		Timeout     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListTasksResponseDataSpec) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseDataSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type JobExecutionListTasksResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r JobExecutionListTasksResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type JobExecutionNewParams struct {
 	// Request to create a job execution
 	CreateJobExecutionRequest CreateJobExecutionRequestParam
@@ -153,10 +395,27 @@ type JobExecutionGetParams struct {
 }
 
 type JobExecutionListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
 	// Number of items per page
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
-	// Page offset
+	// Page offset (legacy, ignored when Blaxel-Version >= 2026-04-28)
 	Offset param.Opt[int64] `query:"offset,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort JobExecutionListParamsSort `query:"sort,omitzero" json:"-"`
 	paramObj
 }
 
@@ -168,7 +427,66 @@ func (r JobExecutionListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type JobExecutionListParamsSort string
+
+const (
+	JobExecutionListParamsSortCreatedAtDesc JobExecutionListParamsSort = "createdAt:desc"
+	JobExecutionListParamsSortCreatedAtAsc  JobExecutionListParamsSort = "createdAt:asc"
+	JobExecutionListParamsSortNameAsc       JobExecutionListParamsSort = "name:asc"
+	JobExecutionListParamsSortNameDesc      JobExecutionListParamsSort = "name:desc"
+)
+
 type JobExecutionDeleteParams struct {
 	JobID string `path:"jobId" api:"required" json:"-"`
 	paramObj
 }
+
+type JobExecutionListTasksParams struct {
+	JobID string `path:"jobId" api:"required" json:"-"`
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort JobExecutionListTasksParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [JobExecutionListTasksParams]'s query parameters as
+// `url.Values`.
+func (r JobExecutionListTasksParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type JobExecutionListTasksParamsSort string
+
+const (
+	JobExecutionListTasksParamsSortCreatedAtDesc JobExecutionListTasksParamsSort = "createdAt:desc"
+	JobExecutionListTasksParamsSortCreatedAtAsc  JobExecutionListTasksParamsSort = "createdAt:asc"
+	JobExecutionListTasksParamsSortNameAsc       JobExecutionListTasksParamsSort = "name:asc"
+	JobExecutionListTasksParamsSortNameDesc      JobExecutionListTasksParamsSort = "name:desc"
+)

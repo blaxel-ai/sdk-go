@@ -41,6 +41,16 @@ func (r *EgressgatewayService) List(ctx context.Context, opts ...option.RequestO
 	return res, err
 }
 
+// Returns the inverse map (gateway → sandbox names) for the workspace. Used by the
+// egress-IPs UI to render attachment counts without fetching the sandboxes listing
+// full client-side.
+func (r *EgressgatewayService) GetUsage(ctx context.Context, opts ...option.RequestOption) (res *EgressgatewayGetUsageResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "egressgateways/usage"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // An egress gateway that manages outbound traffic routing within a VPC. Multiple
 // egress IPs can be allocated from a single gateway.
 type EgressgatewayListResponse struct {
@@ -71,3 +81,5 @@ func (r EgressgatewayListResponse) RawJSON() string { return r.JSON.raw }
 func (r *EgressgatewayListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+type EgressgatewayGetUsageResponse = any

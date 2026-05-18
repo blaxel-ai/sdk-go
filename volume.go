@@ -8,9 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
@@ -72,13 +74,15 @@ func (r *VolumeService) Update(ctx context.Context, volumeName string, body Volu
 	return res, err
 }
 
-// Returns all persistent storage volumes in the workspace. Volumes can be attached
-// to sandboxes for durable file storage that persists across sessions and sandbox
-// deletions.
-func (r *VolumeService) List(ctx context.Context, opts ...option.RequestOption) (res *[]Volume, err error) {
+// Returns persistent storage volumes in the workspace. Volumes can be attached to
+// sandboxes for durable file storage that persists across sessions and sandbox
+// deletions. Starting with API version 2026-04-28 the response is wrapped in
+// `{data, meta}` and supports cursor pagination via the `cursor` and `limit` query
+// parameters; older versions keep returning a bare array of volumes.
+func (r *VolumeService) List(ctx context.Context, query VolumeListParams, opts ...option.RequestOption) (res *VolumeListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "volumes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -262,6 +266,152 @@ func (r *VolumeSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Cursor-paginated list of volumes. Returned starting with API version 2026-04-28;
+// older API versions return a bare array. Items use the lite shape (no inline
+// event history).
+type VolumeListResponse struct {
+	// Page of volumes.
+	Data []VolumeListResponseData `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta VolumeListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeListResponse) RawJSON() string { return r.JSON.raw }
+func (r *VolumeListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// LiteVolume is the listing-shape projection of a Volume. Drops events to keep
+// page payloads small.
+type VolumeListResponseData struct {
+	// Compact metadata for a Volume, returned in listing responses.
+	Metadata VolumeListResponseDataMetadata `json:"metadata"`
+	// Compact spec for a Volume, returned in listing responses.
+	Spec VolumeListResponseDataSpec `json:"spec"`
+	// Current runtime state of the volume including attachment status
+	State VolumeListResponseDataState `json:"state"`
+	// Computed status of the volume.
+	Status string `json:"status"`
+	// Termination timestamp for soft-deleted volumes.
+	TerminatedAt string `json:"terminatedAt"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metadata     respjson.Field
+		Spec         respjson.Field
+		State        respjson.Field
+		Status       respjson.Field
+		TerminatedAt respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *VolumeListResponseData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Compact metadata for a Volume, returned in listing responses.
+type VolumeListResponseDataMetadata struct {
+	CreatedAt   string `json:"createdAt"`
+	DisplayName string `json:"displayName"`
+	Name        string `json:"name"`
+	UpdatedAt   string `json:"updatedAt"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CreatedAt   respjson.Field
+		DisplayName respjson.Field
+		Name        respjson.Field
+		UpdatedAt   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeListResponseDataMetadata) RawJSON() string { return r.JSON.raw }
+func (r *VolumeListResponseDataMetadata) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Compact spec for a Volume, returned in listing responses.
+type VolumeListResponseDataSpec struct {
+	// Region the volume is provisioned in.
+	Region string `json:"region"`
+	// Volume size in gigabytes.
+	Size int64 `json:"size"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Region      respjson.Field
+		Size        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeListResponseDataSpec) RawJSON() string { return r.JSON.raw }
+func (r *VolumeListResponseDataSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Current runtime state of the volume including attachment status
+type VolumeListResponseDataState struct {
+	// Resource currently using this volume in format "type:name" (e.g.,
+	// "sandbox:my-sandbox"). Empty if not attached.
+	AttachedTo string `json:"attachedTo"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AttachedTo  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeListResponseDataState) RawJSON() string { return r.JSON.raw }
+func (r *VolumeListResponseDataState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type VolumeListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *VolumeListResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type VolumeNewParams struct {
 	// Persistent storage volume that can be attached to sandboxes for durable file
 	// storage across sessions. Volumes survive sandbox deletion and can be reattached
@@ -291,3 +441,47 @@ func (r VolumeUpdateParams) MarshalJSON() (data []byte, err error) {
 func (r *VolumeUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+type VolumeListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort VolumeListParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [VolumeListParams]'s query parameters as `url.Values`.
+func (r VolumeListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type VolumeListParamsSort string
+
+const (
+	VolumeListParamsSortCreatedAtDesc VolumeListParamsSort = "createdAt:desc"
+	VolumeListParamsSortCreatedAtAsc  VolumeListParamsSort = "createdAt:asc"
+	VolumeListParamsSortNameAsc       VolumeListParamsSort = "name:asc"
+	VolumeListParamsSortNameDesc      VolumeListParamsSort = "name:desc"
+)
