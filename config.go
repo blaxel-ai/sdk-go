@@ -183,7 +183,7 @@ func SaveCredentials(workspaceName string, creds Credentials) error {
 			opts = append(opts, option.WithClientCredentials(creds.ClientCredentials))
 		}
 		client := NewClient(opts...)
-		ws, err := client.Workspaces.Get(context.Background(), workspaceName)
+		ws, err := client.Workspaces.Get(context.Background(), workspaceName, WorkspaceGetParams{})
 		if err == nil && ws != nil {
 			workspaceID = ws.ID
 		}

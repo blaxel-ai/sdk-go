@@ -82,7 +82,7 @@ func testClient(client *blaxel.Client, method string) {
 
 	// Try to list agents to verify authentication works
 	// Note: This is just a connectivity test, actual API calls depend on permissions
-	_, err := client.Agents.List(ctx)
+	_, err := client.Agents.List(ctx, blaxel.AgentListParams{})
 	if err != nil {
 		fmt.Printf("  ❌ Authentication failed: %v\n\n", err)
 	} else {
