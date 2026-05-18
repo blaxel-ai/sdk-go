@@ -36,17 +36,17 @@ func TestJobs(t *testing.T) {
 
 	t.Run("ListJobs", func(t *testing.T) {
 		t.Run("lists all jobs", func(t *testing.T) {
-			jobs, err := client.Jobs.List(ctx)
+			jobs, err := client.Jobs.List(ctx, blaxel.JobListParams{})
 			if err != nil {
 				t.Fatalf("failed to list jobs: %v", err)
 			}
 
-			if jobs == nil || len(*jobs) == 0 {
+			if jobs == nil || len(jobs.Data) == 0 {
 				t.Error("expected at least one job")
 			}
 
 			found := false
-			for _, job := range *jobs {
+			for _, job := range jobs.Data {
 				if job.Metadata.Name == TEST_JOB_NAME {
 					found = true
 					break
@@ -83,7 +83,7 @@ func TestJobs(t *testing.T) {
 				t.Fatalf("failed to list executions: %v", err)
 			}
 
-			if executions == nil || len(*executions) == 0 {
+			if executions == nil || len(executions.Data) == 0 {
 				t.Error("expected at least one execution")
 			}
 		})

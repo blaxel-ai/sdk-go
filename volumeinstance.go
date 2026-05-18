@@ -130,18 +130,34 @@ func (r *VolumeService) GetInstance(ctx context.Context, volumeName string, opts
 // ListInstances returns all volumes as VolumeInstances
 func (r *VolumeService) ListInstances(ctx context.Context, opts ...option.RequestOption) ([]*VolumeInstance, error) {
 	opts = slices.Concat(r.Options, opts)
-	volumes, err := r.List(ctx, opts...)
+	volumes, err := r.List(ctx, VolumeListParams{}, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	if volumes == nil {
+	if volumes == nil || len(volumes.Data) == 0 {
 		return []*VolumeInstance{}, nil
 	}
 
-	instances := make([]*VolumeInstance, len(*volumes))
-	for i, volume := range *volumes {
-		v := volume // Create a copy to avoid pointer issues
+	instances := make([]*VolumeInstance, len(volumes.Data))
+	for i, volume := range volumes.Data {
+		v := Volume{
+			Metadata: Metadata{
+				Name:        volume.Metadata.Name,
+				DisplayName: volume.Metadata.DisplayName,
+				CreatedAt:   volume.Metadata.CreatedAt,
+				UpdatedAt:   volume.Metadata.UpdatedAt,
+			},
+			Spec: VolumeSpec{
+				Region: volume.Spec.Region,
+				Size:   volume.Spec.Size,
+			},
+			State: VolumeState{
+				AttachedTo: volume.State.AttachedTo,
+			},
+			Status:       volume.Status,
+			TerminatedAt: volume.TerminatedAt,
+		}
 		instances[i] = &VolumeInstance{
 			Volume:  &v,
 			service: r,
