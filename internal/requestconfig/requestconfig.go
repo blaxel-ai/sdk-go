@@ -26,7 +26,8 @@ import (
 
 func getDefaultHeaders() map[string]string {
 	return map[string]string{
-		"User-Agent": fmt.Sprintf("Blaxel/Go %s", internal.PackageVersion),
+		"User-Agent":     fmt.Sprintf("Blaxel/Go %s", internal.PackageVersion),
+		"Blaxel-Version": "2026-04-28",
 	}
 }
 

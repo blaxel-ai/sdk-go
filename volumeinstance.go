@@ -127,29 +127,132 @@ func (r *VolumeService) GetInstance(ctx context.Context, volumeName string, opts
 	}, nil
 }
 
-// ListInstances returns all volumes as VolumeInstances
-func (r *VolumeService) ListInstances(ctx context.Context, opts ...option.RequestOption) ([]*VolumeInstance, error) {
-	opts = slices.Concat(r.Options, opts)
-	volumes, err := r.List(ctx, opts...)
+type VolumeInstanceListResponse struct {
+	Data []*VolumeInstance
+	Meta VolumeListResponseMeta
+
+	raw            string
+	nextPageParams VolumeListParams
+	nextPageOpts   []option.RequestOption
+	service        *VolumeService
+}
+
+func (r VolumeInstanceListResponse) RawJSON() string { return r.raw }
+
+func (r *VolumeInstanceListResponse) HasNextPage() bool {
+	return r != nil && r.Meta.HasMore && r.Meta.NextCursor != ""
+}
+
+func (r *VolumeInstanceListResponse) NextCursor() string {
+	if r == nil {
+		return ""
+	}
+	return r.Meta.NextCursor
+}
+
+func (r *VolumeInstanceListResponse) NextPageParams() (VolumeListParams, bool) {
+	if r == nil {
+		return VolumeListParams{}, false
+	}
+	if !r.HasNextPage() {
+		return r.nextPageParams, false
+	}
+	query := r.nextPageParams
+	query.Cursor = String(r.Meta.NextCursor)
+	return query, true
+}
+
+func (r *VolumeInstanceListResponse) NextPage(ctx context.Context) (*VolumeInstanceListResponse, error) {
+	query, ok := r.NextPageParams()
+	if !ok {
+		return nil, nil
+	}
+	if r.service == nil {
+		return nil, fmt.Errorf("blaxel: next page unavailable for manually constructed VolumeInstanceListResponse")
+	}
+	return r.service.ListInstances(ctx, query, r.nextPageOpts...)
+}
+
+// ListInstances returns one page of volumes as VolumeInstances.
+//
+// Use VolumeListParams to control pagination, search, and ordering. The
+// response contains pagination metadata and can fetch the next page without
+// losing the original query parameters.
+//
+// Example:
+//
+//	page, err := client.Volumes.ListInstances(ctx, blaxel.VolumeListParams{
+//		Limit: blaxel.Int(20),
+//		Q:     blaxel.String("my-volume"),
+//		Sort:  blaxel.String("metadata.name:asc"),
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	for _, volume := range page.Data {
+//		fmt.Println(volume.Name)
+//	}
+//	if page.HasNextPage() {
+//		nextPage, err := page.NextPage(ctx)
+//		if err != nil {
+//			return err
+//		}
+//		_ = nextPage
+//	}
+func (r *VolumeService) ListInstances(ctx context.Context, query VolumeListParams, opts ...option.RequestOption) (*VolumeInstanceListResponse, error) {
+	requestOpts := slices.Clone(opts)
+	instanceOpts := slices.Concat(r.Options, opts)
+	volumes, err := r.List(ctx, query, opts...)
 	if err != nil {
 		return nil, err
 	}
-
 	if volumes == nil {
-		return []*VolumeInstance{}, nil
+		return &VolumeInstanceListResponse{
+			Data:           []*VolumeInstance{},
+			nextPageParams: query,
+			nextPageOpts:   requestOpts,
+			service:        r,
+		}, nil
 	}
 
-	instances := make([]*VolumeInstance, len(*volumes))
-	for i, volume := range *volumes {
-		v := volume // Create a copy to avoid pointer issues
-		instances[i] = &VolumeInstance{
-			Volume:  &v,
+	instances := make([]*VolumeInstance, 0, len(volumes.Data))
+	for _, data := range volumes.Data {
+		volume := volumeListResponseDataToVolume(data)
+		instances = append(instances, &VolumeInstance{
+			Volume:  &volume,
 			service: r,
-			options: opts,
-		}
+			options: instanceOpts,
+		})
 	}
 
-	return instances, nil
+	return &VolumeInstanceListResponse{
+		Data:           instances,
+		Meta:           volumes.Meta,
+		raw:            volumes.RawJSON(),
+		nextPageParams: query,
+		nextPageOpts:   requestOpts,
+		service:        r,
+	}, nil
+}
+
+func volumeListResponseDataToVolume(data VolumeListResponseData) Volume {
+	return Volume{
+		Metadata: Metadata{
+			Name:        data.Metadata.Name,
+			CreatedAt:   data.Metadata.CreatedAt,
+			DisplayName: data.Metadata.DisplayName,
+			UpdatedAt:   data.Metadata.UpdatedAt,
+		},
+		Spec: VolumeSpec{
+			Region: data.Spec.Region,
+			Size:   data.Spec.Size,
+		},
+		State: VolumeState{
+			AttachedTo: data.State.AttachedTo,
+		},
+		Status:       data.Status,
+		TerminatedAt: data.TerminatedAt,
+	}
 }
 
 // DeleteInstance deletes a volume by name

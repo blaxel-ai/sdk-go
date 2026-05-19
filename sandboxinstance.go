@@ -53,6 +53,52 @@ type SandboxUpdateMetadataParams struct {
 	DisplayName string
 }
 
+type SandboxInstanceListResponse struct {
+	Data []*SandboxInstance
+	Meta SandboxListResponseMeta
+
+	raw            string
+	nextPageParams SandboxListParams
+	nextPageOpts   []option.RequestOption
+	service        *SandboxService
+}
+
+func (r SandboxInstanceListResponse) RawJSON() string { return r.raw }
+
+func (r *SandboxInstanceListResponse) HasNextPage() bool {
+	return r != nil && r.Meta.HasMore && r.Meta.NextCursor != ""
+}
+
+func (r *SandboxInstanceListResponse) NextCursor() string {
+	if r == nil {
+		return ""
+	}
+	return r.Meta.NextCursor
+}
+
+func (r *SandboxInstanceListResponse) NextPageParams() (SandboxListParams, bool) {
+	if r == nil {
+		return SandboxListParams{}, false
+	}
+	if !r.HasNextPage() {
+		return r.nextPageParams, false
+	}
+	query := r.nextPageParams
+	query.Cursor = String(r.Meta.NextCursor)
+	return query, true
+}
+
+func (r *SandboxInstanceListResponse) NextPage(ctx context.Context) (*SandboxInstanceListResponse, error) {
+	query, ok := r.NextPageParams()
+	if !ok {
+		return nil, nil
+	}
+	if r.service == nil {
+		return nil, fmt.Errorf("blaxel: next page unavailable for manually constructed SandboxInstanceListResponse")
+	}
+	return r.service.ListInstances(ctx, query, r.nextPageOpts...)
+}
+
 // SessionWithToken represents a session with its authentication token
 type SessionWithToken struct {
 	Name      string
@@ -159,6 +205,64 @@ func (r *SandboxService) GetInstance(ctx context.Context, sandboxName string, op
 		return nil, err
 	}
 	return newSandboxInstance(sandbox, r, opts), nil
+}
+
+// ListInstances returns one page of sandboxes as SandboxInstances.
+//
+// Use SandboxListParams to control pagination, search, and ordering. The
+// response contains pagination metadata and can fetch the next page without
+// losing the original query parameters.
+//
+// Example:
+//
+//	page, err := client.Sandboxes.ListInstances(ctx, blaxel.SandboxListParams{
+//		Limit: blaxel.Int(20),
+//		Q:     blaxel.String("my-sandbox"),
+//		Sort:  blaxel.String("metadata.name:asc"),
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	for _, sandbox := range page.Data {
+//		fmt.Println(sandbox.Name)
+//	}
+//	if page.HasNextPage() {
+//		nextPage, err := page.NextPage(ctx)
+//		if err != nil {
+//			return err
+//		}
+//		_ = nextPage
+//	}
+func (r *SandboxService) ListInstances(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (*SandboxInstanceListResponse, error) {
+	requestOpts := slices.Clone(opts)
+	instanceOpts := slices.Concat(r.Options, opts)
+	sandboxes, err := r.List(ctx, query, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if sandboxes == nil {
+		return &SandboxInstanceListResponse{
+			Data:           []*SandboxInstance{},
+			nextPageParams: query,
+			nextPageOpts:   requestOpts,
+			service:        r,
+		}, nil
+	}
+
+	instances := make([]*SandboxInstance, 0, len(sandboxes.Data))
+	for _, sandbox := range sandboxes.Data {
+		s := sandbox
+		instances = append(instances, newSandboxInstance(&s, r, instanceOpts))
+	}
+
+	return &SandboxInstanceListResponse{
+		Data:           instances,
+		Meta:           sandboxes.Meta,
+		raw:            sandboxes.RawJSON(),
+		nextPageParams: query,
+		nextPageOpts:   requestOpts,
+		service:        r,
+	}, nil
 }
 
 // UpdateInstance updates a sandbox's configuration and returns a SandboxInstance with scoped services.
