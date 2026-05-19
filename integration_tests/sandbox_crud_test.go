@@ -451,12 +451,12 @@ func TestSandboxCRUD(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to list sandboxes: %v", err)
 			}
-			if sandboxes == nil || len(*sandboxes) == 0 {
+			if sandboxes == nil || len(sandboxes.Data) == 0 {
 				t.Error("expected at least one sandbox")
 			}
 
 			found := false
-			for _, sb := range *sandboxes {
+			for _, sb := range sandboxes.Data {
 				if sb.Metadata.Name == name {
 					found = true
 					break

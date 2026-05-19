@@ -8,9 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/blaxel-ai/sdk-go/packages/param"
@@ -73,11 +75,14 @@ func (r *DriveService) Update(ctx context.Context, driveName string, body DriveU
 }
 
 // Returns all drives in the workspace. Drives provide persistent storage that can
-// be attached to agents, functions, and sandboxes.
-func (r *DriveService) List(ctx context.Context, opts ...option.RequestOption) (res *[]DriveListResponse, err error) {
+// be attached to agents, functions, and sandboxes. Starting with API version
+// 2026-04-28, the response wraps items in `{data, meta}` and supports cursor
+// pagination via the `cursor` and `limit` query parameters; older versions keep
+// returning a bare array with all drives.
+func (r *DriveService) List(ctx context.Context, query DriveListParams, opts ...option.RequestOption) (res *DriveListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "drives"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -322,9 +327,32 @@ func (r *DriveUpdateResponseState) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Cursor-paginated list of drives. Returned starting with API version 2026-04-28;
+// older API versions return a bare array.
+type DriveListResponse struct {
+	// Page of drives.
+	Data []DriveListResponseData `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta DriveListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveListResponse) RawJSON() string { return r.JSON.raw }
+func (r *DriveListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Drive providing persistent storage that can be attached to agents, functions,
 // and sandboxes. Drives can be mounted at runtime via the sbx API.
-type DriveListResponse struct {
+type DriveListResponseData struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata" api:"required"`
@@ -333,7 +361,7 @@ type DriveListResponse struct {
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Current runtime state of the drive
-	State DriveListResponseState `json:"state"`
+	State DriveListResponseDataState `json:"state"`
 	// Drive status computed from events
 	Status string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -349,13 +377,13 @@ type DriveListResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r DriveListResponse) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponse) UnmarshalJSON(data []byte) error {
+func (r DriveListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *DriveListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current runtime state of the drive
-type DriveListResponseState struct {
+type DriveListResponseDataState struct {
 	// S3-compatible endpoint URL for accessing drive contents
 	S3URL string `json:"s3Url"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -367,8 +395,36 @@ type DriveListResponseState struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r DriveListResponseState) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponseState) UnmarshalJSON(data []byte) error {
+func (r DriveListResponseDataState) RawJSON() string { return r.JSON.raw }
+func (r *DriveListResponseDataState) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type DriveListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *DriveListResponseMeta) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -459,3 +515,47 @@ func (r DriveUpdateParams) MarshalJSON() (data []byte, err error) {
 func (r *DriveUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+type DriveListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort DriveListParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [DriveListParams]'s query parameters as `url.Values`.
+func (r DriveListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type DriveListParamsSort string
+
+const (
+	DriveListParamsSortCreatedAtDesc DriveListParamsSort = "createdAt:desc"
+	DriveListParamsSortCreatedAtAsc  DriveListParamsSort = "createdAt:asc"
+	DriveListParamsSortNameAsc       DriveListParamsSort = "name:asc"
+	DriveListParamsSortNameDesc      DriveListParamsSort = "name:desc"
+)

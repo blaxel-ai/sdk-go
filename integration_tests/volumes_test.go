@@ -138,13 +138,15 @@ func TestVolumes(t *testing.T) {
 			}
 			trackVolume(name)
 
-			volumes, err := client.Volumes.ListInstances(ctx)
+			volumes, err := client.Volumes.ListInstances(ctx, blaxel.VolumeListParams{
+				Q: blaxel.String(name),
+			})
 			if err != nil {
 				t.Fatalf("failed to list volumes: %v", err)
 			}
 
 			found := false
-			for _, v := range volumes {
+			for _, v := range volumes.Data {
 				if v.Name() == name {
 					found = true
 					break

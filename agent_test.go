@@ -207,7 +207,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestAgentList(t *testing.T) {
+func TestAgentListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -219,7 +219,12 @@ func TestAgentList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Agents.List(context.TODO())
+	_, err := client.Agents.List(context.TODO(), blaxel.AgentListParams{
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.AgentListParamsSortCreatedAtDesc,
+	})
 	if err != nil {
 		var apierr *blaxel.Error
 		if errors.As(err, &apierr) {
