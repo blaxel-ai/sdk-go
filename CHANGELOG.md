@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.21.0 (2026-05-19)
+
+Full Changelog: [v0.20.0...v0.21.0](https://github.com/blaxel-ai/sdk-go/compare/v0.20.0...v0.21.0)
+
+### Features
+
+* **client:** optimize json encoder for internal types ([339b3f0](https://github.com/blaxel-ai/sdk-go/commit/339b3f0bd942a65d3f50d948903938f22a43e637))
+* **pagination:** cursor-id pagination on listing endpoints ([f8a6470](https://github.com/blaxel-ai/sdk-go/commit/f8a64707cb9cbd5838c42f8912b455e7783e4dac))
+
+
+### Bug Fixes
+
+* **ENG-2437:** harden unauthenticated POST /oauth/register against abuse ([14603e9](https://github.com/blaxel-ai/sdk-go/commit/14603e95af10013b50cab455547c8dadd531c5ef))
+* **triggers:** auto-assign unique ids so all cron triggers fire (ENG-2445) ([9648f97](https://github.com/blaxel-ai/sdk-go/commit/9648f97a814d3c113693297849bdd63d71235225))
+
 ## 0.20.0 (2026-05-07)
 
 Full Changelog: [v0.19.0...v0.20.0](https://github.com/blaxel-ai/sdk-go/compare/v0.19.0...v0.20.0)
