@@ -85,10 +85,13 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 	return res, err
 }
 
-// Returns all sandboxes in the workspace. Each sandbox includes its configuration,
+// Returns sandboxes in the workspace. Each sandbox includes its configuration,
 // status, and endpoint URL. Terminated sandboxes are hidden by default; pass
-// `showTerminated=true` to include them.
-func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *[]Sandbox, err error) {
+// `showTerminated=true` to include them. Starting with API version 2026-04-28 the
+// response is wrapped in `{data, meta}` and supports cursor pagination via the
+// `cursor` and `limit` query parameters; older versions keep returning a bare
+// array of all sandboxes.
+func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *SandboxListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "sandboxes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
@@ -905,6 +908,58 @@ func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Cursor-paginated list of sandboxes. Returned starting with API version
+// 2026-04-28; older API versions return a bare array.
+type SandboxListResponse struct {
+	// Page of sandboxes. Items use the lite shape (no inline event history) to keep
+	// the page payload small, matching the unpaginated response.
+	Data []Sandbox `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta SandboxListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxListResponse) RawJSON() string { return r.JSON.raw }
+func (r *SandboxListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type SandboxListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *SandboxListResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Pre-configured sandbox template available in the Sandbox Hub for quick
 // deployment with predefined tools and configurations
 type SandboxGetHubResponse struct {
@@ -1019,8 +1074,27 @@ func (r *SandboxUpdateParams) UnmarshalJSON(data []byte) error {
 }
 
 type SandboxListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
 	// If true, include terminated sandboxes in the response. Defaults to false.
 	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort SandboxListParamsSort `query:"sort,omitzero" json:"-"`
 	paramObj
 }
 
@@ -1031,3 +1105,16 @@ func (r SandboxListParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type SandboxListParamsSort string
+
+const (
+	SandboxListParamsSortCreatedAtDesc SandboxListParamsSort = "createdAt:desc"
+	SandboxListParamsSortCreatedAtAsc  SandboxListParamsSort = "createdAt:asc"
+	SandboxListParamsSortNameAsc       SandboxListParamsSort = "name:asc"
+	SandboxListParamsSortNameDesc      SandboxListParamsSort = "name:desc"
+)
