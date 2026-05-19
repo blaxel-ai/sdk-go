@@ -7,11 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
@@ -36,14 +39,14 @@ func NewWorkspaceService(opts ...option.RequestOption) (r WorkspaceService) {
 
 // Returns detailed information about a workspace including its display name,
 // account ID, status, and runtime configuration.
-func (r *WorkspaceService) Get(ctx context.Context, workspaceName string, opts ...option.RequestOption) (res *Workspace, err error) {
+func (r *WorkspaceService) Get(ctx context.Context, workspaceName string, query WorkspaceGetParams, opts ...option.RequestOption) (res *Workspace, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if workspaceName == "" {
 		err = errors.New("missing required workspaceName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("workspaces/%s", workspaceName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -69,13 +72,6 @@ type Workspace struct {
 	DisplayName string `json:"displayName"`
 	// Group-to-role mappings for directory sync (SCIM) group membership
 	GroupMappings []WorkspaceGroupMapping `json:"groupMappings"`
-	// Whether this workspace agrees in general to deploy in HIPAA-unsafe
-	// (non-HIPAA-compliant) regions/products. When true, the workspace acknowledges
-	// that non-HIPAA-compliant deploys are permitted and that protected health
-	// information must not be processed in those deploys. When false (default),
-	// non-HIPAA-compliant deploys are blocked unless the request explicitly sets the
-	// X-Blaxel-Acknowledge-Not-Hipaa header.
-	HipaaUnsafe bool `json:"hipaaUnsafe"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
@@ -83,6 +79,11 @@ type Workspace struct {
 	Name string `json:"name"`
 	// Workspace write region
 	Region string `json:"region"`
+	// Per-resource counts (agents, functions, models, sandboxes, policies, jobs,
+	// volumes, drives, volumetemplates, integrationconnections, previews,
+	// customdomains, serviceaccounts, images). Only populated when GetWorkspace is
+	// called with ?countResources=true.
+	ResourceCounts map[string]int64 `json:"resourceCounts"`
 	// Runtime configuration for the workspace infrastructure
 	Runtime WorkspaceRuntime `json:"runtime"`
 	// Workspace status (created, account_binded, account_configured,
@@ -99,23 +100,23 @@ type Workspace struct {
 	UpdatedBy string `json:"updatedBy"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID            respjson.Field
-		AccountID     respjson.Field
-		CreatedAt     respjson.Field
-		CreatedBy     respjson.Field
-		DisplayName   respjson.Field
-		GroupMappings respjson.Field
-		HipaaUnsafe   respjson.Field
-		Labels        respjson.Field
-		Name          respjson.Field
-		Region        respjson.Field
-		Runtime       respjson.Field
-		Status        respjson.Field
-		StatusReason  respjson.Field
-		UpdatedAt     respjson.Field
-		UpdatedBy     respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
+		ID             respjson.Field
+		AccountID      respjson.Field
+		CreatedAt      respjson.Field
+		CreatedBy      respjson.Field
+		DisplayName    respjson.Field
+		GroupMappings  respjson.Field
+		Labels         respjson.Field
+		Name           respjson.Field
+		Region         respjson.Field
+		ResourceCounts respjson.Field
+		Runtime        respjson.Field
+		Status         respjson.Field
+		StatusReason   respjson.Field
+		UpdatedAt      respjson.Field
+		UpdatedBy      respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 
@@ -178,4 +179,22 @@ type WorkspaceRuntime struct {
 func (r WorkspaceRuntime) RawJSON() string { return r.JSON.raw }
 func (r *WorkspaceRuntime) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type WorkspaceGetParams struct {
+	// When true, the response includes a resourceCounts map with the number of agents,
+	// functions, models, sandboxes, policies, jobs, volumes, volumetemplates,
+	// integrationconnections, previews, customdomains, serviceaccounts and images
+	// currently in this workspace. Off by default — each count is one extra indexed
+	// query.
+	CountResources param.Opt[bool] `query:"countResources,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [WorkspaceGetParams]'s query parameters as `url.Values`.
+func (r WorkspaceGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
