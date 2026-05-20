@@ -126,6 +126,7 @@ func TestVolumeListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Volumes.List(context.TODO(), blaxel.VolumeListParams{
+		Anchor: blaxel.VolumeListParamsAnchorEnd,
 		Cursor: blaxel.String("cursor"),
 		Limit:  blaxel.Int(1),
 		Q:      blaxel.String("q"),

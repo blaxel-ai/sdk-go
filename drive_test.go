@@ -120,6 +120,7 @@ func TestDriveListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Drives.List(context.TODO(), blaxel.DriveListParams{
+		Anchor: blaxel.DriveListParamsAnchorEnd,
 		Cursor: blaxel.String("cursor"),
 		Limit:  blaxel.Int(1),
 		Q:      blaxel.String("q"),
