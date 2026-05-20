@@ -1253,6 +1253,12 @@ type JobListParams struct {
 	// fingerprint so a cursor opened with one query cannot be reused with another.
 	// Only honoured starting on Blaxel-Version 2026-04-28.
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Start from a known pagination boundary. `end` is only supported for
+	// `createdAt:desc` listings and returns the oldest page directly without walking
+	// every cursor from the first page.
+	//
+	// Any of "end".
+	Anchor JobListParamsAnchor `query:"anchor,omitzero" json:"-"`
 	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
 	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
 	// bound to the sort, so a cursor opened with one value cannot be reused with
@@ -1270,6 +1276,15 @@ func (r JobListParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
+
+// Start from a known pagination boundary. `end` is only supported for
+// `createdAt:desc` listings and returns the oldest page directly without walking
+// every cursor from the first page.
+type JobListParamsAnchor string
+
+const (
+	JobListParamsAnchorEnd JobListParamsAnchor = "end"
+)
 
 // Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
 // (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
