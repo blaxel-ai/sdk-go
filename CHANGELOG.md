@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 (2026-05-20)
+
+Full Changelog: [v0.21.0...v0.22.0](https://github.com/blaxel-ai/sdk-go/compare/v0.21.0...v0.22.0)
+
+### Features
+
+* **pagination:** add anchor=end param to all list endpoints and filter terminated sandboxes at DB level ([aa95db6](https://github.com/blaxel-ai/sdk-go/commit/aa95db6a4e29bc9ceb003681367919dfe9cf8f6d))
+
 ## 0.21.0 (2026-05-19)
 
 Full Changelog: [v0.20.0...v0.21.0](https://github.com/blaxel-ai/sdk-go/compare/v0.20.0...v0.21.0)

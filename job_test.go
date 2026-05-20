@@ -231,6 +231,7 @@ func TestJobListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Jobs.List(context.TODO(), blaxel.JobListParams{
+		Anchor: blaxel.JobListParamsAnchorEnd,
 		Cursor: blaxel.String("cursor"),
 		Limit:  blaxel.Int(1),
 		Q:      blaxel.String("q"),
