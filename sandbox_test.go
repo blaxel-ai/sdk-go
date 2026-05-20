@@ -488,6 +488,7 @@ func TestSandboxListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{
+		Anchor:         blaxel.SandboxListParamsAnchorEnd,
 		Cursor:         blaxel.String("cursor"),
 		Limit:          blaxel.Int(1),
 		Q:              blaxel.String("q"),
