@@ -173,6 +173,7 @@ func TestPolicyListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Policies.List(context.TODO(), blaxel.PolicyListParams{
+		Anchor: blaxel.PolicyListParamsAnchorEnd,
 		Cursor: blaxel.String("cursor"),
 		Limit:  blaxel.Int(1),
 		Q:      blaxel.String("q"),
