@@ -82,4 +82,4 @@ func (r *EgressgatewayListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EgressgatewayGetUsageResponse map[string][]string
+type EgressgatewayGetUsageResponse = any
