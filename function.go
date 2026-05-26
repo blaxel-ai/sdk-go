@@ -1,0 +1,525 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+package blaxel
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"slices"
+
+	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
+	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
+	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
+	"github.com/blaxel-ai/sdk-go/packages/respjson"
+	"github.com/blaxel-ai/sdk-go/shared"
+)
+
+// FunctionService contains methods and other services that help with interacting
+// with the blaxel API.
+//
+// Note, unlike clients, this service does not read variables from the environment
+// automatically. You should not instantiate this service directly, and instead use
+// the [NewFunctionService] method instead.
+type FunctionService struct {
+	Options []option.RequestOption
+}
+
+// NewFunctionService generates a new service that applies the given options to
+// each request. These options are applied after the parent client's options (if
+// there is one), and before any request-specific options.
+func NewFunctionService(opts ...option.RequestOption) (r FunctionService) {
+	r = FunctionService{}
+	r.Options = opts
+	return
+}
+
+// Creates a new MCP server function deployment. The function will expose tools via
+// the Model Context Protocol that can be used by AI agents. Supports streamable
+// HTTP transport.
+func (r *FunctionService) New(ctx context.Context, body FunctionNewParams, opts ...option.RequestOption) (res *Function, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "functions"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return res, err
+}
+
+// Returns detailed information about an MCP server function including its
+// deployment status, available tools, transport configuration, and endpoint URL.
+func (r *FunctionService) Get(ctx context.Context, functionName string, query FunctionGetParams, opts ...option.RequestOption) (res *Function, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if functionName == "" {
+		err = errors.New("missing required functionName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("functions/%s", functionName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return res, err
+}
+
+// Updates an MCP server function's configuration and triggers a new deployment.
+// Changes to runtime settings, integrations, or transport protocol will be applied
+// on the next deployment.
+func (r *FunctionService) Update(ctx context.Context, functionName string, body FunctionUpdateParams, opts ...option.RequestOption) (res *Function, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if functionName == "" {
+		err = errors.New("missing required functionName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("functions/%s", functionName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
+	return res, err
+}
+
+// Returns MCP server functions deployed in the workspace. Each function includes
+// its deployment status, transport protocol (websocket or http-stream), and
+// endpoint URL. Starting with API version 2026-04-28 the response is wrapped in
+// `{data, meta}` and supports cursor pagination via the `cursor` and `limit` query
+// parameters; older versions keep returning a bare array with all functions.
+func (r *FunctionService) List(ctx context.Context, query FunctionListParams, opts ...option.RequestOption) (res *FunctionListResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "functions"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return res, err
+}
+
+// Permanently deletes an MCP server function and all its deployment history. Any
+// agents using this function's tools will no longer be able to invoke them.
+func (r *FunctionService) Delete(ctx context.Context, functionName string, opts ...option.RequestOption) (res *Function, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if functionName == "" {
+		err = errors.New("missing required functionName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("functions/%s", functionName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return res, err
+}
+
+// Returns revisions for a function by name.
+func (r *FunctionService) ListRevisions(ctx context.Context, functionName string, opts ...option.RequestOption) (res *[]RevisionMetadata, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if functionName == "" {
+		err = errors.New("missing required functionName parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("functions/%s/revisions", functionName)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
+// MCP server deployment that exposes tools for AI agents via the Model Context
+// Protocol (MCP). Deployed as a serverless auto-scaling endpoint using streamable
+// HTTP transport.
+type Function struct {
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
+	Metadata Metadata `json:"metadata" api:"required"`
+	// Configuration for an MCP server function including runtime settings, transport
+	// protocol, and connected integrations
+	Spec FunctionSpec `json:"spec" api:"required"`
+	// Events happening on a resource deployed on Blaxel
+	Events []CoreEvent `json:"events"`
+	// Deployment status of a resource deployed on Blaxel
+	//
+	// Any of "DELETING", "TERMINATED", "FAILED", "DEACTIVATED", "DEACTIVATING",
+	// "UPLOADING", "BUILDING", "DEPLOYING", "DEPLOYED", "BUILT".
+	Status Status `json:"status"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metadata    respjson.Field
+		Spec        respjson.Field
+		Events      respjson.Field
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r Function) RawJSON() string { return r.JSON.raw }
+func (r *Function) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this Function to a FunctionParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// FunctionParam.Overrides()
+func (r Function) ToParam() FunctionParam {
+	return param.Override[FunctionParam](json.RawMessage(r.RawJSON()))
+}
+
+// MCP server deployment that exposes tools for AI agents via the Model Context
+// Protocol (MCP). Deployed as a serverless auto-scaling endpoint using streamable
+// HTTP transport.
+//
+// The properties Metadata, Spec are required.
+type FunctionParam struct {
+	// Common metadata fields shared by all Blaxel resources including name, labels,
+	// timestamps, and ownership information
+	Metadata MetadataParam `json:"metadata,omitzero" api:"required"`
+	// Configuration for an MCP server function including runtime settings, transport
+	// protocol, and connected integrations
+	Spec FunctionSpecParam `json:"spec,omitzero" api:"required"`
+	paramObj
+}
+
+func (r FunctionParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FunctionParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Runtime configuration defining how the MCP server function is deployed and
+// scaled
+type FunctionRuntime struct {
+	// Environment variables injected into the function. Supports Kubernetes EnvVar
+	// format with valueFrom references.
+	Envs []shared.Env `json:"envs"`
+	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
+	// regions) or mk3 (microVMs, sub-25ms cold starts)
+	//
+	// Any of "mk2", "mk3".
+	Generation FunctionRuntimeGeneration `json:"generation"`
+	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
+	// auto-populated during deployment.
+	Image string `json:"image"`
+	// Maximum number of concurrent function instances for auto-scaling
+	MaxScale int64 `json:"maxScale"`
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
+	Memory int64 `json:"memory"`
+	// Minimum instances to keep warm. Set to 1+ to eliminate cold starts, 0 for
+	// scale-to-zero.
+	MinScale int64 `json:"minScale"`
+	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+	//
+	// Any of "websocket", "http-stream".
+	Transport FunctionRuntimeTransport `json:"transport"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Envs        respjson.Field
+		Generation  respjson.Field
+		Image       respjson.Field
+		MaxScale    respjson.Field
+		Memory      respjson.Field
+		MinScale    respjson.Field
+		Transport   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionRuntime) RawJSON() string { return r.JSON.raw }
+func (r *FunctionRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this FunctionRuntime to a FunctionRuntimeParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// FunctionRuntimeParam.Overrides()
+func (r FunctionRuntime) ToParam() FunctionRuntimeParam {
+	return param.Override[FunctionRuntimeParam](json.RawMessage(r.RawJSON()))
+}
+
+// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
+// regions) or mk3 (microVMs, sub-25ms cold starts)
+type FunctionRuntimeGeneration string
+
+const (
+	FunctionRuntimeGenerationMk2 FunctionRuntimeGeneration = "mk2"
+	FunctionRuntimeGenerationMk3 FunctionRuntimeGeneration = "mk3"
+)
+
+// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+type FunctionRuntimeTransport string
+
+const (
+	FunctionRuntimeTransportWebsocket  FunctionRuntimeTransport = "websocket"
+	FunctionRuntimeTransportHTTPStream FunctionRuntimeTransport = "http-stream"
+)
+
+// Runtime configuration defining how the MCP server function is deployed and
+// scaled
+type FunctionRuntimeParam struct {
+	// Container image built by Blaxel when deploying with 'bl deploy'. This field is
+	// auto-populated during deployment.
+	Image param.Opt[string] `json:"image,omitzero"`
+	// Maximum number of concurrent function instances for auto-scaling
+	MaxScale param.Opt[int64] `json:"maxScale,omitzero"`
+	// Memory allocation in megabytes. Also determines CPU allocation (CPU cores =
+	// memory in MB / 2048, e.g., 4096MB = 2 CPUs).
+	Memory param.Opt[int64] `json:"memory,omitzero"`
+	// Minimum instances to keep warm. Set to 1+ to eliminate cold starts, 0 for
+	// scale-to-zero.
+	MinScale param.Opt[int64] `json:"minScale,omitzero"`
+	// Environment variables injected into the function. Supports Kubernetes EnvVar
+	// format with valueFrom references.
+	Envs []shared.EnvParam `json:"envs,omitzero"`
+	// Infrastructure generation: mk2 (containers, 2-10s cold starts, 15+ global
+	// regions) or mk3 (microVMs, sub-25ms cold starts)
+	//
+	// Any of "mk2", "mk3".
+	Generation FunctionRuntimeGeneration `json:"generation,omitzero"`
+	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
+	//
+	// Any of "websocket", "http-stream".
+	Transport FunctionRuntimeTransport `json:"transport,omitzero"`
+	paramObj
+}
+
+func (r FunctionRuntimeParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionRuntimeParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FunctionRuntimeParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for an MCP server function including runtime settings, transport
+// protocol, and connected integrations
+type FunctionSpec struct {
+	// When false, the function is disabled and will not serve requests
+	Enabled                bool     `json:"enabled"`
+	IntegrationConnections []string `json:"integrationConnections"`
+	Policies               []string `json:"policies"`
+	// When true, the function is publicly accessible without authentication. Only
+	// available for mk3 generation.
+	Public bool `json:"public"`
+	// Region where the function should be deployed (e.g. us-pdx-1, eu-lon-1). If not
+	// specified, the function is deployed based on policy locations.
+	Region string `json:"region"`
+	// Revision configuration
+	Revision RevisionConfiguration `json:"revision"`
+	// Runtime configuration defining how the MCP server function is deployed and
+	// scaled
+	Runtime FunctionRuntime `json:"runtime"`
+	// Triggers to use your agent
+	Triggers []Trigger `json:"triggers"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled                respjson.Field
+		IntegrationConnections respjson.Field
+		Policies               respjson.Field
+		Public                 respjson.Field
+		Region                 respjson.Field
+		Revision               respjson.Field
+		Runtime                respjson.Field
+		Triggers               respjson.Field
+		ExtraFields            map[string]respjson.Field
+		raw                    string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionSpec) RawJSON() string { return r.JSON.raw }
+func (r *FunctionSpec) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this FunctionSpec to a FunctionSpecParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// FunctionSpecParam.Overrides()
+func (r FunctionSpec) ToParam() FunctionSpecParam {
+	return param.Override[FunctionSpecParam](json.RawMessage(r.RawJSON()))
+}
+
+// Configuration for an MCP server function including runtime settings, transport
+// protocol, and connected integrations
+type FunctionSpecParam struct {
+	// When false, the function is disabled and will not serve requests
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// When true, the function is publicly accessible without authentication. Only
+	// available for mk3 generation.
+	Public param.Opt[bool] `json:"public,omitzero"`
+	// Region where the function should be deployed (e.g. us-pdx-1, eu-lon-1). If not
+	// specified, the function is deployed based on policy locations.
+	Region                 param.Opt[string] `json:"region,omitzero"`
+	IntegrationConnections []string          `json:"integrationConnections,omitzero"`
+	Policies               []string          `json:"policies,omitzero"`
+	// Revision configuration
+	Revision RevisionConfigurationParam `json:"revision,omitzero"`
+	// Runtime configuration defining how the MCP server function is deployed and
+	// scaled
+	Runtime FunctionRuntimeParam `json:"runtime,omitzero"`
+	// Triggers to use your agent
+	Triggers []TriggerParam `json:"triggers,omitzero"`
+	paramObj
+}
+
+func (r FunctionSpecParam) MarshalJSON() (data []byte, err error) {
+	type shadow FunctionSpecParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FunctionSpecParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Cursor-paginated list of MCP server functions. Returned starting with API
+// version 2026-04-28; older API versions return a bare array.
+type FunctionListResponse struct {
+	// Page of functions.
+	Data []Function `json:"data"`
+	// Pagination metadata returned alongside a page of listing results. Always present
+	// on listing endpoints starting with API version 2026-04-28.
+	Meta FunctionListResponseMeta `json:"meta"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Meta        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionListResponse) RawJSON() string { return r.JSON.raw }
+func (r *FunctionListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pagination metadata returned alongside a page of listing results. Always present
+// on listing endpoints starting with API version 2026-04-28.
+type FunctionListResponseMeta struct {
+	// True when more pages are available beyond the current one.
+	HasMore bool `json:"hasMore"`
+	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
+	// when there are no more pages.
+	NextCursor string `json:"nextCursor"`
+	// Total number of items in the workspace, ignoring the current page's filters.
+	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
+	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
+	Total int64 `json:"total"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HasMore     respjson.Field
+		NextCursor  respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FunctionListResponseMeta) RawJSON() string { return r.JSON.raw }
+func (r *FunctionListResponseMeta) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FunctionNewParams struct {
+	// MCP server deployment that exposes tools for AI agents via the Model Context
+	// Protocol (MCP). Deployed as a serverless auto-scaling endpoint using streamable
+	// HTTP transport.
+	Function FunctionParam
+	paramObj
+}
+
+func (r FunctionNewParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.Function)
+}
+func (r *FunctionNewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FunctionGetParams struct {
+	// Show secret values (requires workspace admin role)
+	ShowSecrets param.Opt[bool] `query:"show_secrets,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [FunctionGetParams]'s query parameters as `url.Values`.
+func (r FunctionGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+type FunctionUpdateParams struct {
+	// MCP server deployment that exposes tools for AI agents via the Model Context
+	// Protocol (MCP). Deployed as a serverless auto-scaling endpoint using streamable
+	// HTTP transport.
+	Function FunctionParam
+	paramObj
+}
+
+func (r FunctionUpdateParams) MarshalJSON() (data []byte, err error) {
+	return shimjson.Marshal(r.Function)
+}
+func (r *FunctionUpdateParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FunctionListParams struct {
+	// Opaque cursor returned by a previous response's meta.nextCursor. Only valid for
+	// the same query (workspace + filters); the server rejects cursors bound to a
+	// different query or older than 24h. Omit on the first page.
+	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Substring search across `metadata.name`, `metadata.displayName` and labels
+	// (keys + values). Trimmed and lowercased server-side; queries shorter than 2
+	// characters fall back to the unfiltered listing. Bound into the cursor
+	// fingerprint so a cursor opened with one query cannot be reused with another.
+	// Only honoured starting on Blaxel-Version 2026-04-28.
+	Q param.Opt[string] `query:"q,omitzero" json:"-"`
+	// Start from a known pagination boundary. `end` is only supported for
+	// `createdAt:desc` listings and returns the oldest page directly without walking
+	// every cursor from the first page.
+	//
+	// Any of "end".
+	Anchor FunctionListParamsAnchor `query:"anchor,omitzero" json:"-"`
+	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+	// bound to the sort, so a cursor opened with one value cannot be reused with
+	// another. Only honoured starting on Blaxel-Version 2026-04-28.
+	//
+	// Any of "createdAt:desc", "createdAt:asc", "name:asc", "name:desc".
+	Sort FunctionListParamsSort `query:"sort,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [FunctionListParams]'s query parameters as `url.Values`.
+func (r FunctionListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
+// Start from a known pagination boundary. `end` is only supported for
+// `createdAt:desc` listings and returns the oldest page directly without walking
+// every cursor from the first page.
+type FunctionListParamsAnchor string
+
+const (
+	FunctionListParamsAnchorEnd FunctionListParamsAnchor = "end"
+)
+
+// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
+// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
+// bound to the sort, so a cursor opened with one value cannot be reused with
+// another. Only honoured starting on Blaxel-Version 2026-04-28.
+type FunctionListParamsSort string
+
+const (
+	FunctionListParamsSortCreatedAtDesc FunctionListParamsSort = "createdAt:desc"
+	FunctionListParamsSortCreatedAtAsc  FunctionListParamsSort = "createdAt:asc"
+	FunctionListParamsSortNameAsc       FunctionListParamsSort = "name:asc"
+	FunctionListParamsSortNameDesc      FunctionListParamsSort = "name:desc"
+)
