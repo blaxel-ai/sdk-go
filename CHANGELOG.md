@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.22.0 (2026-05-26)
+
+Full Changelog: [v0.21.0...v0.22.0](https://github.com/blaxel-ai/sdk-go/compare/v0.21.0...v0.22.0)
+
+### Features
+
+* **pagination:** add anchor=end param to all list endpoints and filter terminated sandboxes at DB level ([daff20d](https://github.com/blaxel-ai/sdk-go/commit/daff20d58b7d8f496ad85f51202828e0f7e14551))
+
+
+### Bug Fixes
+
+* **ENG-2108:** persist onboarding state server-side ([27056e1](https://github.com/blaxel-ai/sdk-go/commit/27056e14300de5c17ee2fd6e68387afb7dfccbb5))
+
 ## 0.21.0 (2026-05-19)
 
 Full Changelog: [v0.20.0...v0.21.0](https://github.com/blaxel-ai/sdk-go/compare/v0.20.0...v0.21.0)
