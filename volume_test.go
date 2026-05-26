@@ -1,0 +1,164 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+package blaxel_test
+
+import (
+	"context"
+	"errors"
+	"os"
+	"testing"
+
+	blaxel "github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go/internal/testutil"
+	"github.com/blaxel-ai/sdk-go/option"
+)
+
+func TestVolumeNewWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Volumes.New(context.TODO(), blaxel.VolumeNewParams{
+		Volume: blaxel.VolumeParam{
+			Metadata: blaxel.MetadataParam{
+				Name:        "my-resource",
+				DisplayName: blaxel.String("My Resource"),
+				Labels: map[string]string{
+					"foo": "string",
+				},
+			},
+			Spec: blaxel.VolumeSpecParam{
+				Region:   blaxel.String("us-pdx-1"),
+				Size:     blaxel.Int(1024),
+				Template: blaxel.String("mytemplate:latest"),
+			},
+		},
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestVolumeGet(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Volumes.Get(context.TODO(), "volumeName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestVolumeUpdateWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Volumes.Update(
+		context.TODO(),
+		"volumeName",
+		blaxel.VolumeUpdateParams{
+			Volume: blaxel.VolumeParam{
+				Metadata: blaxel.MetadataParam{
+					Name:        "my-resource",
+					DisplayName: blaxel.String("My Resource"),
+					Labels: map[string]string{
+						"foo": "string",
+					},
+				},
+				Spec: blaxel.VolumeSpecParam{
+					Region:   blaxel.String("us-pdx-1"),
+					Size:     blaxel.Int(1024),
+					Template: blaxel.String("mytemplate:latest"),
+				},
+			},
+		},
+	)
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestVolumeListWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Volumes.List(context.TODO(), blaxel.VolumeListParams{
+		Anchor: blaxel.VolumeListParamsAnchorEnd,
+		Cursor: blaxel.String("cursor"),
+		Limit:  blaxel.Int(1),
+		Q:      blaxel.String("q"),
+		Sort:   blaxel.VolumeListParamsSortCreatedAtDesc,
+	})
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestVolumeDelete(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := blaxel.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Volumes.Delete(context.TODO(), "volumeName")
+	if err != nil {
+		var apierr *blaxel.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
