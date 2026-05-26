@@ -1061,6 +1061,7 @@ func (r *SandboxInstanceFSService) writeBinaryForm(ctx context.Context, path str
 // writeBinaryMultipart uploads a large file using chunked multipart upload
 func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, path string, data []byte, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
 	const chunkSize = 5 * 1024 * 1024 // 5MB per part
+	const maxConcurrentPartUploads = 3
 
 	// Initiate multipart upload
 	initResp, err := r.service.Multipart.Initiate(ctx, path, SandboxFilesystemMultipartInitiateParams{
@@ -1082,7 +1083,7 @@ func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, pat
 	parts := make([]PartInfoParam, numParts)
 
 	g, gctx := errgroup.WithContext(ctx)
-	g.SetLimit(20)
+	g.SetLimit(maxConcurrentPartUploads)
 
 	for i := 0; i < numParts; i++ {
 		i := i // capture loop variable
