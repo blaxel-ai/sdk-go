@@ -1088,6 +1088,12 @@ type SandboxListParams struct {
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
 	// If true, include terminated sandboxes in the response. Defaults to false.
 	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
+	// Start from a known pagination boundary. `end` is only supported for
+	// `createdAt:desc` listings and returns the oldest page directly without walking
+	// every cursor from the first page.
+	//
+	// Any of "end".
+	Anchor SandboxListParamsAnchor `query:"anchor,omitzero" json:"-"`
 	// Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
 	// (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is
 	// bound to the sort, so a cursor opened with one value cannot be reused with
@@ -1105,6 +1111,15 @@ func (r SandboxListParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
+
+// Start from a known pagination boundary. `end` is only supported for
+// `createdAt:desc` listings and returns the oldest page directly without walking
+// every cursor from the first page.
+type SandboxListParamsAnchor string
+
+const (
+	SandboxListParamsAnchorEnd SandboxListParamsAnchor = "end"
+)
 
 // Sort spec, formatted as `<key>:<direction>`. Allowed values are `createdAt:desc`
 // (default), `createdAt:asc`, `name:asc`, `name:desc`. The cursor fingerprint is

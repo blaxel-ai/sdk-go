@@ -205,6 +205,7 @@ func TestFunctionListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Functions.List(context.TODO(), blaxel.FunctionListParams{
+		Anchor: blaxel.FunctionListParamsAnchorEnd,
 		Cursor: blaxel.String("cursor"),
 		Limit:  blaxel.Int(1),
 		Q:      blaxel.String("q"),
