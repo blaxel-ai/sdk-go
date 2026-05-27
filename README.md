@@ -11,6 +11,32 @@ from applications written in Go.
 
 It is generated with [Stainless](https://www.stainless.com/).
 
+## Prerequisites
+
+To use this SDK, you need a [Blaxel account](https://app.blaxel.ai) and the following environment variables:
+
+| Variable | Description |
+|---|---|
+| `BL_WORKSPACE` | Your Blaxel workspace name |
+| `BL_API_KEY` | Your Blaxel API key |
+
+You can create an API key from the [Blaxel console](https://app.blaxel.ai/profile/security). Your workspace name is visible in the URL when you log in to the console (e.g. `app.blaxel.ai/{workspace}`).
+
+Set them as environment variables:
+
+```bash
+export BL_WORKSPACE=my-workspace
+export BL_API_KEY=my-api-key
+```
+
+Alternatively, you can authenticate via the [Blaxel CLI](https://docs.blaxel.ai/cli-reference/introduction):
+
+```bash
+bl login YOUR-WORKSPACE
+```
+
+When you deploy on Blaxel, authentication is handled automatically.
+
 ## Installation
 
 <!-- x-release-please-start-version -->
@@ -318,6 +344,53 @@ if err != nil {
 When other errors occur, they are returned unwrapped; for example,
 if HTTP transport fails, you might receive `*url.Error` wrapping `*net.OpError`.
 
+#### Gateway errors
+
+When the error originates from the Blaxel platform gateway, `*blaxel.Error` automatically
+parses typed fields from both the `X-Blaxel-Source` / `X-Blaxel-Error-Code` response headers
+and the JSON body envelope, so you can inspect error details without manually parsing JSON:
+
+```go
+_, err := client.Sandboxes.Get(context.TODO(), "missing-sandbox")
+if err != nil {
+	var apierr *blaxel.Error
+	if errors.As(err, &apierr) && apierr.IsGatewayError() {
+		fmt.Println("Code:     ", apierr.ErrorCode)  // e.g. "WORKLOAD_NOT_FOUND"
+		fmt.Println("Message:  ", apierr.Message)
+		fmt.Println("Retryable:", apierr.IsRetryable())
+		fmt.Println("Action:   ", apierr.Action)
+		fmt.Println("DocsURL:  ", apierr.DocsURL)
+
+		// Match against well-known error codes
+		switch apierr.ErrorCode {
+		case blaxel.ErrWorkloadNotFound:
+			// handle missing workload
+		case blaxel.ErrUsageLimitExceeded:
+			// handle quota
+		case blaxel.ErrAuthenticationRequired:
+			// handle auth
+		}
+	}
+}
+```
+
+| Field          | Type     | Description |
+|----------------|----------|-------------|
+| `ErrorCode`    | `string` | Stable error code (e.g. `WORKLOAD_UNAVAILABLE`) |
+| `Message`      | `string` | Human-readable error message |
+| `Origin`       | `string` | `"platform"` when the error comes from the gateway |
+| `BlaxelSource` | `string` | Raw value of the `X-Blaxel-Source` response header |
+| `Retryable`    | `bool`   | Whether retrying the request may succeed |
+| `Action`       | `string` | Directive telling the caller what to do next |
+| `DoNot`        | `string` | Anti-pattern warning (may be empty) |
+| `DocsURL`      | `string` | Link to relevant documentation (may be empty) |
+| `Status`       | `int`    | HTTP status code reported by the gateway |
+
+Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
+`ErrWorkloadNotFound`, `ErrWorkspaceNotFound`, `ErrWorkloadUnavailable`,
+`ErrAuthenticationRequired`, `ErrAuthenticationFailed`, `ErrForbidden`,
+`ErrBadRequest`, `ErrUsageLimitExceeded`, `ErrPolicyViolation`.
+
 ### Timeouts
 
 Requests do not time out by default; use context to configure a timeout for a request lifecycle.
@@ -500,6 +573,42 @@ You may also replace the default `http.Client` with
 `option.WithHTTPClient(client)`. Only one http client is
 accepted (this overwrites any previous client) and receives requests after any
 middleware has been applied.
+
+## Data collection
+
+### Error tracking
+
+The SDK includes error tracking that captures exceptions originating from the SDK itself (not your application code). It collects data including the error type, message, stack trace, SDK version, workspace name, and so on. No user or application data is collected.
+
+Error tracking is off by default since v0.16.1. To explicitly disable it in older versions:
+
+```bash
+export DO_NOT_TRACK=1
+```
+
+Or add to `~/.blaxel/config.yaml`:
+
+```yaml
+tracking: false
+```
+
+Where both settings exist, the `DO_NOT_TRACK` variable takes precedence.
+
+### Telemetry
+
+Telemetry, delivered via OpenTelemetry, is controlled by the `BL_ENABLE_OPENTELEMETRY` environment variable.
+
+When you deploy an agent to Blaxel, the platform automatically injects `BL_ENABLE_OPENTELEMETRY=true` into the environment.
+
+When developing locally, this environment variable is not set and therefore defaults to `false`.
+
+To explicitly disable telemetry, override the variable in your Blaxel deployment:
+
+```bash
+export BL_ENABLE_OPENTELEMETRY=false
+```
+
+For more information, refer to [our documentation](https://docs.blaxel.ai/Security/Data-collection-and-privacy).
 
 ## Semantic versioning
 
