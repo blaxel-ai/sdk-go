@@ -706,8 +706,10 @@ type SandboxRuntime struct {
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
-	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
-	// '30m', '24h', '7d')
+	// Max-age from creation: the sandbox is deleted this long after it is created,
+	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
+	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
+	// type ttl-idle.
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -754,8 +756,10 @@ type SandboxRuntimeParam struct {
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
-	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
-	// '30m', '24h', '7d')
+	// Max-age from creation: the sandbox is deleted this long after it is created,
+	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
+	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
+	// type ttl-idle.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
