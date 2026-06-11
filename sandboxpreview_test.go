@@ -52,6 +52,7 @@ func TestSandboxPreviewNewWithOptionalParams(t *testing.T) {
 					Ttl: blaxel.String("ttl"),
 				},
 			},
+			Force: blaxel.Bool(true),
 		},
 	)
 	if err != nil {
