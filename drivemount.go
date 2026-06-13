@@ -44,7 +44,11 @@ func (r *DriveMountService) List(ctx context.Context, opts ...option.RequestOpti
 }
 
 // Mounts an agent drive using the blfs binary to a local path, optionally mounting
-// a subpath within the drive
+// a subpath within the drive. Supports optional UID/GID mapping to remap file
+// ownership between the local sandbox and the filer (always mapped to filer
+// UID/GID 0). Mapping values can be set per-request via uidMap/gidMap fields, or
+// globally via BLFS_UID_MAP/BLFS_GID_MAP environment variables (request values
+// take precedence).
 func (r *DriveMountService) Attach(ctx context.Context, body DriveMountAttachParams, opts ...option.RequestOption) (res *DriveMountAttachResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "drives/mount"
@@ -83,14 +87,20 @@ func (r *DriveMountListResponse) UnmarshalJSON(data []byte) error {
 type DriveMountListResponseMount struct {
 	DriveName string `json:"driveName"`
 	DrivePath string `json:"drivePath"`
+	// The local GID used for this mount
+	GidMap    string `json:"gidMap"`
 	MountPath string `json:"mountPath"`
 	ReadOnly  bool   `json:"readOnly"`
+	// The local UID used for this mount
+	UidMap string `json:"uidMap"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DriveName   respjson.Field
 		DrivePath   respjson.Field
+		GidMap      respjson.Field
 		MountPath   respjson.Field
 		ReadOnly    respjson.Field
+		UidMap      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -105,18 +115,24 @@ func (r *DriveMountListResponseMount) UnmarshalJSON(data []byte) error {
 type DriveMountAttachResponse struct {
 	DriveName string `json:"driveName"`
 	DrivePath string `json:"drivePath"`
+	// The local GID used for this mount
+	GidMap    string `json:"gidMap"`
 	Message   string `json:"message"`
 	MountPath string `json:"mountPath"`
 	ReadOnly  bool   `json:"readOnly"`
 	Success   bool   `json:"success"`
+	// The local UID used for this mount
+	UidMap string `json:"uidMap"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DriveName   respjson.Field
 		DrivePath   respjson.Field
+		GidMap      respjson.Field
 		Message     respjson.Field
 		MountPath   respjson.Field
 		ReadOnly    respjson.Field
 		Success     respjson.Field
+		UidMap      respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -153,8 +169,12 @@ type DriveMountAttachParams struct {
 	MountPath string `json:"mountPath" api:"required"`
 	// Optional, defaults to "/"
 	DrivePath param.Opt[string] `json:"drivePath,omitzero"`
+	// Optional, local GID to map (filer GID is always 0)
+	GidMap param.Opt[string] `json:"gidMap,omitzero"`
 	// Optional, defaults to false
 	ReadOnly param.Opt[bool] `json:"readOnly,omitzero"`
+	// Optional, local UID to map (filer UID is always 0)
+	UidMap param.Opt[string] `json:"uidMap,omitzero"`
 	paramObj
 }
 
