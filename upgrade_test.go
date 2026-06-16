@@ -27,7 +27,7 @@ func TestUpgradeTriggerWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Upgrade.Trigger(context.TODO(), blaxel.UpgradeTriggerParams{
 		BaseURL: blaxel.String("https://github.com/blaxel-ai/sandbox/releases"),
-		Version: blaxel.String("develop"),
+		Version: blaxel.String("latest"),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
