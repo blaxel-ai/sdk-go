@@ -433,6 +433,8 @@ type Metadata struct {
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName string `json:"displayName"`
+	// Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalID string `json:"externalId"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
@@ -453,6 +455,7 @@ type Metadata struct {
 		CreatedAt   respjson.Field
 		CreatedBy   respjson.Field
 		DisplayName respjson.Field
+		ExternalID  respjson.Field
 		Labels      respjson.Field
 		Plan        respjson.Field
 		UpdatedAt   respjson.Field
@@ -487,6 +490,8 @@ type MetadataParam struct {
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
+	// Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalID param.Opt[string] `json:"externalId,omitzero"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels,omitzero"`
