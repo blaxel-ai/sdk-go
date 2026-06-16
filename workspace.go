@@ -167,9 +167,13 @@ type WorkspaceRuntime struct {
 	// Infrastructure generation version for the workspace (affects available features
 	// and deployment behavior)
 	Generation string `json:"generation"`
+	// Workspace-wide sandbox configuration that applies to all sandbox deployments in
+	// the workspace.
+	Sandbox WorkspaceRuntimeSandbox `json:"sandbox"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Generation  respjson.Field
+		Sandbox     respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -178,6 +182,27 @@ type WorkspaceRuntime struct {
 // Returns the unmodified JSON received from the API
 func (r WorkspaceRuntime) RawJSON() string { return r.JSON.raw }
 func (r *WorkspaceRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Workspace-wide sandbox configuration that applies to all sandbox deployments in
+// the workspace.
+type WorkspaceRuntimeSandbox struct {
+	// When true, sandbox deployments in this workspace set
+	// SANDBOX_DISABLE_PROCESS_LOGGING=true to disable per-process stdout/stderr
+	// logging. Requires sandbox-api v0.2.28+.
+	DisableProcessLogging bool `json:"disableProcessLogging"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		DisableProcessLogging respjson.Field
+		ExtraFields           map[string]respjson.Field
+		raw                   string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceRuntimeSandbox) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceRuntimeSandbox) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
