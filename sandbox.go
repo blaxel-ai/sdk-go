@@ -409,28 +409,36 @@ func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Network configuration for a sandbox including domain filtering, egress IP
-// binding, and proxy settings
+// Network configuration for a sandbox including subnet, firewall rulesets, domain
+// filtering, egress IP binding, and proxy settings
 type SandboxNetwork struct {
-	// List of allowed external domains (allowlist). When set, only these domains are
-	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	// Deprecated: use proxy.allowedDomains instead. List of allowed external domains
+	// (allowlist). Kept for backward compatibility.
 	AllowedDomains []string `json:"allowedDomains"`
 	// Egress configuration for routing sandbox outbound traffic through a dedicated IP
 	// gateway
 	Egress SandboxNetworkEgress `json:"egress"`
-	// List of forbidden external domains (denylist). When set, all domains except
-	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
-	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	// Firewall configuration specifying which network lockdown rulesets to apply.
+	// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+	// "dedicated-ip" (restrict egress to dedicated IP gateway).
+	Firewall SandboxNetworkFirewall `json:"firewall"`
+	// Deprecated: use proxy.forbiddenDomains instead. List of forbidden external
+	// domains (denylist). Kept for backward compatibility.
 	ForbiddenDomains []string `json:"forbiddenDomains"`
 	// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 	// with MITM inspection and per-destination header/body injection
 	Proxy SandboxNetworkProxy `json:"proxy"`
+	// Subnet name for the sandbox. Takes priority over any subnet derived from egress
+	// config. Defaults to "default" when absent.
+	Subnet string `json:"subnet"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AllowedDomains   respjson.Field
 		Egress           respjson.Field
+		Firewall         respjson.Field
 		ForbiddenDomains respjson.Field
 		Proxy            respjson.Field
+		Subnet           respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
 	} `json:"-"`
@@ -502,24 +510,55 @@ func (r *SandboxNetworkEgressPolicy) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Firewall configuration specifying which network lockdown rulesets to apply.
+// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+// "dedicated-ip" (restrict egress to dedicated IP gateway).
+type SandboxNetworkFirewall struct {
+	// List of firewall rulesets to apply. Valid values: "default" (no-op), "proxy"
+	// (restrict egress to proxy), "dedicated-ip" (restrict egress to dedicated IP
+	// gateway).
+	Rulesets []string `json:"rulesets"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Rulesets    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkFirewall) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkFirewall) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 // with MITM inspection and per-destination header/body injection
 type SandboxNetworkProxy struct {
+	// List of allowed external domains (allowlist). When set, only these domains are
+	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	AllowedDomains []string `json:"allowedDomains"`
 	// Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to
 	// these destinations goes direct, not through the CONNECT tunnel. Supports
 	// wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12,
 	// 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by
 	// default.
 	Bypass []string `json:"bypass"`
+	// List of forbidden external domains (denylist). When set, all domains except
+	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
+	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	ForbiddenDomains []string `json:"forbiddenDomains"`
 	// Per-destination routing rules with header/body injection and secrets. Use
 	// destinations ["*"] for global rules that apply to all destinations.
 	Routing []SandboxNetworkProxyRouting `json:"routing"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Bypass      respjson.Field
-		Routing     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		AllowedDomains   respjson.Field
+		Bypass           respjson.Field
+		ForbiddenDomains respjson.Field
+		Routing          respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
@@ -563,18 +602,24 @@ func (r *SandboxNetworkProxyRouting) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Network configuration for a sandbox including domain filtering, egress IP
-// binding, and proxy settings
+// Network configuration for a sandbox including subnet, firewall rulesets, domain
+// filtering, egress IP binding, and proxy settings
 type SandboxNetworkParam struct {
-	// List of allowed external domains (allowlist). When set, only these domains are
-	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	// Subnet name for the sandbox. Takes priority over any subnet derived from egress
+	// config. Defaults to "default" when absent.
+	Subnet param.Opt[string] `json:"subnet,omitzero"`
+	// Deprecated: use proxy.allowedDomains instead. List of allowed external domains
+	// (allowlist). Kept for backward compatibility.
 	AllowedDomains []string `json:"allowedDomains,omitzero"`
 	// Egress configuration for routing sandbox outbound traffic through a dedicated IP
 	// gateway
 	Egress SandboxNetworkEgressParam `json:"egress,omitzero"`
-	// List of forbidden external domains (denylist). When set, all domains except
-	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
-	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	// Firewall configuration specifying which network lockdown rulesets to apply.
+	// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+	// "dedicated-ip" (restrict egress to dedicated IP gateway).
+	Firewall SandboxNetworkFirewallParam `json:"firewall,omitzero"`
+	// Deprecated: use proxy.forbiddenDomains instead. List of forbidden external
+	// domains (denylist). Kept for backward compatibility.
 	ForbiddenDomains []string `json:"forbiddenDomains,omitzero"`
 	// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 	// with MITM inspection and per-destination header/body injection
@@ -631,15 +676,41 @@ func (r *SandboxNetworkEgressPolicyParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Firewall configuration specifying which network lockdown rulesets to apply.
+// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+// "dedicated-ip" (restrict egress to dedicated IP gateway).
+type SandboxNetworkFirewallParam struct {
+	// List of firewall rulesets to apply. Valid values: "default" (no-op), "proxy"
+	// (restrict egress to proxy), "dedicated-ip" (restrict egress to dedicated IP
+	// gateway).
+	Rulesets []string `json:"rulesets,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkFirewallParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkFirewallParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkFirewallParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 // with MITM inspection and per-destination header/body injection
 type SandboxNetworkProxyParam struct {
+	// List of allowed external domains (allowlist). When set, only these domains are
+	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	AllowedDomains []string `json:"allowedDomains,omitzero"`
 	// Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to
 	// these destinations goes direct, not through the CONNECT tunnel. Supports
 	// wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12,
 	// 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by
 	// default.
 	Bypass []string `json:"bypass,omitzero"`
+	// List of forbidden external domains (denylist). When set, all domains except
+	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
+	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	ForbiddenDomains []string `json:"forbiddenDomains,omitzero"`
 	// Per-destination routing rules with header/body injection and secrets. Use
 	// destinations ["*"] for global rules that apply to all destinations.
 	Routing []SandboxNetworkProxyRoutingParam `json:"routing,omitzero"`
@@ -692,8 +763,8 @@ type SandboxRuntime struct {
 	// deleted
 	Expires string `json:"expires"`
 	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
-	// sandbox runs on. Immutable after creation.
+	// 'nvme', 'nfs'. Values: 'enabled' or 'disabled'. Determines which kernel variant
+	// the sandbox runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -706,8 +777,10 @@ type SandboxRuntime struct {
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
-	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
-	// '30m', '24h', '7d')
+	// Max-age from creation: the sandbox is deleted this long after it is created,
+	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
+	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
+	// type ttl-idle.
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -754,15 +827,17 @@ type SandboxRuntimeParam struct {
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
-	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
-	// '30m', '24h', '7d')
+	// Max-age from creation: the sandbox is deleted this long after it is created,
+	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
+	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
+	// type ttl-idle.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
-	// sandbox runs on. Immutable after creation.
+	// 'nvme', 'nfs'. Values: 'enabled' or 'disabled'. Determines which kernel variant
+	// the sandbox runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
@@ -785,8 +860,8 @@ type SandboxSpec struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycle `json:"lifecycle"`
-	// Network configuration for a sandbox including domain filtering, egress IP
-	// binding, and proxy settings
+	// Network configuration for a sandbox including subnet, firewall rulesets, domain
+	// filtering, egress IP binding, and proxy settings
 	Network SandboxNetwork `json:"network"`
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
@@ -795,6 +870,8 @@ type SandboxSpec struct {
 	// resource limits
 	Runtime SandboxRuntime     `json:"runtime"`
 	Volumes []VolumeAttachment `json:"volumes"`
+	// VPC name for the sandbox. Defaults to "default" when absent.
+	Vpc string `json:"vpc"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Enabled     respjson.Field
@@ -803,6 +880,7 @@ type SandboxSpec struct {
 		Region      respjson.Field
 		Runtime     respjson.Field
 		Volumes     respjson.Field
+		Vpc         respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -831,11 +909,13 @@ type SandboxSpecParam struct {
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
 	Region param.Opt[string] `json:"region,omitzero"`
+	// VPC name for the sandbox. Defaults to "default" when absent.
+	Vpc param.Opt[string] `json:"vpc,omitzero"`
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
-	// Network configuration for a sandbox including domain filtering, egress IP
-	// binding, and proxy settings
+	// Network configuration for a sandbox including subnet, firewall rulesets, domain
+	// filtering, egress IP binding, and proxy settings
 	Network SandboxNetworkParam `json:"network,omitzero"`
 	// Runtime configuration defining how the sandbox VM is provisioned and its
 	// resource limits
