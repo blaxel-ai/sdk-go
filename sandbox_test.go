@@ -56,9 +56,14 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 							Name:         blaxel.String("payment-apis"),
 						}},
 					},
+					Firewall: blaxel.SandboxNetworkFirewallParam{
+						Rulesets: []string{"string"},
+					},
 					ForbiddenDomains: []string{"string"},
 					Proxy: blaxel.SandboxNetworkProxyParam{
-						Bypass: []string{"string"},
+						AllowedDomains:   []string{"string"},
+						Bypass:           []string{"string"},
+						ForbiddenDomains: []string{"string"},
 						Routing: []blaxel.SandboxNetworkProxyRoutingParam{{
 							Body: map[string]string{
 								"0":  "{",
@@ -189,6 +194,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 							},
 						}},
 					},
+					Subnet: blaxel.String("default"),
 				},
 				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
@@ -216,6 +222,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 					Name:      blaxel.String("my-volume"),
 					ReadOnly:  blaxel.Bool(false),
 				}},
+				Vpc: blaxel.String("default"),
 			},
 		},
 		CreateIfNotExist: blaxel.Bool(true),
@@ -302,9 +309,14 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 								Name:         blaxel.String("payment-apis"),
 							}},
 						},
+						Firewall: blaxel.SandboxNetworkFirewallParam{
+							Rulesets: []string{"string"},
+						},
 						ForbiddenDomains: []string{"string"},
 						Proxy: blaxel.SandboxNetworkProxyParam{
-							Bypass: []string{"string"},
+							AllowedDomains:   []string{"string"},
+							Bypass:           []string{"string"},
+							ForbiddenDomains: []string{"string"},
 							Routing: []blaxel.SandboxNetworkProxyRoutingParam{{
 								Body: map[string]string{
 									"0":  "{",
@@ -435,6 +447,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 								},
 							}},
 						},
+						Subnet: blaxel.String("default"),
 					},
 					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{
@@ -462,6 +475,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						Name:      blaxel.String("my-volume"),
 						ReadOnly:  blaxel.Bool(false),
 					}},
+					Vpc: blaxel.String("default"),
 				},
 			},
 		},
