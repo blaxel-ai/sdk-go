@@ -16,6 +16,7 @@ import (
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 	"github.com/blaxel-ai/sdk-go/shared"
@@ -91,11 +92,31 @@ func (r *SandboxService) Update(ctx context.Context, sandboxName string, body Sa
 // response is wrapped in `{data, meta}` and supports cursor pagination via the
 // `cursor` and `limit` query parameters; older versions keep returning a bare
 // array of all sandboxes.
-func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *SandboxListResponse, err error) {
+func (r *SandboxService) List(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) (res *pagination.CursorPage[Sandbox], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	path := "sandboxes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns sandboxes in the workspace. Each sandbox includes its configuration,
+// status, and endpoint URL. Terminated sandboxes are hidden by default; pass
+// `showTerminated=true` to include them. Starting with API version 2026-04-28 the
+// response is wrapped in `{data, meta}` and supports cursor pagination via the
+// `cursor` and `limit` query parameters; older versions keep returning a bare
+// array of all sandboxes.
+func (r *SandboxService) ListAutoPaging(ctx context.Context, query SandboxListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[Sandbox] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, query, opts...))
 }
 
 // Permanently deletes a sandbox and all its data. If no volumes are attached, this
@@ -409,28 +430,36 @@ func (r *SandboxLifecycleParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Network configuration for a sandbox including domain filtering, egress IP
-// binding, and proxy settings
+// Network configuration for a sandbox including subnet, firewall rulesets, domain
+// filtering, egress IP binding, and proxy settings
 type SandboxNetwork struct {
-	// List of allowed external domains (allowlist). When set, only these domains are
-	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	// Deprecated: use proxy.allowedDomains instead. List of allowed external domains
+	// (allowlist). Kept for backward compatibility.
 	AllowedDomains []string `json:"allowedDomains"`
 	// Egress configuration for routing sandbox outbound traffic through a dedicated IP
 	// gateway
 	Egress SandboxNetworkEgress `json:"egress"`
-	// List of forbidden external domains (denylist). When set, all domains except
-	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
-	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	// Firewall configuration specifying which network lockdown rulesets to apply.
+	// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+	// "dedicated-ip" (restrict egress to dedicated IP gateway).
+	Firewall SandboxNetworkFirewall `json:"firewall"`
+	// Deprecated: use proxy.forbiddenDomains instead. List of forbidden external
+	// domains (denylist). Kept for backward compatibility.
 	ForbiddenDomains []string `json:"forbiddenDomains"`
 	// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 	// with MITM inspection and per-destination header/body injection
 	Proxy SandboxNetworkProxy `json:"proxy"`
+	// Subnet name for the sandbox. Takes priority over any subnet derived from egress
+	// config. Defaults to "default" when absent.
+	Subnet string `json:"subnet"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AllowedDomains   respjson.Field
 		Egress           respjson.Field
+		Firewall         respjson.Field
 		ForbiddenDomains respjson.Field
 		Proxy            respjson.Field
+		Subnet           respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
 	} `json:"-"`
@@ -502,24 +531,55 @@ func (r *SandboxNetworkEgressPolicy) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Firewall configuration specifying which network lockdown rulesets to apply.
+// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+// "dedicated-ip" (restrict egress to dedicated IP gateway).
+type SandboxNetworkFirewall struct {
+	// List of firewall rulesets to apply. Valid values: "default" (no-op), "proxy"
+	// (restrict egress to proxy), "dedicated-ip" (restrict egress to dedicated IP
+	// gateway).
+	Rulesets []string `json:"rulesets"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Rulesets    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SandboxNetworkFirewall) RawJSON() string { return r.JSON.raw }
+func (r *SandboxNetworkFirewall) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 // with MITM inspection and per-destination header/body injection
 type SandboxNetworkProxy struct {
+	// List of allowed external domains (allowlist). When set, only these domains are
+	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	AllowedDomains []string `json:"allowedDomains"`
 	// Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to
 	// these destinations goes direct, not through the CONNECT tunnel. Supports
 	// wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12,
 	// 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by
 	// default.
 	Bypass []string `json:"bypass"`
+	// List of forbidden external domains (denylist). When set, all domains except
+	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
+	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	ForbiddenDomains []string `json:"forbiddenDomains"`
 	// Per-destination routing rules with header/body injection and secrets. Use
 	// destinations ["*"] for global rules that apply to all destinations.
 	Routing []SandboxNetworkProxyRouting `json:"routing"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Bypass      respjson.Field
-		Routing     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		AllowedDomains   respjson.Field
+		Bypass           respjson.Field
+		ForbiddenDomains respjson.Field
+		Routing          respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
@@ -563,18 +623,24 @@ func (r *SandboxNetworkProxyRouting) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Network configuration for a sandbox including domain filtering, egress IP
-// binding, and proxy settings
+// Network configuration for a sandbox including subnet, firewall rulesets, domain
+// filtering, egress IP binding, and proxy settings
 type SandboxNetworkParam struct {
-	// List of allowed external domains (allowlist). When set, only these domains are
-	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	// Subnet name for the sandbox. Takes priority over any subnet derived from egress
+	// config. Defaults to "default" when absent.
+	Subnet param.Opt[string] `json:"subnet,omitzero"`
+	// Deprecated: use proxy.allowedDomains instead. List of allowed external domains
+	// (allowlist). Kept for backward compatibility.
 	AllowedDomains []string `json:"allowedDomains,omitzero"`
 	// Egress configuration for routing sandbox outbound traffic through a dedicated IP
 	// gateway
 	Egress SandboxNetworkEgressParam `json:"egress,omitzero"`
-	// List of forbidden external domains (denylist). When set, all domains except
-	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
-	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	// Firewall configuration specifying which network lockdown rulesets to apply.
+	// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+	// "dedicated-ip" (restrict egress to dedicated IP gateway).
+	Firewall SandboxNetworkFirewallParam `json:"firewall,omitzero"`
+	// Deprecated: use proxy.forbiddenDomains instead. List of forbidden external
+	// domains (denylist). Kept for backward compatibility.
 	ForbiddenDomains []string `json:"forbiddenDomains,omitzero"`
 	// Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 	// with MITM inspection and per-destination header/body injection
@@ -631,15 +697,41 @@ func (r *SandboxNetworkEgressPolicyParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Firewall configuration specifying which network lockdown rulesets to apply.
+// Valid rulesets are "default" (no-op), "proxy" (restrict egress to proxy), and
+// "dedicated-ip" (restrict egress to dedicated IP gateway).
+type SandboxNetworkFirewallParam struct {
+	// List of firewall rulesets to apply. Valid values: "default" (no-op), "proxy"
+	// (restrict egress to proxy), "dedicated-ip" (restrict egress to dedicated IP
+	// gateway).
+	Rulesets []string `json:"rulesets,omitzero"`
+	paramObj
+}
+
+func (r SandboxNetworkFirewallParam) MarshalJSON() (data []byte, err error) {
+	type shadow SandboxNetworkFirewallParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *SandboxNetworkFirewallParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Proxy configuration for routing sandbox HTTP traffic through the platform proxy
 // with MITM inspection and per-destination header/body injection
 type SandboxNetworkProxyParam struct {
+	// List of allowed external domains (allowlist). When set, only these domains are
+	// reachable. Supports wildcards (e.g. \*.s3.amazonaws.com).
+	AllowedDomains []string `json:"allowedDomains,omitzero"`
 	// Domains that bypass the proxy entirely via the NO_PROXY directive. Traffic to
 	// these destinations goes direct, not through the CONNECT tunnel. Supports
 	// wildcards. Note that localhost, private ranges (10.0.0.0/8, 172.16.0.0/12,
 	// 192.168.0.0/16), 169.254.169.254, .local and .internal are always bypassed by
 	// default.
 	Bypass []string `json:"bypass,omitzero"`
+	// List of forbidden external domains (denylist). When set, all domains except
+	// these are reachable. Supports wildcards (e.g. \*.malware.com). If both
+	// allowedDomains and forbiddenDomains are set, allowedDomains takes precedence.
+	ForbiddenDomains []string `json:"forbiddenDomains,omitzero"`
 	// Per-destination routing rules with header/body injection and secrets. Use
 	// destinations ["*"] for global rules that apply to all destinations.
 	Routing []SandboxNetworkProxyRoutingParam `json:"routing,omitzero"`
@@ -692,8 +784,8 @@ type SandboxRuntime struct {
 	// deleted
 	Expires string `json:"expires"`
 	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
-	// sandbox runs on. Immutable after creation.
+	// 'nvme', 'nfs'. Values: 'enabled' or 'disabled'. Determines which kernel variant
+	// the sandbox runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -706,8 +798,10 @@ type SandboxRuntime struct {
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds int64 `json:"terminationGracePeriodSeconds"`
-	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
-	// '30m', '24h', '7d')
+	// Max-age from creation: the sandbox is deleted this long after it is created,
+	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
+	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
+	// type ttl-idle.
 	Ttl string `json:"ttl"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -754,15 +848,17 @@ type SandboxRuntimeParam struct {
 	// Duration in seconds the pod needs to terminate gracefully. Defaults to 0 for
 	// immediate termination.
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"terminationGracePeriodSeconds,omitzero"`
-	// Time-to-live duration after which the sandbox is automatically deleted (e.g.,
-	// '30m', '24h', '7d')
+	// Max-age from creation: the sandbox is deleted this long after it is created,
+	// regardless of activity (not an idle timeout). Units s, m, h, d, w (e.g., '30m',
+	// '24h', '7d', '2w'). For idle-based cleanup, use a lifecycle expiration policy of
+	// type ttl-idle.
 	Ttl param.Opt[string] `json:"ttl,omitzero"`
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
 	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme'. Values: 'enabled' or 'disabled'. Determines which kernel variant the
-	// sandbox runs on. Immutable after creation.
+	// 'nvme', 'nfs'. Values: 'enabled' or 'disabled'. Determines which kernel variant
+	// the sandbox runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
@@ -785,8 +881,8 @@ type SandboxSpec struct {
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycle `json:"lifecycle"`
-	// Network configuration for a sandbox including domain filtering, egress IP
-	// binding, and proxy settings
+	// Network configuration for a sandbox including subnet, firewall rulesets, domain
+	// filtering, egress IP binding, and proxy settings
 	Network SandboxNetwork `json:"network"`
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
@@ -795,6 +891,8 @@ type SandboxSpec struct {
 	// resource limits
 	Runtime SandboxRuntime     `json:"runtime"`
 	Volumes []VolumeAttachment `json:"volumes"`
+	// VPC name for the sandbox. Defaults to "default" when absent.
+	Vpc string `json:"vpc"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Enabled     respjson.Field
@@ -803,6 +901,7 @@ type SandboxSpec struct {
 		Region      respjson.Field
 		Runtime     respjson.Field
 		Volumes     respjson.Field
+		Vpc         respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -831,11 +930,13 @@ type SandboxSpecParam struct {
 	// Region where the sandbox should be created (e.g. us-pdx-1, eu-lon-1). If not
 	// specified, defaults to the region closest to the user.
 	Region param.Opt[string] `json:"region,omitzero"`
+	// VPC name for the sandbox. Defaults to "default" when absent.
+	Vpc param.Opt[string] `json:"vpc,omitzero"`
 	// Lifecycle configuration controlling automatic sandbox deletion based on idle
 	// time, max age, or specific dates
 	Lifecycle SandboxLifecycleParam `json:"lifecycle,omitzero"`
-	// Network configuration for a sandbox including domain filtering, egress IP
-	// binding, and proxy settings
+	// Network configuration for a sandbox including subnet, firewall rulesets, domain
+	// filtering, egress IP binding, and proxy settings
 	Network SandboxNetworkParam `json:"network,omitzero"`
 	// Runtime configuration defining how the sandbox VM is provisioned and its
 	// resource limits
@@ -905,58 +1006,6 @@ func (r VolumeAttachmentParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Cursor-paginated list of sandboxes. Returned starting with API version
-// 2026-04-28; older API versions return a bare array.
-type SandboxListResponse struct {
-	// Page of sandboxes. Items use the lite shape (no inline event history) to keep
-	// the page payload small, matching the unpaginated response.
-	Data []Sandbox `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta SandboxListResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxListResponse) RawJSON() string { return r.JSON.raw }
-func (r *SandboxListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type SandboxListResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SandboxListResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *SandboxListResponseMeta) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1078,6 +1127,9 @@ type SandboxListParams struct {
 	// the same query (workspace + filters); the server rejects cursors bound to a
 	// different query or older than 24h. Omit on the first page.
 	Cursor param.Opt[string] `query:"cursor,omitzero" json:"-"`
+	// Filter sandboxes by external ID. When set, only sandboxes matching this
+	// caller-owned identifier are returned.
+	ExternalID param.Opt[string] `query:"externalId,omitzero" json:"-"`
 	// Maximum number of items to return per page. Defaults to 50, clamped to 200.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
 	// Substring search across `metadata.name`, `metadata.displayName` and labels

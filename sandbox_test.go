@@ -31,6 +31,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 			Metadata: blaxel.MetadataParam{
 				Name:        "my-resource",
 				DisplayName: blaxel.String("My Resource"),
+				ExternalID:  blaxel.String("my-session-123"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -56,9 +57,14 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 							Name:         blaxel.String("payment-apis"),
 						}},
 					},
+					Firewall: blaxel.SandboxNetworkFirewallParam{
+						Rulesets: []string{"string"},
+					},
 					ForbiddenDomains: []string{"string"},
 					Proxy: blaxel.SandboxNetworkProxyParam{
-						Bypass: []string{"string"},
+						AllowedDomains:   []string{"string"},
+						Bypass:           []string{"string"},
+						ForbiddenDomains: []string{"string"},
 						Routing: []blaxel.SandboxNetworkProxyRoutingParam{{
 							Body: map[string]string{
 								"0":  "{",
@@ -189,6 +195,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 							},
 						}},
 					},
+					Subnet: blaxel.String("default"),
 				},
 				Region: blaxel.String("us-pdx-1"),
 				Runtime: blaxel.SandboxRuntimeParam{
@@ -216,6 +223,7 @@ func TestSandboxNewWithOptionalParams(t *testing.T) {
 					Name:      blaxel.String("my-volume"),
 					ReadOnly:  blaxel.Bool(false),
 				}},
+				Vpc: blaxel.String("default"),
 			},
 		},
 		CreateIfNotExist: blaxel.Bool(true),
@@ -277,6 +285,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 				Metadata: blaxel.MetadataParam{
 					Name:        "my-resource",
 					DisplayName: blaxel.String("My Resource"),
+					ExternalID:  blaxel.String("my-session-123"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -302,9 +311,14 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 								Name:         blaxel.String("payment-apis"),
 							}},
 						},
+						Firewall: blaxel.SandboxNetworkFirewallParam{
+							Rulesets: []string{"string"},
+						},
 						ForbiddenDomains: []string{"string"},
 						Proxy: blaxel.SandboxNetworkProxyParam{
-							Bypass: []string{"string"},
+							AllowedDomains:   []string{"string"},
+							Bypass:           []string{"string"},
+							ForbiddenDomains: []string{"string"},
 							Routing: []blaxel.SandboxNetworkProxyRoutingParam{{
 								Body: map[string]string{
 									"0":  "{",
@@ -435,6 +449,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 								},
 							}},
 						},
+						Subnet: blaxel.String("default"),
 					},
 					Region: blaxel.String("us-pdx-1"),
 					Runtime: blaxel.SandboxRuntimeParam{
@@ -462,6 +477,7 @@ func TestSandboxUpdateWithOptionalParams(t *testing.T) {
 						Name:      blaxel.String("my-volume"),
 						ReadOnly:  blaxel.Bool(false),
 					}},
+					Vpc: blaxel.String("default"),
 				},
 			},
 		},
@@ -490,6 +506,7 @@ func TestSandboxListWithOptionalParams(t *testing.T) {
 	_, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{
 		Anchor:         blaxel.SandboxListParamsAnchorEnd,
 		Cursor:         blaxel.String("cursor"),
+		ExternalID:     blaxel.String("externalId"),
 		Limit:          blaxel.Int(1),
 		Q:              blaxel.String("q"),
 		ShowTerminated: blaxel.Bool(true),

@@ -16,6 +16,7 @@ import (
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 	"github.com/blaxel-ai/sdk-go/shared"
@@ -82,11 +83,30 @@ func (r *AgentService) Update(ctx context.Context, agentName string, body AgentU
 // API version 2026-04-28 the response is wrapped in `{data, meta}` and supports
 // cursor pagination via the `cursor` and `limit` query parameters; older versions
 // keep returning a bare array with all agents.
-func (r *AgentService) List(ctx context.Context, query AgentListParams, opts ...option.RequestOption) (res *AgentListResponse, err error) {
+func (r *AgentService) List(ctx context.Context, query AgentListParams, opts ...option.RequestOption) (res *pagination.CursorPage[Agent], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	path := "agents"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns AI agents deployed in the workspace. Each agent includes its deployment
+// status, runtime configuration, and global inference endpoint URL. Starting with
+// API version 2026-04-28 the response is wrapped in `{data, meta}` and supports
+// cursor pagination via the `cursor` and `limit` query parameters; older versions
+// keep returning a bare array with all agents.
+func (r *AgentService) ListAutoPaging(ctx context.Context, query AgentListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[Agent] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, query, opts...))
 }
 
 // Permanently deletes an agent and all its deployment history. The agent's
@@ -433,6 +453,8 @@ type Metadata struct {
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName string `json:"displayName"`
+	// Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalID string `json:"externalId"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
@@ -453,6 +475,7 @@ type Metadata struct {
 		CreatedAt   respjson.Field
 		CreatedBy   respjson.Field
 		DisplayName respjson.Field
+		ExternalID  respjson.Field
 		Labels      respjson.Field
 		Plan        respjson.Field
 		UpdatedAt   respjson.Field
@@ -487,6 +510,8 @@ type MetadataParam struct {
 	// Human-readable name for display in the UI. Can contain spaces and special
 	// characters, max 63 characters.
 	DisplayName param.Opt[string] `json:"displayName,omitzero"`
+	// Caller-owned identifier for external lookups. Max 64 chars, alphanumeric + dash.
+	ExternalID param.Opt[string] `json:"externalId,omitzero"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels,omitzero"`
@@ -800,57 +825,6 @@ func (r TriggerConfigurationParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *TriggerConfigurationParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Cursor-paginated list of agents. Returned starting with API version 2026-04-28;
-// older API versions return a bare array of agents instead.
-type AgentListResponse struct {
-	// Page of agents.
-	Data []Agent `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta AgentListResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r AgentListResponse) RawJSON() string { return r.JSON.raw }
-func (r *AgentListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type AgentListResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r AgentListResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *AgentListResponseMeta) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
