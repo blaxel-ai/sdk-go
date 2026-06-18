@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24.0 (2026-06-18)
+
+Full Changelog: [v0.23.0...v0.24.0](https://github.com/blaxel-ai/sdk-go/compare/v0.23.0...v0.24.0)
+
+### Features
+
+* native cursor pagination for list endpoints ([7666730](https://github.com/blaxel-ai/sdk-go/commit/7666730994155cf26e55df9ed4c339c41bb2b898))
+
 ## 0.23.0 (2026-06-18)
 
 Full Changelog: [v0.22.0...v0.23.0](https://github.com/blaxel-ai/sdk-go/compare/v0.22.0...v0.23.0)
