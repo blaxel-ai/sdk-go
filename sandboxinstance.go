@@ -18,6 +18,7 @@ import (
 
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/param"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -313,7 +314,8 @@ func (r *SandboxService) NewInstanceIfNotExists(ctx context.Context, body Sandbo
 	return instance, nil
 }
 
-// UpdateInstanceTTL updates only the TTL of a sandbox without recreating it
+// UpdateInstanceTTL updates only the TTL of a sandbox without recreating it.
+// Pass an empty string to clear the existing TTL.
 func (r *SandboxService) UpdateInstanceTTL(ctx context.Context, sandboxName string, ttl string, opts ...option.RequestOption) (*SandboxInstance, error) {
 	// Get current sandbox first
 	instance, err := r.GetInstance(ctx, sandboxName, opts...)
@@ -327,8 +329,12 @@ func (r *SandboxService) UpdateInstanceTTL(ctx context.Context, sandboxName stri
 		return nil, fmt.Errorf("failed to unmarshal sandbox: %w", err)
 	}
 
-	// Update TTL
-	sandboxParam.Spec.Runtime.Ttl = String(ttl)
+	// Update TTL (empty string clears the TTL)
+	if ttl == "" {
+		sandboxParam.Spec.Runtime.Ttl = param.Null[string]()
+	} else {
+		sandboxParam.Spec.Runtime.Ttl = String(ttl)
+	}
 
 	updateParams := SandboxUpdateParams{
 		Sandbox: sandboxParam,
@@ -337,8 +343,9 @@ func (r *SandboxService) UpdateInstanceTTL(ctx context.Context, sandboxName stri
 	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
 }
 
-// UpdateInstanceLifecycle updates only the lifecycle configuration of a sandbox without recreating it
-func (r *SandboxService) UpdateInstanceLifecycle(ctx context.Context, sandboxName string, lifecycle SandboxLifecycleParam, opts ...option.RequestOption) (*SandboxInstance, error) {
+// UpdateInstanceLifecycle updates only the lifecycle configuration of a sandbox without recreating it.
+// Pass nil to clear all lifecycle policies.
+func (r *SandboxService) UpdateInstanceLifecycle(ctx context.Context, sandboxName string, lifecycle *SandboxLifecycleParam, opts ...option.RequestOption) (*SandboxInstance, error) {
 	// Get current sandbox first
 	instance, err := r.GetInstance(ctx, sandboxName, opts...)
 	if err != nil {
@@ -351,8 +358,12 @@ func (r *SandboxService) UpdateInstanceLifecycle(ctx context.Context, sandboxNam
 		return nil, fmt.Errorf("failed to unmarshal sandbox: %w", err)
 	}
 
-	// Update lifecycle
-	sandboxParam.Spec.Lifecycle = lifecycle
+	// Update lifecycle (nil clears all lifecycle policies)
+	if lifecycle != nil {
+		sandboxParam.Spec.Lifecycle = *lifecycle
+	} else {
+		sandboxParam.Spec.Lifecycle = param.NullStruct[SandboxLifecycleParam]()
+	}
 
 	updateParams := SandboxUpdateParams{
 		Sandbox: sandboxParam,
