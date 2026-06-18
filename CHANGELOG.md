@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.23.0 (2026-06-18)
+
+Full Changelog: [v0.22.0...v0.23.0](https://github.com/blaxel-ai/sdk-go/compare/v0.22.0...v0.23.0)
+
+### Features
+
+* allow UpdateInstanceTTL and UpdateInstanceLifecycle to clear values (ENG-3189) ([#43](https://github.com/blaxel-ai/sdk-go/issues/43)) ([f999f04](https://github.com/blaxel-ai/sdk-go/commit/f999f04a4902a5761535b6fb1bdda2433c7bb885))
+
 ## 0.22.0 (2026-05-26)
 
 Full Changelog: [v0.21.0...v0.22.0](https://github.com/blaxel-ai/sdk-go/compare/v0.21.0...v0.22.0)
