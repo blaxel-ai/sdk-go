@@ -4,7 +4,6 @@ package blaxel_test
 
 import (
 	"context"
-	"errors"
 	"os"
 	"testing"
 
@@ -13,7 +12,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
-func TestUpgradeTriggerWithOptionalParams(t *testing.T) {
+func TestAutoPagination(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,15 +24,13 @@ func TestUpgradeTriggerWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Upgrade.Trigger(context.TODO(), blaxel.UpgradeTriggerParams{
-		BaseURL: blaxel.String("https://github.com/blaxel-ai/sandbox/releases"),
-		Version: blaxel.String("latest"),
-	})
-	if err != nil {
-		var apierr *blaxel.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
+	iter := client.Sandboxes.ListAutoPaging(context.TODO(), blaxel.SandboxListParams{})
+	// The mock server isn't going to give us real pagination
+	for i := 0; i < 3 && iter.Next(); i++ {
+		sandbox := iter.Current()
+		t.Logf("%+v\n", sandbox.Metadata)
+	}
+	if err := iter.Err(); err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())
 	}
 }
