@@ -31,6 +31,7 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 			Metadata: blaxel.MetadataParam{
 				Name:        "my-resource",
 				DisplayName: blaxel.String("My Resource"),
+				ExternalID:  blaxel.String("my-session-123"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -59,7 +60,12 @@ func TestFunctionNewWithOptionalParams(t *testing.T) {
 					MaxScale:   blaxel.Int(10),
 					Memory:     blaxel.Int(2048),
 					MinScale:   blaxel.Int(0),
-					Transport:  blaxel.FunctionRuntimeTransportHTTPStream,
+					Ports: []blaxel.PortParam{{
+						Target:   8080,
+						Name:     blaxel.String("http"),
+						Protocol: blaxel.PortProtocolHTTP,
+					}},
+					Transport: blaxel.FunctionRuntimeTransportHTTPStream,
 				},
 				Triggers: []blaxel.TriggerParam{{
 					ID: blaxel.String("trigger-1"),
@@ -135,6 +141,7 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 				Metadata: blaxel.MetadataParam{
 					Name:        "my-resource",
 					DisplayName: blaxel.String("My Resource"),
+					ExternalID:  blaxel.String("my-session-123"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
@@ -163,7 +170,12 @@ func TestFunctionUpdateWithOptionalParams(t *testing.T) {
 						MaxScale:   blaxel.Int(10),
 						Memory:     blaxel.Int(2048),
 						MinScale:   blaxel.Int(0),
-						Transport:  blaxel.FunctionRuntimeTransportHTTPStream,
+						Ports: []blaxel.PortParam{{
+							Target:   8080,
+							Name:     blaxel.String("http"),
+							Protocol: blaxel.PortProtocolHTTP,
+						}},
+						Transport: blaxel.FunctionRuntimeTransportHTTPStream,
 					},
 					Triggers: []blaxel.TriggerParam{{
 						ID: blaxel.String("trigger-1"),
