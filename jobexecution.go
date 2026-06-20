@@ -15,6 +15,7 @@ import (
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
@@ -73,15 +74,33 @@ func (r *JobExecutionService) Get(ctx context.Context, executionID string, query
 // response is wrapped in `{data, meta}` and supports cursor pagination via the
 // `cursor` and `limit` query parameters; older versions keep the legacy
 // offset/limit contract and return a bare array.
-func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobExecutionListParams, opts ...option.RequestOption) (res *JobExecutionListResponse, err error) {
+func (r *JobExecutionService) List(ctx context.Context, jobID string, query JobExecutionListParams, opts ...option.RequestOption) (res *pagination.CursorPage[JobExecution], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/executions", jobID)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns executions for a batch job. Starting with API version 2026-04-28 the
+// response is wrapped in `{data, meta}` and supports cursor pagination via the
+// `cursor` and `limit` query parameters; older versions keep the legacy
+// offset/limit contract and return a bare array.
+func (r *JobExecutionService) ListAutoPaging(ctx context.Context, jobID string, query JobExecutionListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[JobExecution] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, jobID, query, opts...))
 }
 
 // Cancels a running job execution. Tasks already in progress will complete, but no
@@ -106,8 +125,10 @@ func (r *JobExecutionService) Delete(ctx context.Context, executionID string, bo
 // from event history each request; only the in-memory slicing is paginated, the
 // events scan still fetches the whole event log behind the scenes. Available
 // starting with API version 2026-04-28.
-func (r *JobExecutionService) ListTasks(ctx context.Context, executionID string, params JobExecutionListTasksParams, opts ...option.RequestOption) (res *JobExecutionListTasksResponse, err error) {
+func (r *JobExecutionService) ListTasks(ctx context.Context, executionID string, params JobExecutionListTasksParams, opts ...option.RequestOption) (res *pagination.CursorPage[JobExecutionListTasksResponse], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	if params.JobID == "" {
 		err = errors.New("missing required jobId parameter")
 		return nil, err
@@ -117,8 +138,24 @@ func (r *JobExecutionService) ListTasks(ctx context.Context, executionID string,
 		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s/executions/%s/tasks", params.JobID, executionID)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns one cursor-paginated page of an execution's tasks. Tasks are derived
+// from event history each request; only the in-memory slicing is paginated, the
+// events scan still fetches the whole event log behind the scenes. Available
+// starting with API version 2026-04-28.
+func (r *JobExecutionService) ListTasksAutoPaging(ctx context.Context, executionID string, params JobExecutionListTasksParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[JobExecutionListTasksResponse] {
+	return pagination.NewCursorPageAutoPager(r.ListTasks(ctx, executionID, params, opts...))
 }
 
 // Response returned when a job execution is successfully created. Contains
@@ -155,95 +192,19 @@ func (r *JobExecutionNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Cursor-paginated list of job executions. Returned starting with API version
-// 2026-04-28; older API versions keep the legacy offset-based contract and return
-// a bare array.
-type JobExecutionListResponse struct {
-	// Page of job executions.
-	Data []JobExecution `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta JobExecutionListResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r JobExecutionListResponse) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type JobExecutionListResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r JobExecutionListResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListResponseMeta) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Cursor-paginated list of an execution's tasks. Tasks are derived from event
-// history; pagination slices the in-memory list and the cursor is a base64-JSON
-// offset bound to (workspace, job, execution).
-type JobExecutionListTasksResponse struct {
-	// Page of execution tasks.
-	Data []JobExecutionListTasksResponseData `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta JobExecutionListTasksResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r JobExecutionListTasksResponse) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListTasksResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Job execution task
-type JobExecutionListTasksResponseData struct {
+type JobExecutionListTasksResponse struct {
 	// Task conditions
-	Conditions []JobExecutionListTasksResponseDataCondition `json:"conditions"`
+	Conditions []JobExecutionListTasksResponseCondition `json:"conditions"`
 	// Job execution task metadata
-	Metadata JobExecutionListTasksResponseDataMetadata `json:"metadata"`
+	Metadata JobExecutionListTasksResponseMetadata `json:"metadata"`
 	// Job execution task specification
-	Spec JobExecutionListTasksResponseDataSpec `json:"spec"`
+	Spec JobExecutionListTasksResponseSpec `json:"spec"`
 	// Job execution task status
 	//
 	// Any of "unspecified", "pending", "reconciling", "failed", "succeeded",
 	// "running", "cancelled".
-	Status string `json:"status"`
+	Status JobExecutionListTasksResponseStatus `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Conditions  respjson.Field
@@ -256,13 +217,13 @@ type JobExecutionListTasksResponseData struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r JobExecutionListTasksResponseData) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListTasksResponseData) UnmarshalJSON(data []byte) error {
+func (r JobExecutionListTasksResponse) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Job execution task condition
-type JobExecutionListTasksResponseDataCondition struct {
+type JobExecutionListTasksResponseCondition struct {
 	// Execution reason
 	ExecutionReason string `json:"executionReason"`
 	// Condition message
@@ -289,13 +250,13 @@ type JobExecutionListTasksResponseDataCondition struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r JobExecutionListTasksResponseDataCondition) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListTasksResponseDataCondition) UnmarshalJSON(data []byte) error {
+func (r JobExecutionListTasksResponseCondition) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseCondition) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Job execution task metadata
-type JobExecutionListTasksResponseDataMetadata struct {
+type JobExecutionListTasksResponseMetadata struct {
 	// Completion timestamp
 	CompletedAt string `json:"completedAt"`
 	// Creation timestamp
@@ -322,13 +283,13 @@ type JobExecutionListTasksResponseDataMetadata struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r JobExecutionListTasksResponseDataMetadata) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListTasksResponseDataMetadata) UnmarshalJSON(data []byte) error {
+func (r JobExecutionListTasksResponseMetadata) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseMetadata) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Job execution task specification
-type JobExecutionListTasksResponseDataSpec struct {
+type JobExecutionListTasksResponseSpec struct {
 	// Maximum number of retries
 	MaxRetries int64 `json:"maxRetries"`
 	// Task timeout duration
@@ -343,38 +304,23 @@ type JobExecutionListTasksResponseDataSpec struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r JobExecutionListTasksResponseDataSpec) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListTasksResponseDataSpec) UnmarshalJSON(data []byte) error {
+func (r JobExecutionListTasksResponseSpec) RawJSON() string { return r.JSON.raw }
+func (r *JobExecutionListTasksResponseSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type JobExecutionListTasksResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
+// Job execution task status
+type JobExecutionListTasksResponseStatus string
 
-// Returns the unmodified JSON received from the API
-func (r JobExecutionListTasksResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *JobExecutionListTasksResponseMeta) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	JobExecutionListTasksResponseStatusUnspecified JobExecutionListTasksResponseStatus = "unspecified"
+	JobExecutionListTasksResponseStatusPending     JobExecutionListTasksResponseStatus = "pending"
+	JobExecutionListTasksResponseStatusReconciling JobExecutionListTasksResponseStatus = "reconciling"
+	JobExecutionListTasksResponseStatusFailed      JobExecutionListTasksResponseStatus = "failed"
+	JobExecutionListTasksResponseStatusSucceeded   JobExecutionListTasksResponseStatus = "succeeded"
+	JobExecutionListTasksResponseStatusRunning     JobExecutionListTasksResponseStatus = "running"
+	JobExecutionListTasksResponseStatusCancelled   JobExecutionListTasksResponseStatus = "cancelled"
+)
 
 type JobExecutionNewParams struct {
 	// Request to create a job execution
