@@ -31,6 +31,7 @@ func TestAgentNewWithOptionalParams(t *testing.T) {
 			Metadata: blaxel.MetadataParam{
 				Name:        "my-resource",
 				DisplayName: blaxel.String("My Resource"),
+				ExternalID:  blaxel.String("my-session-123"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -142,6 +143,7 @@ func TestAgentUpdateWithOptionalParams(t *testing.T) {
 				Metadata: blaxel.MetadataParam{
 					Name:        "my-resource",
 					DisplayName: blaxel.String("My Resource"),
+					ExternalID:  blaxel.String("my-session-123"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
