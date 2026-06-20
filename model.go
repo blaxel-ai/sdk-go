@@ -15,8 +15,8 @@ import (
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
-	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
 
 // ModelService contains methods and other services that help with interacting with
@@ -80,11 +80,31 @@ func (r *ModelService) Update(ctx context.Context, modelName string, body ModelU
 // wrapped in `{data, meta}` and supports cursor pagination via the `cursor` and
 // `limit` query parameters; older versions keep returning a bare array with all
 // models.
-func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *ModelListResponse, err error) {
+func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *pagination.CursorPage[Model], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	path := "models"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns model gateway endpoints configured in the workspace. Each model
+// represents a proxy to an external LLM provider (OpenAI, Anthropic, etc.) with
+// unified access control. Starting with API version 2026-04-28 the response is
+// wrapped in `{data, meta}` and supports cursor pagination via the `cursor` and
+// `limit` query parameters; older versions keep returning a bare array with all
+// models.
+func (r *ModelService) ListAutoPaging(ctx context.Context, query ModelListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[Model] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, query, opts...))
 }
 
 // Permanently deletes a model gateway endpoint. Any agents or applications using
@@ -110,57 +130,6 @@ func (r *ModelService) ListRevisions(ctx context.Context, modelName string, opts
 	path := fmt.Sprintf("models/%s/revisions", modelName)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
-}
-
-// Cursor-paginated list of model gateway endpoints. Returned starting with API
-// version 2026-04-28; older API versions return a bare array.
-type ModelListResponse struct {
-	// Page of models.
-	Data []Model `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta ModelListResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelListResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type ModelListResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelListResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *ModelListResponseMeta) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
 }
 
 type ModelNewParams struct {
