@@ -8,9 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/blaxel-ai/sdk-go/internal/apijson"
+	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	shimjson "github.com/blaxel-ai/sdk-go/internal/encoding/json"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
@@ -40,14 +42,14 @@ func NewSandboxPreviewService(opts ...option.RequestOption) (r SandboxPreviewSer
 }
 
 // Create a preview
-func (r *SandboxPreviewService) New(ctx context.Context, sandboxName string, body SandboxPreviewNewParams, opts ...option.RequestOption) (res *Preview, err error) {
+func (r *SandboxPreviewService) New(ctx context.Context, sandboxName string, params SandboxPreviewNewParams, opts ...option.RequestOption) (res *Preview, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if sandboxName == "" {
 		err = errors.New("missing required sandboxName parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("sandboxes/%s/previews", sandboxName)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
 
@@ -334,6 +336,9 @@ func (r *PreviewSpecParam) UnmarshalJSON(data []byte) error {
 type SandboxPreviewNewParams struct {
 	// Preview of a Resource
 	Preview PreviewParam
+	// Force creation by replacing conflicting previews that use the same custom domain
+	// prefix URL
+	Force param.Opt[bool] `query:"force,omitzero" json:"-"`
 	paramObj
 }
 
@@ -342,6 +347,15 @@ func (r SandboxPreviewNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *SandboxPreviewNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// URLQuery serializes [SandboxPreviewNewParams]'s query parameters as
+// `url.Values`.
+func (r SandboxPreviewNewParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type SandboxPreviewGetParams struct {
