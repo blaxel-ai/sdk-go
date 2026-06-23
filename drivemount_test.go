@@ -51,7 +51,9 @@ func TestDriveMountAttachWithOptionalParams(t *testing.T) {
 		DriveName: "driveName",
 		MountPath: "mountPath",
 		DrivePath: blaxel.String("drivePath"),
+		GidMap:    blaxel.String("gidMap"),
 		ReadOnly:  blaxel.Bool(true),
+		UidMap:    blaxel.String("uidMap"),
 	})
 	if err != nil {
 		var apierr *blaxel.Error
