@@ -102,10 +102,13 @@ func (r *SandboxInstanceListResponse) NextPage(ctx context.Context) (*SandboxIns
 
 // SessionWithToken represents a session with its authentication token
 type SessionWithToken struct {
-	Name      string
-	URL       string
-	Token     string
-	ExpiresAt time.Time
+	Name string
+	// SandboxName is the name of the sandbox this session belongs to. The
+	// session Name itself is "session-<timestamp>" and does not encode it.
+	SandboxName string
+	URL         string
+	Token       string
+	ExpiresAt   time.Time
 }
 
 // SessionCreateOptions contains options for creating a session
@@ -394,10 +397,15 @@ func (r *SandboxService) UpdateInstanceMetadata(ctx context.Context, sandboxName
 
 // FromSession creates a SandboxInstance from a session token for preview-based access
 func (r *SandboxService) FromSession(session SessionWithToken, opts ...option.RequestOption) *SandboxInstance {
-	// Extract sandbox name from session name if it contains a separator
-	sandboxName := session.Name
-	if idx := strings.Index(session.Name, "-"); idx > 0 {
-		sandboxName = session.Name[:idx]
+	// Prefer the explicit sandbox name carried by the session. Session names
+	// are "session-<timestamp>", so they do NOT encode the sandbox name; fall
+	// back to the legacy hyphen-split only for sessions built without it.
+	sandboxName := session.SandboxName
+	if sandboxName == "" {
+		sandboxName = session.Name
+		if idx := strings.Index(session.Name, "-"); idx > 0 {
+			sandboxName = session.Name[:idx]
+		}
 	}
 
 	// Create a minimal sandbox configuration for session-based access
@@ -1397,10 +1405,11 @@ func (r *SandboxInstanceSessionService) Create(ctx context.Context, opts *Sessio
 	tokenExpiresAt, _ := time.Parse(time.RFC3339, token.Spec.ExpiresAt)
 
 	return &SessionWithToken{
-		Name:      sessionName,
-		URL:       preview.Spec.URL,
-		Token:     token.Spec.Token,
-		ExpiresAt: tokenExpiresAt,
+		Name:        sessionName,
+		SandboxName: r.sandboxName,
+		URL:         preview.Spec.URL,
+		Token:       token.Spec.Token,
+		ExpiresAt:   tokenExpiresAt,
 	}, nil
 }
 
@@ -1465,10 +1474,11 @@ func (r *SandboxInstanceSessionService) List(ctx context.Context) ([]SessionWith
 		expiresAt, _ := time.Parse(time.RFC3339, token.Spec.ExpiresAt)
 
 		sessions = append(sessions, SessionWithToken{
-			Name:      preview.Metadata.Name,
-			URL:       preview.Spec.URL,
-			Token:     token.Spec.Token,
-			ExpiresAt: expiresAt,
+			Name:        preview.Metadata.Name,
+			SandboxName: r.sandboxName,
+			URL:         preview.Spec.URL,
+			Token:       token.Spec.Token,
+			ExpiresAt:   expiresAt,
 		})
 	}
 
@@ -1502,10 +1512,11 @@ func (r *SandboxInstanceSessionService) Get(ctx context.Context, name string) (*
 	}
 
 	return &SessionWithToken{
-		Name:      name,
-		URL:       preview.Spec.URL,
-		Token:     tokenValue,
-		ExpiresAt: expiresAt,
+		Name:        name,
+		SandboxName: r.sandboxName,
+		URL:         preview.Spec.URL,
+		Token:       tokenValue,
+		ExpiresAt:   expiresAt,
 	}, nil
 }
 

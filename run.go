@@ -5,6 +5,7 @@ package blaxel
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/blaxel-ai/sdk-go/option"
@@ -30,29 +31,36 @@ var resourceTypes = []ResourceType{
 // Returns empty string if metadata URL is not available or on error.
 func (r *Client) getResourceMetadataURL(ctx context.Context, resourceType string, resourceName string, opts ...option.RequestOption) string {
 	rt := strings.ToLower(resourceType)
+	var metaURL string
 	switch rt {
 	case "agent", "agents":
 		agent, err := r.Agents.Get(ctx, resourceName, AgentGetParams{}, opts...)
-		if err == nil && agent != nil && agent.Metadata.URL != "" {
-			return agent.Metadata.URL
+		if err == nil && agent != nil {
+			metaURL = agent.Metadata.URL
 		}
 	case "function", "functions":
 		function, err := r.Functions.Get(ctx, resourceName, FunctionGetParams{}, opts...)
-		if err == nil && function != nil && function.Metadata.URL != "" {
-			return function.Metadata.URL
+		if err == nil && function != nil {
+			metaURL = function.Metadata.URL
 		}
 	case "model", "models":
 		model, err := r.Models.Get(ctx, resourceName, opts...)
-		if err == nil && model != nil && model.Metadata.URL != "" {
-			return model.Metadata.URL
+		if err == nil && model != nil {
+			metaURL = model.Metadata.URL
 		}
 	case "sandbox", "sandboxes":
 		sandbox, err := r.Sandboxes.Get(ctx, resourceName, SandboxGetParams{}, opts...)
-		if err == nil && sandbox != nil && sandbox.Metadata.URL != "" {
-			return sandbox.Metadata.URL
+		if err == nil && sandbox != nil {
+			metaURL = sandbox.Metadata.URL
 		}
 	}
-	return ""
+	// Only accept http(s) base URLs. This rejects credential-leaking schemes
+	// (file://, gopher://, etc.) if resource metadata is ever poisoned; an
+	// unusable value falls back to the constructed run URL in the caller.
+	if u, err := url.Parse(metaURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return ""
+	}
+	return metaURL
 }
 
 // Run makes an HTTP request to the run endpoint for a resource.

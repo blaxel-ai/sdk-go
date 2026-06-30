@@ -59,7 +59,9 @@ func (c Credentials) AuthHeaders(ctx context.Context, workspace string) (map[str
 	headers := make(map[string]string)
 
 	if c.APIKey != "" {
-		headers["X-Blaxel-Authorization"] = "Bearer " + c.APIKey
+		// API keys go on the standard Authorization header, matching
+		// option.WithAPIKey. (OAuth/access-token flows use X-Blaxel-Authorization.)
+		headers["Authorization"] = "Bearer " + c.APIKey
 	} else if c.AccessToken != "" && c.RefreshToken != "" {
 		// Access token with refresh token - check if refresh needed
 		baseURL, _ := url.Parse(GetBaseURL())

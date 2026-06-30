@@ -13,6 +13,11 @@ import (
 	officialMcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// maxWebSocketMessageSize bounds a single incoming WebSocket frame (32 MiB).
+// Generous enough for large MCP tool results while preventing a peer from
+// forcing unbounded memory allocation.
+const maxWebSocketMessageSize = 32 * 1024 * 1024
+
 // WebSocketTransport implements the MCP Transport interface for WebSocket connections
 type WebSocketTransport struct {
 	url     string
@@ -41,6 +46,10 @@ func (t *WebSocketTransport) Connect(ctx context.Context) (officialMcp.Connectio
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to WebSocket: %w", err)
 	}
+
+	// Bound a single frame so a malicious or buggy peer cannot exhaust memory
+	// by sending an unbounded message before it is parsed.
+	conn.SetReadLimit(maxWebSocketMessageSize)
 
 	return &WebSocketConnection{
 		conn: conn,
