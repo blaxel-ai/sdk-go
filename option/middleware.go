@@ -10,7 +10,7 @@ import (
 
 // sensitiveLogHeaders are redacted before request and response content is
 // written to the debug logger.
-var sensitiveLogHeaders = []string{"authorization", "x-blaxel-authorization", "api-key", "x-api-key", "cookie", "set-cookie"}
+var sensitiveLogHeaders = []string{"authorization", "x-blaxel-authorization", "x-blaxel-preview-token", "api-key", "x-api-key", "cookie", "set-cookie"}
 
 // WithDebugLog logs the HTTP request and response content.
 // If the logger parameter is nil, it uses the default logger.

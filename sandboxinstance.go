@@ -870,10 +870,17 @@ func (r *SandboxInstanceFSService) RM(ctx context.Context, path string, recursiv
 	}, opts...)
 }
 
+// shellQuote wraps s in single quotes for safe use inside a shell command,
+// escaping any embedded single quotes. Prevents shell metacharacters in paths
+// from being interpreted (and lets paths with spaces work correctly).
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
 // CP copies files using the process service
 func (r *SandboxInstanceFSService) CP(ctx context.Context, source string, destination string, processService *SandboxInstanceProcessService) error {
 	resp, err := processService.New(ctx, ProcessRequestParam{
-		Command:           fmt.Sprintf("cp -r %s %s", source, destination),
+		Command:           fmt.Sprintf("cp -r %s %s", shellQuote(source), shellQuote(destination)),
 		WaitForCompletion: Bool(true),
 	})
 	if err != nil {
