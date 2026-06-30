@@ -238,45 +238,47 @@ func WriteConfig(config Config) error {
 	}
 	configPath := filepath.Join(home, ".blaxel")
 
-	// Ensure directory exists
-	if err := os.MkdirAll(configPath, 0755); err != nil {
+	// Ensure directory exists (0700: contains credentials, keep it private)
+	if err := os.MkdirAll(configPath, 0700); err != nil {
 		return err
 	}
 
 	var buf bytes.Buffer
 
-	// Write context
+	// Write context. All string scalars are emitted via %q so values
+	// containing YAML metacharacters (colons, newlines, #, quotes) cannot
+	// corrupt the file or inject keys.
 	buf.WriteString("context:\n")
-	buf.WriteString(fmt.Sprintf("  workspace: %s\n", config.Context.Workspace))
+	buf.WriteString(fmt.Sprintf("  workspace: %q\n", config.Context.Workspace))
 
 	// Write workspaces
 	buf.WriteString("workspaces:\n")
 	for _, ws := range config.Workspaces {
-		buf.WriteString(fmt.Sprintf("- name: %s\n", ws.Name))
+		buf.WriteString(fmt.Sprintf("- name: %q\n", ws.Name))
 		if ws.ID != "" {
-			buf.WriteString(fmt.Sprintf("  id: %s\n", ws.ID))
+			buf.WriteString(fmt.Sprintf("  id: %q\n", ws.ID))
 		}
 		buf.WriteString("  credentials:\n")
 		if ws.Credentials.APIKey != "" {
-			buf.WriteString(fmt.Sprintf("    apiKey: \"%s\"\n", ws.Credentials.APIKey))
+			buf.WriteString(fmt.Sprintf("    apiKey: %q\n", ws.Credentials.APIKey))
 		}
 		if ws.Credentials.AccessToken != "" {
-			buf.WriteString(fmt.Sprintf("    access_token: %s\n", ws.Credentials.AccessToken))
+			buf.WriteString(fmt.Sprintf("    access_token: %q\n", ws.Credentials.AccessToken))
 		}
 		if ws.Credentials.RefreshToken != "" {
-			buf.WriteString(fmt.Sprintf("    refresh_token: %s\n", ws.Credentials.RefreshToken))
+			buf.WriteString(fmt.Sprintf("    refresh_token: %q\n", ws.Credentials.RefreshToken))
 		}
 		if ws.Credentials.ExpiresIn > 0 {
 			buf.WriteString(fmt.Sprintf("    expires_in: %d\n", ws.Credentials.ExpiresIn))
 		}
 		if ws.Credentials.DeviceCode != "" {
-			buf.WriteString(fmt.Sprintf("    device_code: %s\n", ws.Credentials.DeviceCode))
+			buf.WriteString(fmt.Sprintf("    device_code: %q\n", ws.Credentials.DeviceCode))
 		}
 		if ws.Credentials.ClientCredentials != "" {
-			buf.WriteString(fmt.Sprintf("    client_credentials: \"%s\"\n", ws.Credentials.ClientCredentials))
+			buf.WriteString(fmt.Sprintf("    client_credentials: %q\n", ws.Credentials.ClientCredentials))
 		}
 		if ws.Env != "" {
-			buf.WriteString(fmt.Sprintf("  env: \"%s\"\n", ws.Env))
+			buf.WriteString(fmt.Sprintf("  env: %q\n", ws.Env))
 		}
 	}
 
@@ -340,9 +342,12 @@ func IsTrackingConfigured() bool {
 
 // SetTracking saves the tracking preference
 func SetTracking(enabled bool) {
-	// Set environment variable for this session
+	// Set environment variable for this session. Clear it on enable so
+	// re-enabling within the same process actually takes effect.
 	if !enabled {
 		os.Setenv("DO_NOT_TRACK", "1")
+	} else {
+		os.Unsetenv("DO_NOT_TRACK")
 	}
 
 	// Save to config file

@@ -260,7 +260,7 @@ func WithRequestTimeout(dur time.Duration) RequestOption {
 }
 
 // WithAPIKey returns a RequestOption that sets the client setting "api_key".
-// Optionally accepts a custom header name (defaults to "X-Blaxel-Authorization").
+// Optionally accepts a custom header name (defaults to "Authorization").
 func WithAPIKey(value string, header ...string) RequestOption {
 	headerName := "Authorization"
 	if len(header) > 0 && header[0] != "" {

@@ -635,6 +635,15 @@ func (cfg *RequestConfig) Clone(ctx context.Context) *RequestConfig {
 		APIKey:         cfg.APIKey,
 		ClientID:       cfg.ClientID,
 		ClientSecret:   cfg.ClientSecret,
+		// Carry authentication state so cloned configs (e.g. pagination's
+		// GetNextPage) can still refresh tokens and re-auth on later pages.
+		Workspace:          cfg.Workspace,
+		AccessToken:        cfg.AccessToken,
+		RefreshToken:       cfg.RefreshToken,
+		DeviceCode:         cfg.DeviceCode,
+		ExpiresIn:          cfg.ExpiresIn,
+		OAuth2State:        cfg.OAuth2State,
+		OAuth2RefreshState: cfg.OAuth2RefreshState,
 	}
 
 	return new
