@@ -70,6 +70,11 @@ func (c *WebSocketConnection) Read(ctx context.Context) (jsonrpc.Message, error)
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
+			// Honor the caller's deadline so a stalled peer cannot block
+			// ReadMessage indefinitely after the context times out.
+			if dl, ok := ctx.Deadline(); ok {
+				_ = c.conn.SetReadDeadline(dl)
+			}
 			_, message, err := c.conn.ReadMessage()
 			if err != nil {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
@@ -106,6 +111,11 @@ func (c *WebSocketConnection) Write(ctx context.Context, msg jsonrpc.Message) er
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
+	}
+
+	// Honor the caller's deadline so a stalled peer cannot block the write.
+	if dl, ok := ctx.Deadline(); ok {
+		_ = c.conn.SetWriteDeadline(dl)
 	}
 
 	return c.conn.WriteMessage(websocket.TextMessage, data)

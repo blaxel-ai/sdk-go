@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +10,28 @@ import (
 
 	officialMcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
+
+// stripHeadersOnHostChange returns a CheckRedirect that drops the given
+// injected headers when a redirect crosses to a different host, so MCP auth
+// credentials cannot leak to an attacker-controlled redirect target. It keeps
+// the stdlib default of stopping after 10 redirects.
+func stripHeadersOnHostChange(headers map[string]string) func(*http.Request, []*http.Request) error {
+	keys := make([]string, 0, len(headers))
+	for k := range headers {
+		keys = append(keys, k)
+	}
+	return func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+		if len(via) > 0 && req.URL.Host != via[len(via)-1].URL.Host {
+			for _, k := range keys {
+				req.Header.Del(k)
+			}
+		}
+		return nil
+	}
+}
 
 // TransportType defines the type of transport to use
 type TransportType string
@@ -127,6 +150,7 @@ func createHTTPStreamClient(ctx context.Context, serverURL string, authHeaders m
 			base:    http.DefaultTransport,
 			headers: authHeaders,
 		},
+		CheckRedirect: stripHeadersOnHostChange(authHeaders),
 	}
 
 	// Ensure URL ends with /mcp for HTTP stream
