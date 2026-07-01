@@ -1,18 +1,21 @@
 name: Promote SDKs
 
-# Promote staging to production by fast-forwarding production `main` up to the
-# staging trunk, preserving commit SHAs. Because the SHAs are preserved,
-# production `main` and staging `main` stay identical and linear, the sealed
-# custom-code commit stays an ancestor of both, and there is no divergence to
-# heal on the next `stlc build`.
+# Merge-commit PR promote — use this variant only when the PRODUCTION repo
+# requires a pull request for changes to `main` (so the fast-forward direct
+# push in examples/sdk-repo can't be used on that boundary). If production can
+# take a direct push, use the fast-forward promote instead — it's simpler.
 #
-# Manual dispatch (workflow_dispatch): spec/codegen changes accumulate on
-# staging `main`, and a maintainer promotes the batch in one fast-forward when
-# ready to cut a release. Optionally gate each run behind a required-reviewer
-# approval — see the `environment` note on the job below. release-please then
-# opens its version/changelog PR on production on top.
+# This pushes staging `main` to a `stainless/release` branch on production and
+# opens a PR. **Merge that PR with a MERGE COMMIT — never squash or rebase.**
+# A merge commit keeps staging's commits reachable, so production stays a clean
+# descendant of staging and the back-sync still fast-forwards; squash/rebase
+# rewrite the SHAs and fork the two trunks apart.
+#
+# Lives in the STAGING repo. Requires PRODUCTION_REPO_TOKEN with Contents +
+# Pull requests: write on the production repo.
 on:
-  workflow_dispatch: {}
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -21,10 +24,6 @@ jobs:
   promote:
     runs-on: ubuntu-latest
     if: github.repository == 'blaxel-ai/sdk-go-staging'
-    # Optional: add required reviewers on each promote run before the fast-forward push. 
-    # With no reviewers it only scopes secrets/variables and adds no gate, so the manual dispatch
-    # above is the only checkpoint. Remove this line if you don't use it.
-    environment: production
     env:
       PRODUCTION_REPO: blaxel-ai/sdk-go
       GH_TOKEN: ${{ secrets.PRODUCTION_REPO_TOKEN }}
@@ -44,27 +43,46 @@ jobs:
       - name: Check whether production already has staging's content
         id: diff
         run: |
-          # After a release, production carries release-please's version/changelog 
-          # commits that staging lacks. Ask whether merging staging into production 
-          # would change production's tree: if not, production already has staging's content.
+          # Compare by CONTENT, not commit SHA. After a release, production
+          # carries release-please's version/changelog commits that staging
+          # lacks, so the SHAs always differ — a SHA check would re-open a
+          # spurious release PR on every push. Ask whether merging staging into
+          # production would change production's tree: if not, production
+          # already has everything on staging and there is nothing to release.
           MERGED=$(git merge-tree --write-tree production/main origin/main) || MERGED=conflict
           PRODUCTION_TREE=$(git rev-parse 'production/main^{tree}')
           if [ "$MERGED" = "$PRODUCTION_TREE" ]; then
-            echo "Production already contains staging's content. Nothing to promote."
+            echo "Production already contains staging's content. Nothing to release."
             echo "synced=true" >> "$GITHUB_OUTPUT"
           else
             echo "synced=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Promote staging to production (fast-forward)
+      - name: Push staging main to the release branch on production
         if: steps.diff.outputs.synced == 'false'
         run: |
-          # Refuse unless production/main is an ancestor of staging/main. If it
-          # isn't, the trunks have forked (someone advanced production out of
-          # band without back-syncing first) and a fast-forward is unsafe.
-          if ! git merge-base --is-ancestor production/main origin/main; then
-            echo "::error title=Promote blocked::production/main is not an ancestor of staging main. Back-sync production into staging first."
-            exit 1
+          git push production origin/main:refs/heads/stainless/release --force
+
+      - name: Open or update the release PR on production
+        if: steps.diff.outputs.synced == 'false'
+        run: |
+          EXISTING_PR=$(gh pr list \
+            --repo "${PRODUCTION_REPO}" \
+            --head stainless/release \
+            --state open \
+            --json number \
+            --jq '.[0].number')
+          if [ -z "${EXISTING_PR}" ]; then
+            gh pr create \
+              --repo "${PRODUCTION_REPO}" \
+              --base main \
+              --head stainless/release \
+              --title "Release SDK updates" \
+              --body "$(git log --oneline production/main..origin/main)"
+          else
+            echo "Release PR #${EXISTING_PR} already exists. Force-push has updated it."
           fi
-          git push production origin/main:refs/heads/main
-          echo "Fast-forwarded production/main to staging/main."
+          # Review and merge this PR with a MERGE COMMIT to cut a release. To
+          # land it automatically instead, enable auto-merge:
+          #   gh pr merge stainless/release --repo "${PRODUCTION_REPO}" --merge --auto
+          # (--merge = merge commit; do NOT use --squash or --rebase here.)
