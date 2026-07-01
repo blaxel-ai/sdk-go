@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/blaxel-ai/sdk-go/compare/v0.23.0...v0.24.0) (2026-07-01)
+
+
+### Features
+
+* **sdk:** expose sandbox schedules in the SDK + stainless-sdk skill ([53b67bd](https://github.com/blaxel-ai/sdk-go/commit/53b67bd746631f9c56ab6cb6bbfe9bddc1d8cab8))
+
 ## 0.23.0 (2026-06-18)
 
 Full Changelog: [v0.22.0...v0.23.0](https://github.com/blaxel-ai/sdk-go/compare/v0.22.0...v0.23.0)
