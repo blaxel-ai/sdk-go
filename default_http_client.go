@@ -3,26 +3,9 @@
 package blaxel
 
 import (
-	"errors"
 	"net/http"
 	"time"
 )
-
-// stripBlaxelAuthOnRedirect drops Blaxel's custom auth headers when a redirect
-// crosses to a different host. Go's net/http only strips well-known headers
-// (e.g. Authorization) on cross-host redirects, not custom ones, so without
-// this a 3xx to an attacker-controlled host could leak the bearer/preview
-// token. It also preserves the stdlib default of stopping after 10 redirects.
-func stripBlaxelAuthOnRedirect(req *http.Request, via []*http.Request) error {
-	if len(via) >= 10 {
-		return errors.New("stopped after 10 redirects")
-	}
-	if len(via) > 0 && req.URL.Host != via[len(via)-1].URL.Host {
-		req.Header.Del("X-Blaxel-Authorization")
-		req.Header.Del("X-Blaxel-Preview-Token")
-	}
-	return nil
-}
 
 // defaultResponseHeaderTimeout bounds the time between a fully written request
 // and the server's response headers. It does not apply to the response body,
@@ -41,7 +24,7 @@ func defaultHTTPClient() *http.Client {
 	if t, ok := http.DefaultTransport.(*http.Transport); ok {
 		t = t.Clone()
 		t.ResponseHeaderTimeout = defaultResponseHeaderTimeout
-		return &http.Client{Transport: t, CheckRedirect: stripBlaxelAuthOnRedirect}
+		return &http.Client{Transport: t}
 	}
-	return &http.Client{Transport: http.DefaultTransport, CheckRedirect: stripBlaxelAuthOnRedirect}
+	return &http.Client{Transport: http.DefaultTransport}
 }
