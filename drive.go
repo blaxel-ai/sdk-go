@@ -147,6 +147,9 @@ func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption
 type DriveSpec struct {
 	// The internal infrastructure resource identifier for this drive (bucket name)
 	InfrastructureID string `json:"infrastructureId"`
+	// Permissions controlling which workloads can access this drive. Empty means all
+	// workloads in the workspace can access the drive. Maximum 3 permissions.
+	Permissions []DriveSpecPermission `json:"permissions"`
 	// Deployment region for the drive (e.g., us-pdx-1, eu-lon-1). Must match the
 	// region of resources it attaches to.
 	Region string `json:"region"`
@@ -156,6 +159,7 @@ type DriveSpec struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		InfrastructureID respjson.Field
+		Permissions      respjson.Field
 		Region           respjson.Field
 		Size             respjson.Field
 		ExtraFields      map[string]respjson.Field
@@ -178,6 +182,35 @@ func (r DriveSpec) ToParam() DriveSpecParam {
 	return param.Override[DriveSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// Permission that controls which workloads can access a drive. A workload must
+// have ALL specified labels (AND logic). Permissions are evaluated with OR logic —
+// the first matching permission grants access.
+type DriveSpecPermission struct {
+	// Labels that the workload must have. All labels must match (AND logic). Empty
+	// labels match all workloads.
+	Labels any `json:"labels"`
+	// Access mode granted by this permission
+	//
+	// Any of "read", "read-write".
+	Mode string `json:"mode"`
+	// Subfolder path to restrict access to. Defaults to / (full drive).
+	Path string `json:"path"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Labels      respjson.Field
+		Mode        respjson.Field
+		Path        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveSpecPermission) RawJSON() string { return r.JSON.raw }
+func (r *DriveSpecPermission) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Immutable drive configuration set at creation time
 type DriveSpecParam struct {
 	// Deployment region for the drive (e.g., us-pdx-1, eu-lon-1). Must match the
@@ -186,6 +219,9 @@ type DriveSpecParam struct {
 	// Optional size limit for the drive in GB. If not specified, drive has no size
 	// limit.
 	Size param.Opt[int64] `json:"size,omitzero"`
+	// Permissions controlling which workloads can access this drive. Empty means all
+	// workloads in the workspace can access the drive. Maximum 3 permissions.
+	Permissions []DriveSpecPermissionParam `json:"permissions,omitzero"`
 	paramObj
 }
 
@@ -195,6 +231,36 @@ func (r DriveSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *DriveSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// Permission that controls which workloads can access a drive. A workload must
+// have ALL specified labels (AND logic). Permissions are evaluated with OR logic —
+// the first matching permission grants access.
+type DriveSpecPermissionParam struct {
+	// Subfolder path to restrict access to. Defaults to / (full drive).
+	Path param.Opt[string] `json:"path,omitzero"`
+	// Labels that the workload must have. All labels must match (AND logic). Empty
+	// labels match all workloads.
+	Labels any `json:"labels,omitzero"`
+	// Access mode granted by this permission
+	//
+	// Any of "read", "read-write".
+	Mode string `json:"mode,omitzero"`
+	paramObj
+}
+
+func (r DriveSpecPermissionParam) MarshalJSON() (data []byte, err error) {
+	type shadow DriveSpecPermissionParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *DriveSpecPermissionParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[DriveSpecPermissionParam](
+		"mode", "read", "read-write",
+	)
 }
 
 // Drive providing persistent storage that can be attached to agents, functions,

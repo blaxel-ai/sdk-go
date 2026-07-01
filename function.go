@@ -222,6 +222,8 @@ type FunctionRuntime struct {
 	// Minimum instances to keep warm. Set to 1+ to eliminate cold starts, 0 for
 	// scale-to-zero.
 	MinScale int64 `json:"minScale"`
+	// Set of ports for a resource
+	Ports []Port `json:"ports"`
 	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
 	//
 	// Any of "websocket", "http-stream".
@@ -234,6 +236,7 @@ type FunctionRuntime struct {
 		MaxScale    respjson.Field
 		Memory      respjson.Field
 		MinScale    respjson.Field
+		Ports       respjson.Field
 		Transport   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -294,6 +297,8 @@ type FunctionRuntimeParam struct {
 	//
 	// Any of "mk2", "mk3".
 	Generation FunctionRuntimeGeneration `json:"generation,omitzero"`
+	// Set of ports for a resource
+	Ports []PortParam `json:"ports,omitzero"`
 	// Transport compatibility for the MCP, can be "websocket" or "http-stream"
 	//
 	// Any of "websocket", "http-stream".
