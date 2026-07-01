@@ -15,6 +15,7 @@ import (
 	"github.com/blaxel-ai/sdk-go/internal/apiquery"
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
+	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"github.com/blaxel-ai/sdk-go/packages/respjson"
 )
@@ -79,11 +80,30 @@ func (r *DriveService) Update(ctx context.Context, driveName string, body DriveU
 // 2026-04-28, the response wraps items in `{data, meta}` and supports cursor
 // pagination via the `cursor` and `limit` query parameters; older versions keep
 // returning a bare array with all drives.
-func (r *DriveService) List(ctx context.Context, query DriveListParams, opts ...option.RequestOption) (res *DriveListResponse, err error) {
+func (r *DriveService) List(ctx context.Context, query DriveListParams, opts ...option.RequestOption) (res *pagination.CursorPage[DriveListResponse], err error) {
+	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
 	path := "drives"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	if err != nil {
+		return nil, err
+	}
+	err = cfg.Execute()
+	if err != nil {
+		return nil, err
+	}
+	res.SetPageConfig(cfg, raw)
+	return res, nil
+}
+
+// Returns all drives in the workspace. Drives provide persistent storage that can
+// be attached to agents, functions, and sandboxes. Starting with API version
+// 2026-04-28, the response wraps items in `{data, meta}` and supports cursor
+// pagination via the `cursor` and `limit` query parameters; older versions keep
+// returning a bare array with all drives.
+func (r *DriveService) ListAutoPaging(ctx context.Context, query DriveListParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[DriveListResponse] {
+	return pagination.NewCursorPageAutoPager(r.List(ctx, query, opts...))
 }
 
 // Deletes a drive immediately. The drive record is removed from the database
@@ -127,6 +147,9 @@ func (r *DriveService) GetJwks(ctx context.Context, opts ...option.RequestOption
 type DriveSpec struct {
 	// The internal infrastructure resource identifier for this drive (bucket name)
 	InfrastructureID string `json:"infrastructureId"`
+	// Permissions controlling which workloads can access this drive. Empty means all
+	// workloads in the workspace can access the drive. Maximum 3 permissions.
+	Permissions []DriveSpecPermission `json:"permissions"`
 	// Deployment region for the drive (e.g., us-pdx-1, eu-lon-1). Must match the
 	// region of resources it attaches to.
 	Region string `json:"region"`
@@ -136,6 +159,7 @@ type DriveSpec struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		InfrastructureID respjson.Field
+		Permissions      respjson.Field
 		Region           respjson.Field
 		Size             respjson.Field
 		ExtraFields      map[string]respjson.Field
@@ -158,6 +182,35 @@ func (r DriveSpec) ToParam() DriveSpecParam {
 	return param.Override[DriveSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// Permission that controls which workloads can access a drive. A workload must
+// have ALL specified labels (AND logic). Permissions are evaluated with OR logic —
+// the first matching permission grants access.
+type DriveSpecPermission struct {
+	// Labels that the workload must have. All labels must match (AND logic). Empty
+	// labels match all workloads.
+	Labels any `json:"labels"`
+	// Access mode granted by this permission
+	//
+	// Any of "read", "read-write".
+	Mode string `json:"mode"`
+	// Subfolder path to restrict access to. Defaults to / (full drive).
+	Path string `json:"path"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Labels      respjson.Field
+		Mode        respjson.Field
+		Path        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DriveSpecPermission) RawJSON() string { return r.JSON.raw }
+func (r *DriveSpecPermission) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Immutable drive configuration set at creation time
 type DriveSpecParam struct {
 	// Deployment region for the drive (e.g., us-pdx-1, eu-lon-1). Must match the
@@ -166,6 +219,9 @@ type DriveSpecParam struct {
 	// Optional size limit for the drive in GB. If not specified, drive has no size
 	// limit.
 	Size param.Opt[int64] `json:"size,omitzero"`
+	// Permissions controlling which workloads can access this drive. Empty means all
+	// workloads in the workspace can access the drive. Maximum 3 permissions.
+	Permissions []DriveSpecPermissionParam `json:"permissions,omitzero"`
 	paramObj
 }
 
@@ -175,6 +231,36 @@ func (r DriveSpecParam) MarshalJSON() (data []byte, err error) {
 }
 func (r *DriveSpecParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// Permission that controls which workloads can access a drive. A workload must
+// have ALL specified labels (AND logic). Permissions are evaluated with OR logic —
+// the first matching permission grants access.
+type DriveSpecPermissionParam struct {
+	// Subfolder path to restrict access to. Defaults to / (full drive).
+	Path param.Opt[string] `json:"path,omitzero"`
+	// Labels that the workload must have. All labels must match (AND logic). Empty
+	// labels match all workloads.
+	Labels any `json:"labels,omitzero"`
+	// Access mode granted by this permission
+	//
+	// Any of "read", "read-write".
+	Mode string `json:"mode,omitzero"`
+	paramObj
+}
+
+func (r DriveSpecPermissionParam) MarshalJSON() (data []byte, err error) {
+	type shadow DriveSpecPermissionParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *DriveSpecPermissionParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[DriveSpecPermissionParam](
+		"mode", "read", "read-write",
+	)
 }
 
 // Drive providing persistent storage that can be attached to agents, functions,
@@ -327,32 +413,9 @@ func (r *DriveUpdateResponseState) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Cursor-paginated list of drives. Returned starting with API version 2026-04-28;
-// older API versions return a bare array.
-type DriveListResponse struct {
-	// Page of drives.
-	Data []DriveListResponseData `json:"data"`
-	// Pagination metadata returned alongside a page of listing results. Always present
-	// on listing endpoints starting with API version 2026-04-28.
-	Meta DriveListResponseMeta `json:"meta"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		Meta        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveListResponse) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Drive providing persistent storage that can be attached to agents, functions,
 // and sandboxes. Drives can be mounted at runtime via the sbx API.
-type DriveListResponseData struct {
+type DriveListResponse struct {
 	// Common metadata fields shared by all Blaxel resources including name, labels,
 	// timestamps, and ownership information
 	Metadata Metadata `json:"metadata" api:"required"`
@@ -361,7 +424,7 @@ type DriveListResponseData struct {
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
 	// Current runtime state of the drive
-	State DriveListResponseDataState `json:"state"`
+	State DriveListResponseState `json:"state"`
 	// Drive status computed from events
 	Status string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -377,13 +440,13 @@ type DriveListResponseData struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r DriveListResponseData) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponseData) UnmarshalJSON(data []byte) error {
+func (r DriveListResponse) RawJSON() string { return r.JSON.raw }
+func (r *DriveListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current runtime state of the drive
-type DriveListResponseDataState struct {
+type DriveListResponseState struct {
 	// S3-compatible endpoint URL for accessing drive contents
 	S3URL string `json:"s3Url"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -395,36 +458,8 @@ type DriveListResponseDataState struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r DriveListResponseDataState) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponseDataState) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Pagination metadata returned alongside a page of listing results. Always present
-// on listing endpoints starting with API version 2026-04-28.
-type DriveListResponseMeta struct {
-	// True when more pages are available beyond the current one.
-	HasMore bool `json:"hasMore"`
-	// Opaque cursor to pass back as the `cursor` query param for the next page. Empty
-	// when there are no more pages.
-	NextCursor string `json:"nextCursor"`
-	// Total number of items in the workspace, ignoring the current page's filters.
-	// Lets the UI render "page X of Y" without walking the cursor chain. Computed from
-	// the hash-only metadata.workspace GSI count, so search (`q`) does not narrow it.
-	Total int64 `json:"total"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		HasMore     respjson.Field
-		NextCursor  respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DriveListResponseMeta) RawJSON() string { return r.JSON.raw }
-func (r *DriveListResponseMeta) UnmarshalJSON(data []byte) error {
+func (r DriveListResponseState) RawJSON() string { return r.JSON.raw }
+func (r *DriveListResponseState) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

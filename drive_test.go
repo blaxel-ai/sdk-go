@@ -29,11 +29,17 @@ func TestDriveNewWithOptionalParams(t *testing.T) {
 		Metadata: blaxel.MetadataParam{
 			Name:        "my-resource",
 			DisplayName: blaxel.String("My Resource"),
+			ExternalID:  blaxel.String("my-session-123"),
 			Labels: map[string]string{
 				"foo": "string",
 			},
 		},
 		Spec: blaxel.DriveSpecParam{
+			Permissions: []blaxel.DriveSpecPermissionParam{{
+				Labels: map[string]any{},
+				Mode:   "read",
+				Path:   blaxel.String("/data"),
+			}},
 			Region: blaxel.String("us-pdx-1"),
 			Size:   blaxel.Int(100),
 		},
@@ -88,11 +94,17 @@ func TestDriveUpdateWithOptionalParams(t *testing.T) {
 			Metadata: blaxel.MetadataParam{
 				Name:        "my-resource",
 				DisplayName: blaxel.String("My Resource"),
+				ExternalID:  blaxel.String("my-session-123"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
 			},
 			Spec: blaxel.DriveSpecParam{
+				Permissions: []blaxel.DriveSpecPermissionParam{{
+					Labels: map[string]any{},
+					Mode:   "read",
+					Path:   blaxel.String("/data"),
+				}},
 				Region: blaxel.String("us-pdx-1"),
 				Size:   blaxel.Int(100),
 			},
