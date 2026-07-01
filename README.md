@@ -317,8 +317,33 @@ This library provides some conveniences for working with paginated list endpoint
 
 You can use `.ListAutoPaging()` methods to iterate through items across all pages:
 
+```go
+iter := client.Sandboxes.ListAutoPaging(context.TODO(), blaxel.SandboxListParams{})
+// Automatically fetches more pages as needed.
+for iter.Next() {
+	sandbox := iter.Current()
+	fmt.Printf("%+v\n", sandbox)
+}
+if err := iter.Err(); err != nil {
+	panic(err.Error())
+}
+```
+
 Or you can use simple `.List()` methods to fetch a single page and receive a standard response object
 with additional helper methods like `.GetNextPage()`, e.g.:
+
+```go
+page, err := client.Sandboxes.List(context.TODO(), blaxel.SandboxListParams{})
+for page != nil {
+	for _, sandbox := range page.Data {
+		fmt.Printf("%+v\n", sandbox)
+	}
+	page, err = page.GetNextPage()
+}
+if err != nil {
+	panic(err.Error())
+}
+```
 
 ### Errors
 
@@ -474,7 +499,7 @@ you need to examine response headers, status codes, or other details.
 ```go
 // Create a variable to store the HTTP response
 var response *http.Response
-sandboxes, err := client.Sandboxes.List(
+page, err := client.Sandboxes.List(
 	context.TODO(),
 	blaxel.SandboxListParams{},
 	option.WithResponseInto(&response),
@@ -482,7 +507,7 @@ sandboxes, err := client.Sandboxes.List(
 if err != nil {
 	// handle error
 }
-fmt.Printf("%+v\n", sandboxes)
+fmt.Printf("%+v\n", page)
 
 fmt.Printf("Status Code: %d\n", response.StatusCode)
 fmt.Printf("Headers: %+#v\n", response.Header)

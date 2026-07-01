@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	blaxel "github.com/blaxel-ai/sdk-go"
+	"github.com/blaxel-ai/sdk-go"
 	"github.com/blaxel-ai/sdk-go/internal/testutil"
 	"github.com/blaxel-ai/sdk-go/option"
 )
@@ -30,6 +30,7 @@ func TestVolumeNewWithOptionalParams(t *testing.T) {
 			Metadata: blaxel.MetadataParam{
 				Name:        "my-resource",
 				DisplayName: blaxel.String("My Resource"),
+				ExternalID:  blaxel.String("my-session-123"),
 				Labels: map[string]string{
 					"foo": "string",
 				},
@@ -92,6 +93,7 @@ func TestVolumeUpdateWithOptionalParams(t *testing.T) {
 				Metadata: blaxel.MetadataParam{
 					Name:        "my-resource",
 					DisplayName: blaxel.String("My Resource"),
+					ExternalID:  blaxel.String("my-session-123"),
 					Labels: map[string]string{
 						"foo": "string",
 					},
