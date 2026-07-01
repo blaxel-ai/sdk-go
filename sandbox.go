@@ -1012,11 +1012,11 @@ func (r *VolumeAttachmentParam) UnmarshalJSON(data []byte) error {
 // Pre-configured sandbox template available in the Sandbox Hub for quick
 // deployment with predefined tools and configurations
 type SandboxGetHubResponse struct {
-	// Categories of the defintion
+	// Categories of the definition
 	Categories []map[string]any `json:"categories"`
 	// If the definition is coming soon
 	ComingSoon bool `json:"coming_soon"`
-	// Description of the defintion
+	// Description of the definition
 	Description string `json:"description"`
 	// Display name of the definition
 	DisplayName string `json:"displayName"`
@@ -1028,7 +1028,7 @@ type SandboxGetHubResponse struct {
 	Icon string `json:"icon"`
 	// Image of the Sandbox definition
 	Image string `json:"image"`
-	// Long description of the defintion
+	// Long description of the definition
 	LongDescription string `json:"longDescription"`
 	// Memory of the Sandbox definition in MB
 	Memory int64 `json:"memory"`
