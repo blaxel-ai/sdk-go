@@ -382,7 +382,7 @@ type PolicySpec struct {
 	MaxTokens PolicyMaxTokens `json:"maxTokens"`
 	// PolicyResourceTypes is a local type that wraps a slice of PolicyResourceType
 	//
-	// Any of "model", "function", "agent", "sandbox".
+	// Any of "model", "function", "agent", "sandbox", "application".
 	ResourceTypes []string `json:"resourceTypes"`
 	// Sandbox mode
 	Sandbox bool `json:"sandbox"`
@@ -439,7 +439,7 @@ type PolicySpecParam struct {
 	MaxTokens PolicyMaxTokensParam `json:"maxTokens,omitzero"`
 	// PolicyResourceTypes is a local type that wraps a slice of PolicyResourceType
 	//
-	// Any of "model", "function", "agent", "sandbox".
+	// Any of "model", "function", "agent", "sandbox", "application".
 	ResourceTypes []string `json:"resourceTypes,omitzero"`
 	// Policy type, can be location or flavor
 	//
