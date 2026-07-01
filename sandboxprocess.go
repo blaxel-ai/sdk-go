@@ -127,7 +127,9 @@ type ProcessRequestParam struct {
 	Command string `json:"command" api:"required"`
 	// Disable scale-to-zero while process runs. Default timeout is 600s (10 minutes).
 	// Set timeout to 0 for infinite.
-	KeepAlive        param.Opt[bool]   `json:"keepAlive,omitzero"`
+	KeepAlive param.Opt[bool] `json:"keepAlive,omitzero"`
+	// Maximum number of restarts on failure. Set to a negative value (e.g. -1) for
+	// unlimited restarts.
 	MaxRestarts      param.Opt[int64]  `json:"maxRestarts,omitzero"`
 	Name             param.Opt[string] `json:"name,omitzero"`
 	RestartOnFailure param.Opt[bool]   `json:"restartOnFailure,omitzero"`

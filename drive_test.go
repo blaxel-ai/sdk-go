@@ -35,6 +35,11 @@ func TestDriveNewWithOptionalParams(t *testing.T) {
 			},
 		},
 		Spec: blaxel.DriveSpecParam{
+			Permissions: []blaxel.DriveSpecPermissionParam{{
+				Labels: map[string]any{},
+				Mode:   "read",
+				Path:   blaxel.String("/data"),
+			}},
 			Region: blaxel.String("us-pdx-1"),
 			Size:   blaxel.Int(100),
 		},
@@ -95,6 +100,11 @@ func TestDriveUpdateWithOptionalParams(t *testing.T) {
 				},
 			},
 			Spec: blaxel.DriveSpecParam{
+				Permissions: []blaxel.DriveSpecPermissionParam{{
+					Labels: map[string]any{},
+					Mode:   "read",
+					Path:   blaxel.String("/data"),
+				}},
 				Region: blaxel.String("us-pdx-1"),
 				Size:   blaxel.Int(100),
 			},

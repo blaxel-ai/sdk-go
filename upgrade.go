@@ -36,9 +36,9 @@ func NewUpgradeService(opts ...option.RequestOption) (r UpgradeService) {
 // Triggers an upgrade of the sandbox-api process. Returns 200 immediately before
 // upgrading. The upgrade will: download the specified binary from GitHub releases,
 // validate it, and restart. All running processes will be preserved across the
-// upgrade. Available versions: "develop" (default), "main", "latest", or specific
-// tag like "v1.0.0" You can also specify a custom baseUrl for forks (defaults to
-// https://github.com/blaxel-ai/sandbox/releases)
+// upgrade. Available versions: "latest" (default, most recent release), "develop",
+// "main", or specific tag like "v1.0.0" You can also specify a custom baseUrl for
+// forks (defaults to https://github.com/blaxel-ai/sandbox/releases)
 func (r *UpgradeService) Trigger(ctx context.Context, body UpgradeTriggerParams, opts ...option.RequestOption) (res *UpgradeTriggerResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "upgrade"
@@ -67,8 +67,8 @@ func (r *UpgradeTriggerResponse) UnmarshalJSON(data []byte) error {
 type UpgradeTriggerParams struct {
 	// Base URL for releases (useful for forks)
 	BaseURL param.Opt[string] `json:"baseUrl,omitzero"`
-	// Version to upgrade to: "develop", "main", "latest", or specific tag like
-	// "v1.0.0"
+	// Version to upgrade to: "latest" (default), "develop", "main", or specific tag
+	// like "v1.0.0"
 	Version param.Opt[string] `json:"version,omitzero"`
 	paramObj
 }
