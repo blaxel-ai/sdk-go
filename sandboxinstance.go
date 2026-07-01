@@ -18,7 +18,6 @@ import (
 
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
-	"github.com/blaxel-ai/sdk-go/packages/pagination"
 	"github.com/blaxel-ai/sdk-go/packages/param"
 	"golang.org/x/sync/errgroup"
 )
@@ -57,7 +56,7 @@ type SandboxUpdateMetadataParams struct {
 
 type SandboxInstanceListResponse struct {
 	Data []*SandboxInstance
-	Meta pagination.CursorPageMeta
+	Meta SandboxListResponseMeta
 
 	raw            string
 	nextPageParams SandboxListParams

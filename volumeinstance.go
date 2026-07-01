@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/blaxel-ai/sdk-go/option"
-	"github.com/blaxel-ai/sdk-go/packages/pagination"
 )
 
 // VolumeUpdateMetadataParams contains parameters for updating volume metadata
@@ -130,7 +129,7 @@ func (r *VolumeService) GetInstance(ctx context.Context, volumeName string, opts
 
 type VolumeInstanceListResponse struct {
 	Data []*VolumeInstance
-	Meta pagination.CursorPageMeta
+	Meta VolumeListResponseMeta
 
 	raw            string
 	nextPageParams VolumeListParams
@@ -236,7 +235,7 @@ func (r *VolumeService) ListInstances(ctx context.Context, query VolumeListParam
 	}, nil
 }
 
-func volumeListResponseDataToVolume(data VolumeListResponse) Volume {
+func volumeListResponseDataToVolume(data VolumeListResponseData) Volume {
 	return Volume{
 		Metadata: Metadata{
 			Name:        data.Metadata.Name,

@@ -16,21 +16,6 @@ type paramObj = param.APIObject
 
 type Error = apierror.Error
 
-// Stable gateway error codes emitted by the Blaxel platform.
-// Use these to match gateway-synthesized errors programmatically.
-const (
-	ErrRouteNotFound          = apierror.ErrRouteNotFound
-	ErrWorkloadNotFound       = apierror.ErrWorkloadNotFound
-	ErrWorkspaceNotFound      = apierror.ErrWorkspaceNotFound
-	ErrWorkloadUnavailable    = apierror.ErrWorkloadUnavailable
-	ErrAuthenticationRequired = apierror.ErrAuthenticationRequired
-	ErrAuthenticationFailed   = apierror.ErrAuthenticationFailed
-	ErrForbidden              = apierror.ErrForbidden
-	ErrBadRequest             = apierror.ErrBadRequest
-	ErrUsageLimitExceeded     = apierror.ErrUsageLimitExceeded
-	ErrPolicyViolation        = apierror.ErrPolicyViolation
-)
-
 // This is an alias to an internal type.
 type EgressGatewayMetadata = shared.EgressGatewayMetadata
 
