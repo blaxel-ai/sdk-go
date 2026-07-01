@@ -259,16 +259,18 @@ func WithRequestTimeout(dur time.Duration) RequestOption {
 	})
 }
 
+// WithEnvironmentProduction returns a RequestOption that sets the current
+// environment to be the "production" environment. An environment specifies which base URL
+// to use by default.
+func WithEnvironmentProduction() RequestOption {
+	return requestconfig.WithDefaultBaseURL("https://api.blaxel.ai/v0/")
+}
+
 // WithAPIKey returns a RequestOption that sets the client setting "api_key".
-// Optionally accepts a custom header name (defaults to "X-Blaxel-Authorization").
-func WithAPIKey(value string, header ...string) RequestOption {
-	headerName := "Authorization"
-	if len(header) > 0 && header[0] != "" {
-		headerName = header[0]
-	}
+func WithAPIKey(value string) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
 		r.APIKey = value
-		return r.Apply(WithHeader(headerName, fmt.Sprintf("Bearer %s", r.APIKey)))
+		return r.Apply(WithHeader("authorization", fmt.Sprintf("Bearer %s", r.APIKey)))
 	})
 }
 
@@ -289,71 +291,5 @@ func WithClientSecret(value string) RequestOption {
 		r.ClientSecret = value
 		r.OAuth2State = oauthState
 		return nil
-	})
-}
-
-// WithClientCredentials returns a RequestOption that decodes base64 client credentials
-// and sets both client_id and client_secret. The value should be base64(clientId:clientSecret).
-func WithClientCredentials(value string) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		// Import encoding/base64 and strings at package level
-		decoded, err := requestconfig.DecodeClientCredentials(value)
-		if err != nil {
-			return fmt.Errorf("failed to decode client credentials: %w", err)
-		}
-
-		// Apply both ClientID and ClientSecret
-		if err := r.Apply(WithClientID(decoded.ClientID)); err != nil {
-			return err
-		}
-		return r.Apply(WithClientSecret(decoded.ClientSecret))
-	})
-}
-
-// WithAccessToken returns a RequestOption that sets the access token for authentication.
-// If a refresh token is also provided (via WithRefreshToken), automatic token refresh
-// will be enabled when the access token is about to expire.
-func WithAccessToken(value string) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		r.AccessToken = value
-		r.OAuth2RefreshState = requestconfig.OAuth2RefreshCache
-		// Don't set header here - let Execute() handle it after potential refresh
-		return nil
-	})
-}
-
-// WithRefreshToken returns a RequestOption that sets the refresh token for automatic
-// token refresh. This should be used together with WithAccessToken.
-func WithRefreshToken(value string) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		r.RefreshToken = value
-		r.OAuth2RefreshState = requestconfig.OAuth2RefreshCache
-		return nil
-	})
-}
-
-// WithDeviceCode returns a RequestOption that sets the device code for token refresh.
-// This is used in the device flow authentication.
-func WithDeviceCode(value string) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		r.DeviceCode = value
-		return nil
-	})
-}
-
-// WithExpires returns a RequestOption that sets the token expiration time in seconds.
-func WithExpires(value int) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		r.ExpiresIn = value
-		return nil
-	})
-}
-
-// WithWorkspace returns a RequestOption that sets the x-blaxel-workspace header.
-// This header is required by the API to identify which workspace the request is for.
-func WithWorkspace(workspace string) RequestOption {
-	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {
-		r.Workspace = workspace
-		return r.Apply(WithHeader("x-blaxel-workspace", workspace))
 	})
 }

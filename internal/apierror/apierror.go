@@ -3,7 +3,6 @@
 package apierror
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -15,10 +14,6 @@ import (
 // Error represents an error that originates from the API, i.e. when a request is
 // made and the API returns a response with a HTTP status code. Other errors are
 // not wrapped by this SDK.
-//
-// Errors synthesized by the Blaxel gateway proxy carry typed metadata sourced
-// from both the X-Blaxel-Source / X-Blaxel-Error-Code response headers and the
-// `{"error": {...}}` JSON body envelope.
 type Error struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -28,76 +23,12 @@ type Error struct {
 	StatusCode int
 	Request    *http.Request
 	Response   *http.Response
-
-	// Gateway error fields. Populated when the response is a Blaxel gateway error,
-	// detected via the X-Blaxel-Source: platform header or the {"error": {...}}
-	// body envelope.
-	ErrorCode    string `json:"code"`
-	Message      string `json:"message"`
-	Origin       string `json:"origin"`
-	Retryable    bool   `json:"retryable"`
-	Action       string `json:"action"`
-	DoNot        string `json:"do_not"`
-	DocsURL      string `json:"docs_url"`
-	Status       int    `json:"status"`
-	BlaxelSource string
-
-	hasErrorEnvelope bool
-}
-
-// IsGatewayError returns true when this error was synthesized by the Blaxel
-// gateway proxy. Detection uses the X-Blaxel-Source header when available,
-// falling back to the presence of the JSON body envelope.
-func (r *Error) IsGatewayError() bool {
-	return r.BlaxelSource == "platform" || r.hasErrorEnvelope
-}
-
-// IsRetryable returns true if the gateway indicates the request can be retried.
-func (r *Error) IsRetryable() bool {
-	return r.Retryable
 }
 
 // Returns the unmodified JSON received from the API
 func (r Error) RawJSON() string { return r.JSON.raw }
 func (r *Error) UnmarshalJSON(data []byte) error {
-	if err := apijson.UnmarshalRoot(data, r); err != nil {
-		return err
-	}
-
-	// The gateway error body has the shape {"error": {"code": "...", ...}}.
-	// Try to unwrap the nested "error" object and populate the typed fields.
-	var envelope struct {
-		Error json.RawMessage `json:"error"`
-	}
-	if err := json.Unmarshal(data, &envelope); err == nil && len(envelope.Error) > 0 {
-		var inner struct {
-			Code      string `json:"code"`
-			Message   string `json:"message"`
-			Origin    string `json:"origin"`
-			Retryable bool   `json:"retryable"`
-			Action    string `json:"action"`
-			DoNot     string `json:"do_not"`
-			DocsURL   string `json:"docs_url"`
-			Status    int    `json:"status"`
-		}
-		if err := json.Unmarshal(envelope.Error, &inner); err == nil {
-			r.hasErrorEnvelope = true
-			r.ErrorCode = inner.Code
-			r.Message = inner.Message
-			if inner.Origin != "" {
-				r.Origin = inner.Origin
-			} else {
-				r.Origin = "platform"
-			}
-			r.Retryable = inner.Retryable
-			r.Action = inner.Action
-			r.DoNot = inner.DoNot
-			r.DocsURL = inner.DocsURL
-			r.Status = inner.Status
-		}
-	}
-
-	return nil
+	return apijson.UnmarshalRoot(data, r)
 }
 
 func (r *Error) Error() string {

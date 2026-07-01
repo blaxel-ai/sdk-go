@@ -72,6 +72,11 @@ type Workspace struct {
 	DisplayName string `json:"displayName"`
 	// Group-to-role mappings for directory sync (SCIM) group membership
 	GroupMappings []WorkspaceGroupMapping `json:"groupMappings"`
+	// HIPAA compliance state for a workspace. `accountEnabled` mirrors the
+	// account-level `hipaa_compliance` addon (set server-side from operator tooling
+	// and Stripe billing events). `unsafe` records a per-workspace opt-out toggled
+	// from workspace settings; absent when the account does not have the addon.
+	HipaaInfo WorkspaceHipaaInfo `json:"hipaaInfo"`
 	// Key-value pairs for organizing and filtering resources. Labels can be used to
 	// categorize resources by environment, project, team, or any custom taxonomy.
 	Labels map[string]string `json:"labels"`
@@ -106,6 +111,7 @@ type Workspace struct {
 		CreatedBy      respjson.Field
 		DisplayName    respjson.Field
 		GroupMappings  respjson.Field
+		HipaaInfo      respjson.Field
 		Labels         respjson.Field
 		Name           respjson.Field
 		Region         respjson.Field
@@ -149,6 +155,59 @@ func (r *WorkspaceGroupMapping) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// HIPAA compliance state for a workspace. `accountEnabled` mirrors the
+// account-level `hipaa_compliance` addon (set server-side from operator tooling
+// and Stripe billing events). `unsafe` records a per-workspace opt-out toggled
+// from workspace settings; absent when the account does not have the addon.
+type WorkspaceHipaaInfo struct {
+	// True when the parent account has the HIPAA compliance addon active. Set
+	// server-side from operator tooling and Stripe billing events; cannot be changed
+	// from workspace settings.
+	AccountEnabled bool `json:"accountEnabled"`
+	// Per-workspace HIPAA opt-out record. Toggled from workspace settings; the backend
+	// stamps `updatedBy` and `updatedAt`.
+	Unsafe WorkspaceHipaaInfoUnsafe `json:"unsafe"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AccountEnabled respjson.Field
+		Unsafe         respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceHipaaInfo) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceHipaaInfo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Per-workspace HIPAA opt-out record. Toggled from workspace settings; the backend
+// stamps `updatedBy` and `updatedAt`.
+type WorkspaceHipaaInfoUnsafe struct {
+	// True marks this workspace as HIPAA-unsafe (NOT compliant), overriding the
+	// account-level addon. False marks the workspace as HIPAA compliant.
+	Enabled bool `json:"enabled"`
+	// RFC3339 timestamp when the opt-out was last toggled. Stamped server-side.
+	UpdatedAt string `json:"updatedAt"`
+	// User id (sub) of the actor that last toggled this opt-out. Stamped server-side.
+	UpdatedBy string `json:"updatedBy"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		UpdatedAt   respjson.Field
+		UpdatedBy   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceHipaaInfoUnsafe) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceHipaaInfoUnsafe) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Workspace status (created, account_binded, account_configured,
 // workspace_configured, ready, error)
 type WorkspaceStatus string
@@ -167,9 +226,13 @@ type WorkspaceRuntime struct {
 	// Infrastructure generation version for the workspace (affects available features
 	// and deployment behavior)
 	Generation string `json:"generation"`
+	// Workspace-wide sandbox configuration that applies to all sandbox deployments in
+	// the workspace.
+	Sandbox WorkspaceRuntimeSandbox `json:"sandbox"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Generation  respjson.Field
+		Sandbox     respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -178,6 +241,27 @@ type WorkspaceRuntime struct {
 // Returns the unmodified JSON received from the API
 func (r WorkspaceRuntime) RawJSON() string { return r.JSON.raw }
 func (r *WorkspaceRuntime) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Workspace-wide sandbox configuration that applies to all sandbox deployments in
+// the workspace.
+type WorkspaceRuntimeSandbox struct {
+	// When true, sandbox deployments in this workspace set
+	// SANDBOX_DISABLE_PROCESS_LOGGING=true to disable per-process stdout/stderr
+	// logging. Requires sandbox-api v0.2.28+.
+	DisableProcessLogging bool `json:"disableProcessLogging"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		DisableProcessLogging respjson.Field
+		ExtraFields           map[string]respjson.Field
+		raw                   string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r WorkspaceRuntimeSandbox) RawJSON() string { return r.JSON.raw }
+func (r *WorkspaceRuntimeSandbox) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
