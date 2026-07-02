@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.1](https://github.com/blaxel-ai/sdk-go/compare/v0.24.0...v0.24.1) (2026-07-02)
+
+
+### Chores
+
+* back-sync CHANGELOG to 0.24.0 ([7d10df9](https://github.com/blaxel-ai/sdk-go/commit/7d10df9e6c1cc22ebb270241b7289692292c68f8))
+
 ## [0.24.0](https://github.com/blaxel-ai/sdk-go/compare/v0.23.0...v0.24.0) (2026-07-01)
 
 
