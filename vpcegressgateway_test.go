@@ -15,6 +15,7 @@ import (
 )
 
 func TestVpcEgressgatewayNewWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -49,6 +50,7 @@ func TestVpcEgressgatewayNewWithOptionalParams(t *testing.T) {
 }
 
 func TestVpcEgressgatewayGet(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -77,6 +79,7 @@ func TestVpcEgressgatewayGet(t *testing.T) {
 }
 
 func TestVpcEgressgatewayList(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -99,6 +102,7 @@ func TestVpcEgressgatewayList(t *testing.T) {
 }
 
 func TestVpcEgressgatewayDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
