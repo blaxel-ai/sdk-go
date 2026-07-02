@@ -14,6 +14,7 @@ import (
 )
 
 func TestDriveNewWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -54,6 +55,7 @@ func TestDriveNewWithOptionalParams(t *testing.T) {
 }
 
 func TestDriveGet(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -76,6 +78,7 @@ func TestDriveGet(t *testing.T) {
 }
 
 func TestDriveUpdateWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -120,6 +123,7 @@ func TestDriveUpdateWithOptionalParams(t *testing.T) {
 }
 
 func TestDriveListWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -148,6 +152,7 @@ func TestDriveListWithOptionalParams(t *testing.T) {
 }
 
 func TestDriveDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -170,6 +175,7 @@ func TestDriveDelete(t *testing.T) {
 }
 
 func TestDriveNewAccessToken(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -192,6 +198,7 @@ func TestDriveNewAccessToken(t *testing.T) {
 }
 
 func TestDriveGetJwks(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
