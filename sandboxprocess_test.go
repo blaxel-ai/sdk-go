@@ -14,6 +14,7 @@ import (
 )
 
 func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -51,6 +52,7 @@ func TestSandboxProcessNewWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxProcessGet(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -73,6 +75,7 @@ func TestSandboxProcessGet(t *testing.T) {
 }
 
 func TestSandboxProcessList(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -95,6 +98,7 @@ func TestSandboxProcessList(t *testing.T) {
 }
 
 func TestSandboxProcessKill(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -117,6 +121,7 @@ func TestSandboxProcessKill(t *testing.T) {
 }
 
 func TestSandboxProcessGetLogs(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -139,6 +144,7 @@ func TestSandboxProcessGetLogs(t *testing.T) {
 }
 
 func TestSandboxProcessStop(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
