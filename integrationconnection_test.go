@@ -14,6 +14,7 @@ import (
 )
 
 func TestIntegrationConnectionNew(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -57,6 +58,7 @@ func TestIntegrationConnectionNew(t *testing.T) {
 }
 
 func TestIntegrationConnectionGet(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -79,6 +81,7 @@ func TestIntegrationConnectionGet(t *testing.T) {
 }
 
 func TestIntegrationConnectionUpdate(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -126,6 +129,7 @@ func TestIntegrationConnectionUpdate(t *testing.T) {
 }
 
 func TestIntegrationConnectionList(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -148,6 +152,7 @@ func TestIntegrationConnectionList(t *testing.T) {
 }
 
 func TestIntegrationConnectionDelete(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
