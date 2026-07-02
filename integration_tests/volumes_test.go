@@ -2,9 +2,11 @@ package integration_tests
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	blaxel "github.com/blaxel-ai/sdk-go"
 )
@@ -333,6 +335,19 @@ func TestVolumes(t *testing.T) {
 				t.Errorf("expected logs to contain 'large-file-1.bin', got %s", checkResult1.Logs)
 			}
 
+			// Capture pre-resize disk usage on the 512MB volume, to compare against after the resize.
+			usageResult1, err := sandbox1.Process.New(ctx, blaxel.ProcessRequestParam{
+				Command:           "df /data | tail -1 | awk '{print $5}' | sed 's/%//'",
+				WaitForCompletion: blaxel.Bool(true),
+			})
+			if err != nil {
+				t.Fatalf("failed to read disk usage: %v", err)
+			}
+			usagePercent1, err := strconv.Atoi(strings.TrimSpace(usageResult1.Logs))
+			if err != nil {
+				t.Fatalf("failed to parse disk usage %q: %v", usageResult1.Logs, err)
+			}
+
 			// Delete first sandbox
 			_, _ = client.Sandboxes.Delete(ctx, sandbox1Name)
 			waitForSandboxDeletion(ctx, client, sandbox1Name, 15)
@@ -351,6 +366,9 @@ func TestVolumes(t *testing.T) {
 			if updatedVolume.Size() != 1024 {
 				t.Errorf("expected size 1024, got %d", updatedVolume.Size())
 			}
+
+			// Wait for the resize to start propagating to the underlying filesystem.
+			time.Sleep(5 * time.Second)
 
 			// Create second sandbox with the resized volume
 			sandbox2, err := client.Sandboxes.NewInstance(ctx, blaxel.SandboxNewParams{
@@ -390,6 +408,32 @@ func TestVolumes(t *testing.T) {
 			}
 			if !strings.Contains(checkResult2.Logs, "large-file-1.bin") {
 				t.Errorf("expected logs to contain 'large-file-1.bin', got %s", checkResult2.Logs)
+			}
+
+			// Poll disk usage until the resize is visible in the mounted filesystem.
+			// Volume resize is event-based on the backend, so reconciliation can take
+			// noticeably longer than a few seconds. Wait up to 3 minutes for usage to
+			// drop below the pre-resize value before writing more data.
+			usagePercent2 := usagePercent1
+			resizeDeadline := time.Now().Add(180 * time.Second)
+			for time.Now().Before(resizeDeadline) {
+				diskCheck2, derr := sandbox2.Process.New(ctx, blaxel.ProcessRequestParam{
+					Command:           "df /data | tail -1 | awk '{print $5}' | sed 's/%//'",
+					WaitForCompletion: blaxel.Bool(true),
+				})
+				if derr != nil {
+					t.Fatalf("failed to read disk usage: %v", derr)
+				}
+				if p, perr := strconv.Atoi(strings.TrimSpace(diskCheck2.Logs)); perr == nil && p < usagePercent1 {
+					usagePercent2 = p
+					break
+				}
+				time.Sleep(5 * time.Second)
+			}
+			// After resize from 512MB to 1024MB, usage should drop meaningfully.
+			// Relative comparison to tolerate filesystem overhead and async reconciliation timing.
+			if usagePercent2 >= usagePercent1 {
+				t.Errorf("expected disk usage to drop after resize (was %d%%, still %d%%)", usagePercent1, usagePercent2)
 			}
 
 			// Write another ~400MB file (would fail if volume wasn't resized)
