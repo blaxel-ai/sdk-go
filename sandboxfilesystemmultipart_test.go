@@ -16,6 +16,7 @@ import (
 )
 
 func TestSandboxFilesystemMultipartList(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -38,6 +39,7 @@ func TestSandboxFilesystemMultipartList(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartAbort(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -60,6 +62,7 @@ func TestSandboxFilesystemMultipartAbort(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartCompleteWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -93,6 +96,7 @@ func TestSandboxFilesystemMultipartCompleteWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartInitiateWithOptionalParams(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -123,6 +127,7 @@ func TestSandboxFilesystemMultipartInitiateWithOptionalParams(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartListParts(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -145,6 +150,7 @@ func TestSandboxFilesystemMultipartListParts(t *testing.T) {
 }
 
 func TestSandboxFilesystemMultipartUploadPart(t *testing.T) {
+	t.Skip("Mock server tests are disabled")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
