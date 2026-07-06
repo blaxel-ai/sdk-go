@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.2](https://github.com/blaxel-ai/sdk-go/compare/v0.24.1...v0.24.2) (2026-07-06)
+
+
+### Bug Fixes
+
+* route run_job through job metadata URL ([8e27a30](https://github.com/blaxel-ai/sdk-go/commit/8e27a30f492554c4e6e6c150f4f18ed310bf5552))
+* route run_job through job metadata URL ([db6130e](https://github.com/blaxel-ai/sdk-go/commit/db6130e20d5ae07e6247e49f023c1bce2a624891))
+
 ## [0.24.1](https://github.com/blaxel-ai/sdk-go/compare/v0.24.0...v0.24.1) (2026-07-02)
 
 
