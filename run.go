@@ -41,6 +41,11 @@ func (r *Client) getResourceMetadataURL(ctx context.Context, resourceType string
 		if err == nil && function != nil && function.Metadata.URL != "" {
 			return function.Metadata.URL
 		}
+	case "job", "jobs":
+		job, err := r.Jobs.Get(ctx, resourceName, JobGetParams{}, opts...)
+		if err == nil && job != nil && job.Metadata.URL != "" {
+			return job.Metadata.URL
+		}
 	case "model", "models":
 		model, err := r.Models.Get(ctx, resourceName, opts...)
 		if err == nil && model != nil && model.Metadata.URL != "" {
@@ -82,7 +87,8 @@ func (r *Client) Run(
 
 // RunWithMetadata makes an HTTP request to the run endpoint for a resource,
 // fetching the resource metadata first to use Metadata.URL if available.
-// This is the recommended method for calling agents, functions, and models.
+// This is the recommended method for calling agents, functions, jobs, models,
+// and sandboxes.
 func (r *Client) RunWithMetadata(
 	ctx context.Context,
 	workspace string,
