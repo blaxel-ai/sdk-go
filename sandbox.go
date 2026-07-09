@@ -785,9 +785,9 @@ type SandboxRuntime struct {
 	// Absolute expiration timestamp in ISO 8601 format when the sandbox will be
 	// deleted
 	Expires string `json:"expires"`
-	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme', 'nfs'. Values: 'enabled' or 'disabled'. Determines which kernel variant
-	// the sandbox runs on. Immutable after creation.
+	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
+	// 'tun' (mk3.1). Values: 'enabled' or 'disabled'. Determines which kernel variant
+	// the workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs"`
 	// Sandbox image to use. Can be a public Blaxel image (e.g.,
 	// blaxel/base-image:latest) or a custom template image built with 'bl deploy'.
@@ -858,9 +858,9 @@ type SandboxRuntimeParam struct {
 	// Environment variables injected into the sandbox. Supports Kubernetes EnvVar
 	// format with valueFrom references.
 	Envs []shared.EnvParam `json:"envs,omitzero"`
-	// Extra arguments for sandbox kernel selection. Supported keys: 'iptables',
-	// 'nvme', 'nfs'. Values: 'enabled' or 'disabled'. Determines which kernel variant
-	// the sandbox runs on. Immutable after creation.
+	// Extra arguments for kernel selection. Supported keys: 'iptables', 'nfs' (mk3.0),
+	// 'tun' (mk3.1). Values: 'enabled' or 'disabled'. Determines which kernel variant
+	// the workload runs on. Immutable after creation.
 	ExtraArgs map[string]string `json:"extraArgs,omitzero"`
 	// Set of ports for a resource
 	Ports []PortParam `json:"ports,omitzero"`
@@ -1142,9 +1142,9 @@ type SandboxListParams struct {
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
 	// If true, include terminated sandboxes in the response. Defaults to false.
 	ShowTerminated param.Opt[bool] `query:"showTerminated,omitzero" json:"-"`
-	// Start from a known pagination boundary. `end` is only supported for
-	// `createdAt:desc` listings and returns the oldest page directly without walking
-	// every cursor from the first page.
+	// Start from a known pagination boundary. `end` is only supported for `createdAt`
+	// listings (asc or desc) and returns the tail page directly without walking every
+	// cursor from the first page.
 	//
 	// Any of "end".
 	Anchor SandboxListParamsAnchor `query:"anchor,omitzero" json:"-"`
@@ -1166,9 +1166,9 @@ func (r SandboxListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Start from a known pagination boundary. `end` is only supported for
-// `createdAt:desc` listings and returns the oldest page directly without walking
-// every cursor from the first page.
+// Start from a known pagination boundary. `end` is only supported for `createdAt`
+// listings (asc or desc) and returns the tail page directly without walking every
+// cursor from the first page.
 type SandboxListParamsAnchor string
 
 const (

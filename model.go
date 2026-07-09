@@ -173,9 +173,9 @@ type ModelListParams struct {
 	// fingerprint so a cursor opened with one query cannot be reused with another.
 	// Only honoured starting on Blaxel-Version 2026-04-28.
 	Q param.Opt[string] `query:"q,omitzero" json:"-"`
-	// Start from a known pagination boundary. `end` is only supported for
-	// `createdAt:desc` listings and returns the oldest page directly without walking
-	// every cursor from the first page.
+	// Start from a known pagination boundary. `end` is only supported for `createdAt`
+	// listings (asc or desc) and returns the tail page directly without walking every
+	// cursor from the first page.
 	//
 	// Any of "end".
 	Anchor ModelListParamsAnchor `query:"anchor,omitzero" json:"-"`
@@ -197,9 +197,9 @@ func (r ModelListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Start from a known pagination boundary. `end` is only supported for
-// `createdAt:desc` listings and returns the oldest page directly without walking
-// every cursor from the first page.
+// Start from a known pagination boundary. `end` is only supported for `createdAt`
+// listings (asc or desc) and returns the tail page directly without walking every
+// cursor from the first page.
 type ModelListParamsAnchor string
 
 const (
