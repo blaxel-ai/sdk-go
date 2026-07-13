@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.0](https://github.com/blaxel-ai/sdk-go/compare/v0.24.2...v0.25.0) (2026-07-13)
+
+
+### Features
+
+* expose typed Application CRUD and revision APIs ([07d12e6](https://github.com/blaxel-ai/sdk-go/commit/07d12e611fcadf947b70858ef9a6880e547213f2))
+* regenerate the SDK from the latest OpenAPI specification ([b7b1faa](https://github.com/blaxel-ai/sdk-go/commit/b7b1faa55e1def2a5ec5bd6f978a1caeb799ad1b))
+
 ## [0.24.2](https://github.com/blaxel-ai/sdk-go/compare/v0.24.1...v0.24.2) (2026-07-06)
 
 
