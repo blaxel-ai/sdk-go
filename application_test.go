@@ -39,8 +39,21 @@ func TestApplicationNewWithOptionalParams(t *testing.T) {
 			},
 			Spec: blaxel.ApplicationSpecParam{
 				Enabled: blaxel.Bool(true),
-				Port:    blaxel.Int(8080),
-				Region:  blaxel.String("us-pdx-1"),
+				Envs: []shared.EnvParam{{
+					Name:   blaxel.String("MY_ENV_VAR"),
+					Secret: blaxel.Bool(true),
+					Value:  blaxel.String("my-value"),
+				}},
+				Extensions: map[string]blaxel.ApplicationSpecExtensionParam{
+					"foo": {
+						Sandbox: blaxel.String("my-sandbox"),
+					},
+				},
+				Image:  blaxel.String("my-registry/my-app:latest"),
+				Memory: blaxel.Int(2048),
+				Port:   blaxel.Int(8080),
+				Proxy:  blaxel.Bool(false),
+				Region: blaxel.String("us-pdx-1"),
 				Revision: blaxel.AppRevisionConfigurationParam{
 					Active:           blaxel.String("active"),
 					Canary:           blaxel.String("canary"),
@@ -129,8 +142,21 @@ func TestApplicationUpdateWithOptionalParams(t *testing.T) {
 				},
 				Spec: blaxel.ApplicationSpecParam{
 					Enabled: blaxel.Bool(true),
-					Port:    blaxel.Int(8080),
-					Region:  blaxel.String("us-pdx-1"),
+					Envs: []shared.EnvParam{{
+						Name:   blaxel.String("MY_ENV_VAR"),
+						Secret: blaxel.Bool(true),
+						Value:  blaxel.String("my-value"),
+					}},
+					Extensions: map[string]blaxel.ApplicationSpecExtensionParam{
+						"foo": {
+							Sandbox: blaxel.String("my-sandbox"),
+						},
+					},
+					Image:  blaxel.String("my-registry/my-app:latest"),
+					Memory: blaxel.Int(2048),
+					Port:   blaxel.Int(8080),
+					Proxy:  blaxel.Bool(false),
+					Region: blaxel.String("us-pdx-1"),
 					Revision: blaxel.AppRevisionConfigurationParam{
 						Active:           blaxel.String("active"),
 						Canary:           blaxel.String("canary"),

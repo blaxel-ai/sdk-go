@@ -352,16 +352,19 @@ type Application struct {
 	Spec ApplicationSpec `json:"spec" api:"required"`
 	// Events happening on a resource deployed on Blaxel
 	Events []CoreEvent `json:"events"`
+	// Infrastructure generation this application is deployed on (mk3.0 or mk3.1).
+	NodeGeneration string `json:"nodeGeneration"`
 	// Application status computed from events
 	Status string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Metadata    respjson.Field
-		Spec        respjson.Field
-		Events      respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Metadata       respjson.Field
+		Spec           respjson.Field
+		Events         respjson.Field
+		NodeGeneration respjson.Field
+		Status         respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 
@@ -407,8 +410,27 @@ func (r *ApplicationParam) UnmarshalJSON(data []byte) error {
 type ApplicationSpec struct {
 	// When false, the application is disabled and will not serve requests
 	Enabled bool `json:"enabled"`
+	// Environment variables for the application
+	Envs []shared.Env `json:"envs"`
+	// Map of experimental, opt-in application extensions keyed by fully-qualified
+	// extension name (e.g. "ai.blaxel.experimental/bind-to-sandbox").
+	Extensions map[string]ApplicationSpecExtension `json:"extensions"`
+	// Container image for the application. The backend generates a revision from the
+	// spec-level compute (image, memory, envs, port) on every create/update — clients
+	// set the compute here, exactly like agents and functions, and never craft
+	// revisions by hand.
+	Image string `json:"image"`
+	// Memory allocation in megabytes for the application (default 2048). Determines
+	// CPU allocation (CPU = memory / 2048).
+	Memory int64 `json:"memory"`
 	// Port the application listens on (default 8080)
 	Port int64 `json:"port"`
+	// When true, the application proxies to an existing sandbox (the active revision
+	// image is the sandbox name) instead of building and deploying its own compute.
+	// Proxy applications have no deployment pipeline and are always reported as
+	// deployed. Deprecated — prefer the ai.blaxel.experimental/bind-to-sandbox
+	// extension.
+	Proxy bool `json:"proxy"`
 	// Region where the application is deployed (e.g. us-pdx-1, eu-lon-1)
 	Region string `json:"region"`
 	// Routing configuration controlling which revision is active and canary traffic
@@ -422,7 +444,12 @@ type ApplicationSpec struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Enabled     respjson.Field
+		Envs        respjson.Field
+		Extensions  respjson.Field
+		Image       respjson.Field
+		Memory      respjson.Field
 		Port        respjson.Field
+		Proxy       respjson.Field
 		Region      respjson.Field
 		Revision    respjson.Field
 		Revisions   respjson.Field
@@ -447,15 +474,55 @@ func (r ApplicationSpec) ToParam() ApplicationSpecParam {
 	return param.Override[ApplicationSpecParam](json.RawMessage(r.RawJSON()))
 }
 
+// Configuration for a single application extension. The fields used depend on the
+// extension key; for ai.blaxel.experimental/bind-to-sandbox only "sandbox" is
+// used.
+type ApplicationSpecExtension struct {
+	// Name of the sandbox this application binds to (used by the
+	// ai.blaxel.experimental/bind-to-sandbox extension).
+	Sandbox string `json:"sandbox"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Sandbox     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ApplicationSpecExtension) RawJSON() string { return r.JSON.raw }
+func (r *ApplicationSpecExtension) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Configuration for an application including revision management, URL routing, and
 // deployment region
 type ApplicationSpecParam struct {
 	// When false, the application is disabled and will not serve requests
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// Container image for the application. The backend generates a revision from the
+	// spec-level compute (image, memory, envs, port) on every create/update — clients
+	// set the compute here, exactly like agents and functions, and never craft
+	// revisions by hand.
+	Image param.Opt[string] `json:"image,omitzero"`
+	// Memory allocation in megabytes for the application (default 2048). Determines
+	// CPU allocation (CPU = memory / 2048).
+	Memory param.Opt[int64] `json:"memory,omitzero"`
 	// Port the application listens on (default 8080)
 	Port param.Opt[int64] `json:"port,omitzero"`
+	// When true, the application proxies to an existing sandbox (the active revision
+	// image is the sandbox name) instead of building and deploying its own compute.
+	// Proxy applications have no deployment pipeline and are always reported as
+	// deployed. Deprecated — prefer the ai.blaxel.experimental/bind-to-sandbox
+	// extension.
+	Proxy param.Opt[bool] `json:"proxy,omitzero"`
 	// Region where the application is deployed (e.g. us-pdx-1, eu-lon-1)
 	Region param.Opt[string] `json:"region,omitzero"`
+	// Environment variables for the application
+	Envs []shared.EnvParam `json:"envs,omitzero"`
+	// Map of experimental, opt-in application extensions keyed by fully-qualified
+	// extension name (e.g. "ai.blaxel.experimental/bind-to-sandbox").
+	Extensions map[string]ApplicationSpecExtensionParam `json:"extensions,omitzero"`
 	// Routing configuration controlling which revision is active and canary traffic
 	// splitting
 	Revision  AppRevisionConfigurationParam `json:"revision,omitzero"`
@@ -472,6 +539,24 @@ func (r ApplicationSpecParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ApplicationSpecParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for a single application extension. The fields used depend on the
+// extension key; for ai.blaxel.experimental/bind-to-sandbox only "sandbox" is
+// used.
+type ApplicationSpecExtensionParam struct {
+	// Name of the sandbox this application binds to (used by the
+	// ai.blaxel.experimental/bind-to-sandbox extension).
+	Sandbox param.Opt[string] `json:"sandbox,omitzero"`
+	paramObj
+}
+
+func (r ApplicationSpecExtensionParam) MarshalJSON() (data []byte, err error) {
+	type shadow ApplicationSpecExtensionParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ApplicationSpecExtensionParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
