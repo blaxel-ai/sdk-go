@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.1](https://github.com/blaxel-ai/sdk-go/compare/v0.25.0...v0.25.1) (2026-07-28)
+
+
+### Chores
+
+* **deps:** bump indirect deps oauth2 v0.35.0, match v1.2.0 ([14a6354](https://github.com/blaxel-ai/sdk-go/commit/14a6354c4b8908b4b1bb2dffc15d8ebd8318b620))
+* **deps:** weekly safe go updates · 2 packages ([02756d1](https://github.com/blaxel-ai/sdk-go/commit/02756d13b96fc087451cbac213d2c7e322fa10c6))
+
 ## [0.24.2](https://github.com/blaxel-ai/sdk-go/compare/v0.24.1...v0.24.2) (2026-07-06)
 
 
