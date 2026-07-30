@@ -602,19 +602,36 @@ func TestSandboxPreviews(t *testing.T) {
 				}
 
 				httpClient := &http.Client{Timeout: 10 * time.Second}
-				resp, err := httpClient.Get(preview.Spec.URL)
-				if err != nil {
-					return fmt.Errorf("failed to access preview %s: %v", previewName, err)
+				// Retry URL check to tolerate routing propagation delay
+				var lastStatus int
+				for attempt := 0; attempt < 5; attempt++ {
+					resp, err := httpClient.Get(preview.Spec.URL)
+					if err == nil {
+						resp.Body.Close()
+						if resp.StatusCode == 200 {
+							lastStatus = 200
+							break
+						}
+						lastStatus = resp.StatusCode
+					}
+					time.Sleep(time.Duration(attempt+1) * time.Second)
 				}
-				resp.Body.Close()
-
-				if resp.StatusCode != 200 {
-					return fmt.Errorf("expected status 200 for %s, got %d", previewName, resp.StatusCode)
+				if lastStatus != 200 {
+					return fmt.Errorf("expected status 200 for %s, got %d after retries", previewName, lastStatus)
 				}
 
 				_, err = sandbox.Previews.Delete(ctx, previewName)
 				if err != nil {
 					return fmt.Errorf("failed to delete preview %s: %v", previewName, err)
+				}
+
+				// Wait for deletion to propagate before recreating
+				for i := 0; i < 10; i++ {
+					_, err := sandbox.Previews.Get(ctx, previewName)
+					if err != nil {
+						break // preview is gone
+					}
+					time.Sleep(500 * time.Millisecond)
 				}
 
 				preview2, err := sandbox.Previews.NewIfNotExists(ctx, blaxel.SandboxPreviewNewParams{
@@ -630,15 +647,22 @@ func TestSandboxPreviews(t *testing.T) {
 					return fmt.Errorf("failed to recreate preview %s: %v", previewName, err)
 				}
 
-				resp2, err := httpClient.Get(preview2.Spec.URL)
-				if err != nil {
-					return fmt.Errorf("failed to access recreated preview %s: %v", previewName, err)
+				// Retry URL check to tolerate routing propagation delay
+				lastStatus = 0
+				for attempt := 0; attempt < 5; attempt++ {
+					resp2, err := httpClient.Get(preview2.Spec.URL)
+					if err == nil {
+						resp2.Body.Close()
+						if resp2.StatusCode == 200 {
+							lastStatus = 200
+							break
+						}
+						lastStatus = resp2.StatusCode
+					}
+					time.Sleep(time.Duration(attempt+1) * time.Second)
 				}
-				resp2.Body.Close()
-
-				if resp2.StatusCode != 200 {
-					t.Logf("Preview URL check failed for %s: %s - Status: %d", previewName, preview2.Spec.URL, resp2.StatusCode)
-					return fmt.Errorf("expected status 200 for recreated %s, got %d", previewName, resp2.StatusCode)
+				if lastStatus != 200 {
+					return fmt.Errorf("expected status 200 for recreated %s, got %d after retries", previewName, lastStatus)
 				}
 
 				// Cleanup
