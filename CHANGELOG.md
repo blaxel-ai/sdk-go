@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.1](https://github.com/blaxel-ai/sdk-go/compare/v0.26.0...v0.26.1) (2026-08-05)
+
+
+### Chores
+
+* **deps:** bump github.com/modelcontextprotocol/go-sdk to v1.4.1 ([6d7c1cf](https://github.com/blaxel-ai/sdk-go/commit/6d7c1cf109dbb150792a960a91045b62c47d57da))
+* **deps:** fix critical/high Dependabot alerts in sdk-go ([2aa9ced](https://github.com/blaxel-ai/sdk-go/commit/2aa9ced50d26cda22d7d1f6687c3df29b4cdd38a))
+
 ## [0.26.0](https://github.com/blaxel-ai/sdk-go/compare/v0.25.1...v0.26.0) (2026-07-31)
 
 
