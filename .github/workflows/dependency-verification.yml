@@ -1,0 +1,44 @@
+name: Dependency verification
+
+# This gate exists for dependency-bump PRs (this remediation, Dependabot's own
+# PRs, or an explicit "dependencies" label). It is intentionally scoped at the
+# job level below so it does not become a new mandatory check on every
+# unrelated PR in this repo -- GitHub's `on:` block has no title filter.
+on:
+  pull_request:
+    # `edited` matters: the job re-evaluates when a title is fixed after opening.
+    types: [opened, synchronize, reopened, edited, labeled]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: build, vet, test
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: >-
+      contains(github.event.pull_request.title, 'Dependabot') ||
+      startsWith(github.event.pull_request.title, 'chore(deps)') ||
+      startsWith(github.head_ref, 'cploujoux/devin/dependabot-') ||
+      startsWith(github.head_ref, 'dependabot/') ||
+      contains(github.event.pull_request.labels.*.name, 'dependencies') ||
+      github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: ./go.mod
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        # Mirrors ./scripts/test: integration_tests/ needs a live Blaxel
+        # account and network access, so it is excluded here too.
+        run: go test $(go list ./... | grep -v /integration_tests)
