@@ -35,7 +35,7 @@ go get -u 'github.com/blaxel-ai/sdk-go@v0.26.0'
 
 ## Requirements
 
-This library requires Go 1.22+.
+This library requires Go 1.25+.
 
 ## Prerequisites
 
