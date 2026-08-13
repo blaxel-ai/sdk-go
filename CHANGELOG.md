@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.3](https://github.com/blaxel-ai/sdk-go/compare/v0.26.2...v0.26.3) (2026-08-13)
+
+
+### Bug Fixes
+
+* **openapi:** keep internal fields out of the public API reference ([4252c7c](https://github.com/blaxel-ai/sdk-go/commit/4252c7c3ec912aaf5fd1973ac676048f67ca17df))
+
 ## [0.26.2](https://github.com/blaxel-ai/sdk-go/compare/v0.26.1...v0.26.2) (2026-08-12)
 
 
