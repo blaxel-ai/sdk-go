@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.2](https://github.com/blaxel-ai/sdk-go/compare/v0.26.1...v0.26.2) (2026-08-12)
+
+
+### Bug Fixes
+
+* **controlplane:** resolve volume and sandbox node type based on mk3.1 capabilities ([47bfd4e](https://github.com/blaxel-ai/sdk-go/commit/47bfd4ee7467a192b402a52d3dcc584caca2ae31))
+
 ## [0.26.1](https://github.com/blaxel-ai/sdk-go/compare/v0.26.0...v0.26.1) (2026-08-05)
 
 
