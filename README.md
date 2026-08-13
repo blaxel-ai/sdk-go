@@ -28,7 +28,7 @@ Or to pin the version:
 <!-- x-release-please-start-version -->
 
 ```sh
-go get -u 'github.com/blaxel-ai/sdk-go@v0.26.2'
+go get -u 'github.com/blaxel-ai/sdk-go@v0.26.3'
 ```
 
 <!-- x-release-please-end -->
