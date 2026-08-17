@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.4](https://github.com/blaxel-ai/sdk-go/compare/v0.26.3...v0.26.4) (2026-08-17)
+
+
+### Chores
+
+* **deps:** weekly safe go updates · 2 packages ([5849ed7](https://github.com/blaxel-ai/sdk-go/commit/5849ed732d67399d623e9d3e6e254ec677f38c41))
+* **deps:** weekly safe go updates · 2 packages ([5e777f5](https://github.com/blaxel-ai/sdk-go/commit/5e777f5c8608713759802a6af5063195d2cf55a2))
+
 ## [0.26.2](https://github.com/blaxel-ai/sdk-go/compare/v0.26.1...v0.26.2) (2026-08-12)
 
 
