@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/blaxel-ai/sdk-go/compare/v0.26.4...v0.27.0) (2026-09-11)
+
+
+### Features
+
+* **snapshots:** workspace-level snapshots (create, list, get by id, fork, delete) ([443d98c](https://github.com/blaxel-ai/sdk-go/commit/443d98cb60ab4f7f8384b82e0e6bf2ea96107244))
+
 ## [0.26.4](https://github.com/blaxel-ai/sdk-go/compare/v0.26.3...v0.26.4) (2026-08-17)
 
 
