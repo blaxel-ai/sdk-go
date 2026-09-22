@@ -7,14 +7,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"os"
 	"slices"
 	"strings"
-	"sync"
+	"syscall"
 	"time"
 
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
@@ -129,8 +131,7 @@ type ProcessStreamOptions struct {
 type StreamControl struct {
 	Close func()
 	done  chan struct{}
-	errMu sync.Mutex
-	err   error
+	err   error // Written before done closes.
 }
 
 // Wait blocks until the streaming operation completes.
@@ -139,6 +140,15 @@ func (sc *StreamControl) Wait() {
 		<-sc.done
 	}
 }
+
+// Err waits for the stream to finish and returns its error. A clean log-stream
+// end does not imply that the remote process completed. Explicit Close is clean.
+func (sc *StreamControl) Err() error {
+	sc.Wait()
+	return sc.err
+}
+
+var errStreamClosed = errors.New("stream explicitly closed")
 
 // WatchEvent represents a filesystem change event
 type WatchEvent struct {
@@ -496,18 +506,99 @@ func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier 
 
 // Wait waits for a process to complete
 func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier string, maxWait time.Duration, interval time.Duration) (*ProcessResponse, error) {
-	return r.waitForProcess(ctx, identifier, maxWait, interval)
+	if maxWait < 0 || interval < 0 {
+		return nil, fmt.Errorf("maxWait and interval must not be negative")
+	}
+	if maxWait == 0 {
+		maxWait = time.Minute
+	}
+	if interval == 0 {
+		interval = time.Second
+	}
+	ctx, cancel := context.WithTimeout(ctx, maxWait)
+	defer cancel()
+	var lastError error
+	timeoutError := func() error {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			return ctx.Err()
+		}
+		return fmt.Errorf("process %s did not finish in time; it may still be running: %w", identifier, errors.Join(ctx.Err(), lastError))
+	}
+	for {
+		if ctx.Err() != nil {
+			return nil, timeoutError()
+		}
+		// This polling loop owns the retry cadence and the deadline for each GET.
+		process, err := r.Get(ctx, identifier, option.WithMaxRetries(0))
+		if ctx.Err() != nil {
+			return nil, timeoutError()
+		}
+		if err == nil {
+			if process == nil {
+				return nil, errors.New("empty process response")
+			}
+			switch process.Status {
+			case ProcessResponseStatusCompleted, ProcessResponseStatusFailed, ProcessResponseStatusKilled, ProcessResponseStatusStopped:
+				return process, nil
+			case ProcessResponseStatusRunning:
+				lastError = nil
+			default:
+				return nil, fmt.Errorf("unknown process status %q", process.Status)
+			}
+		} else {
+			var apiError *Error
+			var networkError net.Error
+			retryable := errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
+				errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNABORTED) || errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.EPIPE) ||
+				(errors.As(err, &networkError) && (networkError.Timeout() || networkError.Temporary()))
+			if errors.As(err, &apiError) {
+				switch apiError.StatusCode {
+				case 408, 429, 500, 502, 503, 504:
+					retryable = true
+				default:
+					retryable = false
+				}
+			}
+			if !retryable {
+				return nil, err
+			}
+			lastError = err
+		}
+		timer := time.NewTimer(interval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, timeoutError()
+		case <-timer.C:
+		}
+	}
 }
 
 // StreamLogs streams logs for a process in real-time.
 // Note: Uses PrepareRequest() for streaming - the generated service methods
 // expect to parse the full response, which doesn't work for streaming.
 func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifier string, opts ProcessStreamOptions) *StreamControl {
-	ctx, control, reportError, finish := newStreamControl(ctx, opts.OnError, func(err error) error {
-		return &ProcessError{Operation: "stream logs", Identifier: identifier, Cause: err}
-	})
+	ctx, cancel := context.WithCancelCause(ctx)
+	done := make(chan struct{})
+	control := &StreamControl{Close: func() { cancel(errStreamClosed) }, done: done}
+	reportError := func(err error) {
+		if context.Cause(ctx) == errStreamClosed {
+			return
+		}
+		control.err = err
+		if opts.OnError != nil {
+			opts.OnError(err)
+		}
+	}
+
 	go func() {
-		defer finish()
+		defer func() {
+			if ctx.Err() != nil && context.Cause(ctx) != errStreamClosed {
+				control.err = ctx.Err()
+			}
+			cancel(nil)
+			close(done)
+		}()
 
 		path := fmt.Sprintf("process/%s/logs/stream", identifier)
 
@@ -532,7 +623,7 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+			body, _ := io.ReadAll(resp.Body)
 			reportError(fmt.Errorf("failed to stream logs (HTTP %d): %s", resp.StatusCode, string(body)))
 			return
 		}
@@ -579,9 +670,7 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 // This combines process execution with log streaming in a single request using NDJSON streaming.
 // The server must support the text/event-stream accept header for this to work with streaming;
 // otherwise it falls back to regular execution.
-func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, body ProcessRequestParam, opts ProcessStreamOptions) (response *ProcessResponse, err error) {
-	body = prepareProcessRequest(body)
-	var observed *ProcessResponse
+func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, body ProcessRequestParam, opts ProcessStreamOptions) (*ProcessResponse, error) {
 	// Serialize the request body
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
@@ -603,14 +692,6 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "text/event-stream")
 
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err != nil {
-			err = &ProcessError{Operation: "execute", Identifier: body.Name.Value, LastKnownProcess: observed, Cause: err}
-		}
-	}()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
@@ -684,7 +765,6 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 			var rawResult ProcessResponse
 			if json.Unmarshal([]byte(line), &rawResult) == nil && rawResult.Name != "" {
 				result = &rawResult
-				observed = result
 				continue
 			}
 			continue
@@ -718,7 +798,6 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 				continue
 			}
 			result = &processResult
-			observed = result
 		}
 	}
 
@@ -895,10 +974,27 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 		opts = &WatchOptions{}
 	}
 
-	ctx, control, reportError, finish := newStreamControl(ctx, opts.OnError, nil)
+	ctx, cancel := context.WithCancelCause(ctx)
+	done := make(chan struct{})
+	control := &StreamControl{Close: func() { cancel(errStreamClosed) }, done: done}
+	reportError := func(err error) {
+		if context.Cause(ctx) == errStreamClosed {
+			return
+		}
+		control.err = err
+		if opts.OnError != nil {
+			opts.OnError(err)
+		}
+	}
 
 	go func() {
-		defer finish()
+		defer func() {
+			if ctx.Err() != nil && context.Cause(ctx) != errStreamClosed {
+				control.err = ctx.Err()
+			}
+			cancel(nil)
+			close(done)
+		}()
 
 		urlPath := fmt.Sprintf("watch/filesystem/%s", path)
 
@@ -929,7 +1025,7 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+			body, _ := io.ReadAll(resp.Body)
 			reportError(fmt.Errorf("failed to watch (HTTP %d): %s", resp.StatusCode, string(body)))
 			return
 		}

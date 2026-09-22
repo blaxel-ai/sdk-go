@@ -43,3 +43,6 @@ jobs:
 
       - name: Run lints
         run: ./scripts/lint
+
+      - name: Run process regression tests
+        run: go test . -run '^(TestProcess|TestWatchStream)' -race -count=1

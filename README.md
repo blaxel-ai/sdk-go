@@ -416,49 +416,23 @@ Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
 `ErrAuthenticationRequired`, `ErrAuthenticationFailed`, `ErrForbidden`,
 `ErrBadRequest`, `ErrUsageLimitExceeded`, `ErrPolicyViolation`.
 
-### Recovering sandbox process state
+### Waiting for sandbox processes
 
-`Process.Wait` returns a result only for a confirmed terminal API status (`completed`,
-`failed`, `killed`, or `stopped`). A nonzero exit code is a command result. Failure to
-read the status, timeout, or cancellation returns a `*blaxel.ProcessError` instead.
-Its `Identifier` can be used with `Get`, `Wait`, or `GetLogs`; `LastKnownProcess` is
-only the last observation. `errors.Is` and `errors.As` preserve the underlying cause.
+`Process.Wait` returns only a terminal API state. Temporary connection and HTTP
+errors are retried at the polling interval, within the same deadline. Permanent
+errors propagate; timeout and context cancellation never stop the command.
 
 ```go
 result, err := sandbox.Process.Wait(ctx, "my-command", time.Minute, time.Second)
-if err != nil {
-    var processErr *blaxel.ProcessError
-    if errors.As(err, &processErr) {
-        // Use a fresh context if the original wait was canceled or timed out.
-        recoveryCtx, cancel := context.WithTimeout(context.Background(), time.Minute)
-        defer cancel()
-        result, err = sandbox.Process.Wait(recoveryCtx, processErr.Identifier, time.Minute, time.Second)
-    }
-}
-// Handle err before inspecting result.Status, result.ExitCode, or result.Logs.
+// If waiting fails, use Get, Wait, or GetLogs with the same identifier.
+// To stop the command explicitly, call Stop or Kill, then Wait.
 ```
 
-`Process.New` and `ExecWithStreaming` assign a name before sending when one is not
-provided. Errors carry that identity even if the creation response was lost. Process
-creation is never automatically retried, including when `WithMaxRetries` is set:
-reconnect to the original command instead of submitting it again. An identity lets
-you look up a command; it does not make repeated creation idempotent.
-
-`Wait` retries connection failures and HTTP 408, 429, 500, 502, 503, and 504 with
-bounded exponential backoff and jitter, capped at five seconds (intervals already
-at or above the cap start capped). Its deadline covers requests and delays. Cancellation
-stops waiting, leaving the remote command alone. To explicitly stop and confirm:
-
-```go
-result, err := sandbox.Process.KillAndWait(ctx, "my-command", 30*time.Second, time.Second)
-// For a graceful stop, use StopAndWait with the same arguments.
-```
-
-These helpers confirm the terminal state reported by the API, not OS-level process
-reaping. An error means the stop outcome is unconfirmed. After `StreamLogs`, call
-`stream.Wait()` then `stream.Err()` to inspect a failure even without an `OnError`
-callback. Explicit `stream.Close()` is not a failure; clean log-stream completion
-does not itself confirm that the command completed.
+Provide a process name when you need to recover after a lost creation response.
+Process creation is never automatically retried, even with `WithMaxRetries`,
+because the original command may already have started. Log streams expose failures
+through `stream.Err()` (which waits for completion); explicit `stream.Close()` is
+clean. Clean log-stream completion alone does not confirm process completion.
 
 ### Timeouts
 
