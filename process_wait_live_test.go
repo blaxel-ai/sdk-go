@@ -95,7 +95,7 @@ func TestProcessWaitLiveNetworkRecovery(t *testing.T) {
 	if initial.Status != "running" {
 		t.Fatalf("expected initial running state: %+v", initial)
 	}
-	result, err := sandbox.Process.Wait(ctx, name, 5*time.Second, 20*time.Millisecond)
+	result, err := sandbox.Process.Wait(ctx, name, -1, 20*time.Millisecond)
 	if dropped.Load() > 0 {
 		select {
 		case releaseErr := <-releaseResult:

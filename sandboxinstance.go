@@ -504,10 +504,11 @@ func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier 
 	return r.service.GetLogs(ctx, identifier, opts...)
 }
 
-// Wait waits for a process to complete
+// Wait waits for a process to complete. maxWait -1 waits without an added deadline;
+// the context can still cancel or expire. maxWait 0 defaults to one minute.
 func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier string, maxWait time.Duration, interval time.Duration) (*ProcessResponse, error) {
-	if maxWait < 0 || interval < 0 {
-		return nil, fmt.Errorf("maxWait and interval must not be negative")
+	if maxWait < -1 || interval < 0 {
+		return nil, fmt.Errorf("maxWait must be -1 or non-negative; interval must not be negative")
 	}
 	if maxWait == 0 {
 		maxWait = time.Minute
@@ -515,8 +516,11 @@ func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier str
 	if interval == 0 {
 		interval = time.Second
 	}
-	ctx, cancel := context.WithTimeout(ctx, maxWait)
-	defer cancel()
+	if maxWait != -1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, maxWait)
+		defer cancel()
+	}
 	var lastError error
 	timeoutError := func() error {
 		if errors.Is(ctx.Err(), context.Canceled) {

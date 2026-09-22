@@ -421,6 +421,8 @@ Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
 `Process.Wait` returns only a terminal API state. Temporary connection and HTTP
 errors are retried at the polling interval, within the same deadline. Permanent
 errors propagate; timeout and context cancellation never stop the command.
+Pass `-1` for `maxWait` to wait indefinitely, while still honoring the context.
+Passing `0` keeps the default one-minute timeout.
 
 ```go
 result, err := sandbox.Process.Wait(ctx, "my-command", time.Minute, time.Second)

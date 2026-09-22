@@ -204,3 +204,57 @@ func TestProcessWaitPermanentTransportError(t *testing.T) {
 		t.Fatalf("error=%v calls=%d", err, calls.Load())
 	}
 }
+
+func TestProcessWaitInfiniteRecovers(t *testing.T) {
+	var calls atomic.Int32
+	sandbox := processServer(t, func(w http.ResponseWriter, r *http.Request) {
+		switch calls.Add(1) {
+		case 1:
+			processJSON(w, "running")
+		case 2:
+			http.Error(w, "temporary", 503)
+		default:
+			processJSON(w, "failed")
+		}
+	})
+	result, err := sandbox.Process.Wait(context.Background(), "original", -1, time.Millisecond)
+	if err != nil || result.Status != "failed" || result.ExitCode != 7 || calls.Load() != 3 {
+		t.Fatalf("result=%+v err=%v calls=%d", result, err, calls.Load())
+	}
+}
+
+func TestProcessWaitInfiniteHonorsContext(t *testing.T) {
+	t.Run("cancel", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		sandbox := processServer(t, func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet {
+				t.Errorf("unexpected method: %s", r.Method)
+			}
+			processJSON(w, "running")
+			cancel()
+		})
+		_, err := sandbox.Process.Wait(ctx, "original", -1, time.Hour)
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal(err)
+		}
+	})
+	t.Run("deadline bounds request", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+		defer cancel()
+		sandbox := processServer(t, func(w http.ResponseWriter, r *http.Request) { <-r.Context().Done() })
+		_, err := sandbox.Process.Wait(ctx, "original", -1, time.Hour)
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatal(err)
+		}
+	})
+}
+
+func TestProcessWaitRejectsOtherNegativeDurations(t *testing.T) {
+	sandbox := processServer(t, func(w http.ResponseWriter, r *http.Request) { t.Error("unexpected request") })
+	for _, durations := range [][2]time.Duration{{-2, time.Second}, {-time.Second, time.Second}, {-1, -1}} {
+		if _, err := sandbox.Process.Wait(context.Background(), "original", durations[0], durations[1]); err == nil {
+			t.Fatalf("accepted durations %v", durations)
+		}
+	}
+}
