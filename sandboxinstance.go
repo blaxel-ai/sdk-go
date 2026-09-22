@@ -503,30 +503,11 @@ func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier str
 // Note: Uses PrepareRequest() for streaming - the generated service methods
 // expect to parse the full response, which doesn't work for streaming.
 func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifier string, opts ProcessStreamOptions) *StreamControl {
-	ctx, cancel := context.WithCancelCause(ctx)
-	done := make(chan struct{})
-	control := &StreamControl{Close: func() { cancel(errProcessStreamClosed) }, done: done}
-	reportError := func(err error) {
-		if context.Cause(ctx) == errProcessStreamClosed {
-			return
-		}
-		if ctx.Err() != nil {
-			err = ctx.Err()
-		}
-		failure := &ProcessError{Operation: "stream logs", Identifier: identifier, Cause: err}
-		if control.setError(failure) && opts.OnError != nil {
-			opts.OnError(failure)
-		}
-	}
-
+	ctx, control, reportError, finish := newStreamControl(ctx, opts.OnError, func(err error) error {
+		return &ProcessError{Operation: "stream logs", Identifier: identifier, Cause: err}
+	})
 	go func() {
-		defer func() {
-			if ctx.Err() != nil {
-				reportError(ctx.Err())
-			}
-			cancel(nil)
-			close(done)
-		}()
+		defer finish()
 
 		path := fmt.Sprintf("process/%s/logs/stream", identifier)
 
@@ -601,11 +582,6 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, body ProcessRequestParam, opts ProcessStreamOptions) (response *ProcessResponse, err error) {
 	body = prepareProcessRequest(body)
 	var observed *ProcessResponse
-	defer func() {
-		if err != nil {
-			err = &ProcessError{Operation: "execute", Identifier: body.Name.Value, LastKnownProcess: observed, Cause: err}
-		}
-	}()
 	// Serialize the request body
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
@@ -627,6 +603,14 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "text/event-stream")
 
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			err = &ProcessError{Operation: "execute", Identifier: body.Name.Value, LastKnownProcess: observed, Cause: err}
+		}
+	}()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
@@ -911,12 +895,10 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 		opts = &WatchOptions{}
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	done := make(chan struct{})
+	ctx, control, reportError, finish := newStreamControl(ctx, opts.OnError, nil)
 
 	go func() {
-		defer close(done)
-		defer cancel()
+		defer finish()
 
 		urlPath := fmt.Sprintf("watch/filesystem/%s", path)
 
@@ -929,34 +911,26 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 		// Create config and prepare request (resolves URL, applies auth)
 		cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, urlPath+queryParams, nil, nil, r.options...)
 		if err != nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 
 		req, client, err := cfg.PrepareRequest()
 		if err != nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 
 		resp, err := client.Do(req)
 		if err != nil {
-			if opts.OnError != nil && ctx.Err() == nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			if opts.OnError != nil {
-				body, _ := io.ReadAll(resp.Body)
-				opts.OnError(fmt.Errorf("failed to watch: %s", string(body)))
-			}
+			body, _ := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+			reportError(fmt.Errorf("failed to watch (HTTP %d): %s", resp.StatusCode, string(body)))
 			return
 		}
 
@@ -996,17 +970,12 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 			callback(event)
 		}
 
-		if err := scanner.Err(); err != nil && ctx.Err() == nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+		if err := scanner.Err(); err != nil {
+			reportError(err)
 		}
 	}()
 
-	return &StreamControl{
-		Close: cancel,
-		done:  done,
-	}
+	return control
 }
 
 // --- Binary Upload Helpers ---

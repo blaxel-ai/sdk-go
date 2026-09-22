@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
 	"github.com/blaxel-ai/sdk-go/option"
 )
 
@@ -37,6 +38,25 @@ func prepareProcessRequest(body ProcessRequestParam) ProcessRequestParam {
 		body.Name = String("proc-" + rand.Text())
 	}
 	return body
+}
+
+// executeProcess is kept outside the generated service; Stainless preserves the
+// service's small delegation patch as documented in CONTRIBUTING.md.
+func executeProcess(ctx context.Context, body SandboxProcessNewParams, opts ...option.RequestOption) (res *ProcessResponse, err error) {
+	body.ProcessRequest = prepareProcessRequest(body.ProcessRequest)
+	submitted := false
+	opts = append(opts, option.WithMaxRetries(0), option.WithMiddleware(func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
+		if err := req.Context().Err(); err != nil {
+			return nil, err
+		}
+		submitted = true
+		return next(req)
+	}))
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, "process", body, &res, opts...)
+	if err != nil && submitted {
+		err = &ProcessError{Operation: "execute", Identifier: body.ProcessRequest.Name.Value, Cause: err}
+	}
+	return res, err
 }
 
 func terminalProcessStatus(status ProcessResponseStatus) bool {
@@ -172,7 +192,7 @@ func (r *SandboxInstanceProcessService) stopAndWait(ctx context.Context, identif
 	return result, waitErr
 }
 
-var errProcessStreamClosed = errors.New("process log stream explicitly closed")
+var errStreamClosed = errors.New("stream explicitly closed")
 
 // Err returns the observed stream failure, if any. Call Wait first to obtain the
 // final error. Explicit Close is not a failure. A nil error indicates only that
@@ -191,4 +211,34 @@ func (sc *StreamControl) setError(err error) bool {
 	}
 	sc.err = err
 	return true
+}
+
+// newStreamControl gives log streams and filesystem watches the same error and
+// explicit-close semantics. The optional wrapper adds operation-specific context.
+func newStreamControl(parent context.Context, onError func(error), wrap func(error) error) (context.Context, *StreamControl, func(error), func()) {
+	ctx, cancel := context.WithCancelCause(parent)
+	done := make(chan struct{})
+	control := &StreamControl{Close: func() { cancel(errStreamClosed) }, done: done}
+	report := func(err error) {
+		if context.Cause(ctx) == errStreamClosed {
+			return
+		}
+		if ctx.Err() != nil {
+			err = ctx.Err()
+		}
+		if wrap != nil {
+			err = wrap(err)
+		}
+		if control.setError(err) && onError != nil {
+			onError(err)
+		}
+	}
+	finish := func() {
+		if ctx.Err() != nil {
+			report(ctx.Err())
+		}
+		cancel(nil)
+		close(done)
+	}
+	return ctx, control, report, finish
 }

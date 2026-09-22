@@ -315,3 +315,91 @@ func TestProcessStreamLogsContextCancellationIsObservable(t *testing.T) {
 		t.Fatalf("error=%v", stream.Err())
 	}
 }
+
+func TestProcessSetupFailuresAreNotRecoverable(t *testing.T) {
+	for _, streaming := range []bool{false, true} {
+		t.Run(fmt.Sprint(streaming), func(t *testing.T) {
+			var calls atomic.Int32
+			client := blaxel.NewClient()
+			sandbox := client.Sandboxes.FromSession(blaxel.SessionWithToken{Name: "test", URL: "https://sandbox.test", Token: "test"}, option.WithBaseURL("://invalid"), option.WithHTTPClient(&http.Client{Transport: &closureTransport{fn: func(r *http.Request) (*http.Response, error) { calls.Add(1); return nil, io.EOF }}}))
+			var err error
+			if streaming {
+				_, err = sandbox.Process.ExecWithStreaming(context.Background(), blaxel.ProcessRequestParam{Command: "side effect"}, blaxel.ProcessStreamOptions{})
+			} else {
+				_, err = sandbox.Process.New(context.Background(), blaxel.ProcessRequestParam{Command: "side effect"})
+			}
+			var processErr *blaxel.ProcessError
+			if err == nil || errors.As(err, &processErr) || calls.Load() != 0 {
+				t.Fatalf("error=%v processError=%+v requests=%d", err, processErr, calls.Load())
+			}
+		})
+	}
+}
+func TestProcessAlreadyCanceledCreationIsNotRecoverable(t *testing.T) {
+	for _, streaming := range []bool{false, true} {
+		t.Run(fmt.Sprint(streaming), func(t *testing.T) {
+			var calls atomic.Int32
+			sandbox := processTestSandbox(t, func(w http.ResponseWriter, r *http.Request) { calls.Add(1); writeProcess(w, "completed") })
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			var err error
+			if streaming {
+				_, err = sandbox.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{Command: "side effect"}, blaxel.ProcessStreamOptions{})
+			} else {
+				_, err = sandbox.Process.New(ctx, blaxel.ProcessRequestParam{Command: "side effect"})
+			}
+			var processErr *blaxel.ProcessError
+			if !errors.Is(err, context.Canceled) || errors.As(err, &processErr) || calls.Load() != 0 {
+				t.Fatalf("error=%v processError=%+v requests=%d", err, processErr, calls.Load())
+			}
+		})
+	}
+}
+func TestWatchStreamControlExposesHTTPFailure(t *testing.T) {
+	sandbox := processTestSandbox(t, func(w http.ResponseWriter, r *http.Request) { http.Error(w, "missing", 500) })
+	stream := sandbox.FS.Watch(context.Background(), "tmp", func(blaxel.WatchEvent) {}, nil)
+	stream.Wait()
+	if stream.Err() == nil || !strings.Contains(stream.Err().Error(), "HTTP 500") {
+		t.Fatalf("error=%v", stream.Err())
+	}
+}
+func TestWatchStreamControlExposesReadFailure(t *testing.T) {
+	sandbox := processTestSandbox(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", "1000")
+		io.WriteString(w, "\n")
+	})
+	stream := sandbox.FS.Watch(context.Background(), "tmp", func(blaxel.WatchEvent) {}, nil)
+	stream.Wait()
+	if !errors.Is(stream.Err(), io.ErrUnexpectedEOF) {
+		t.Fatalf("error=%v", stream.Err())
+	}
+}
+func TestWatchStreamControlCloseAndCancel(t *testing.T) {
+	for _, explicitClose := range []bool{false, true} {
+		t.Run(fmt.Sprint(explicitClose), func(t *testing.T) {
+			started := make(chan struct{})
+			sandbox := processTestSandbox(t, func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(200)
+				w.(http.Flusher).Flush()
+				close(started)
+				<-r.Context().Done()
+			})
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			stream := sandbox.FS.Watch(ctx, "tmp", func(blaxel.WatchEvent) {}, nil)
+			<-started
+			if explicitClose {
+				stream.Close()
+			} else {
+				cancel()
+			}
+			stream.Wait()
+			if explicitClose && stream.Err() != nil {
+				t.Fatal(stream.Err())
+			}
+			if !explicitClose && !errors.Is(stream.Err(), context.Canceled) {
+				t.Fatalf("error=%v", stream.Err())
+			}
+		})
+	}
+}

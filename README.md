@@ -445,7 +445,8 @@ reconnect to the original command instead of submitting it again. An identity le
 you look up a command; it does not make repeated creation idempotent.
 
 `Wait` retries connection failures and HTTP 408, 429, 500, 502, 503, and 504 with
-bounded backoff and jitter. Its deadline covers requests and delays. Cancellation
+bounded exponential backoff and jitter, capped at five seconds (intervals already
+at or above the cap start capped). Its deadline covers requests and delays. Cancellation
 stops waiting, leaving the remote command alone. To explicitly stop and confirm:
 
 ```go
