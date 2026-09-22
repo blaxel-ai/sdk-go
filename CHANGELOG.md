@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.27.1](https://github.com/blaxel-ai/sdk-go/compare/v0.27.0...v0.27.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* address process recovery review feedback ([78231c4](https://github.com/blaxel-ai/sdk-go/commit/78231c4efc99da48d85cfb0b40a5fb8d1b00b113))
+* preserve process state across network interruptions ([a355638](https://github.com/blaxel-ai/sdk-go/commit/a355638c683b4475d9de6cace6bbe92d30745b89))
+* simplify process waiting and verify network recovery ([09812fe](https://github.com/blaxel-ai/sdk-go/commit/09812feff7bf4290613cfd8aa7ae08503b2b312f))
+* support unlimited process waits with maxWait minus one ([6711d11](https://github.com/blaxel-ai/sdk-go/commit/6711d117890b52614f7f1f1e1769c5a9d7ac963d))
+
 ## [0.27.0](https://github.com/blaxel-ai/sdk-go/compare/v0.26.4...v0.27.0) (2026-09-11)
 
 
