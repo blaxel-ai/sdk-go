@@ -40,7 +40,8 @@ func NewSandboxProcessService(opts ...option.RequestOption) (r SandboxProcessSer
 // text/event-stream, streams logs in SSE format and returns the process response
 // as a final event.
 func (r *SandboxProcessService) New(ctx context.Context, body SandboxProcessNewParams, opts ...option.RequestOption) (res *ProcessResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
+	// A lost response may follow execution. Replaying this POST could start the command twice.
+	opts = slices.Concat(r.Options, opts, []option.RequestOption{option.WithMaxRetries(0)})
 	path := "process"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err

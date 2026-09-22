@@ -416,6 +416,26 @@ Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
 `ErrAuthenticationRequired`, `ErrAuthenticationFailed`, `ErrForbidden`,
 `ErrBadRequest`, `ErrUsageLimitExceeded`, `ErrPolicyViolation`.
 
+### Waiting for sandbox processes
+
+`Process.Wait` returns only a terminal API state. Temporary connection and HTTP
+errors are retried at the polling interval, within the same deadline. Permanent
+errors propagate; timeout and context cancellation never stop the command.
+Pass `-1` for `maxWait` to wait indefinitely, while still honoring the context.
+Passing `0` keeps the default one-minute timeout.
+
+```go
+result, err := sandbox.Process.Wait(ctx, "my-command", time.Minute, time.Second)
+// If waiting fails, use Get, Wait, or GetLogs with the same identifier.
+// To stop the command explicitly, call Stop or Kill, then Wait.
+```
+
+Provide a process name when you need to recover after a lost creation response.
+Process creation is never automatically retried, even with `WithMaxRetries`,
+because the original command may already have started. Log streams expose failures
+through `stream.Err()` (which waits for completion); explicit `stream.Close()` is
+clean. Clean log-stream completion alone does not confirm process completion.
+
 ### Timeouts
 
 Requests do not time out by default; use context to configure a timeout for a request lifecycle.

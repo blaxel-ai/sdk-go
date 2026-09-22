@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"sync"
 	"testing"
@@ -414,7 +415,7 @@ func TestSandboxProcess(t *testing.T) {
 			if err == nil {
 				t.Error("expected timeout error")
 			}
-			if !strings.Contains(err.Error(), "did not finish in time") {
+			if !errors.Is(err, context.DeadlineExceeded) {
 				t.Errorf("expected timeout error message, got %v", err)
 			}
 

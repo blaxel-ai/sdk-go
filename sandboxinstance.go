@@ -7,13 +7,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"os"
 	"slices"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/blaxel-ai/sdk-go/internal/requestconfig"
@@ -128,6 +131,7 @@ type ProcessStreamOptions struct {
 type StreamControl struct {
 	Close func()
 	done  chan struct{}
+	err   error // Written before done closes.
 }
 
 // Wait blocks until the streaming operation completes.
@@ -136,6 +140,15 @@ func (sc *StreamControl) Wait() {
 		<-sc.done
 	}
 }
+
+// Err waits for the stream to finish and returns its error. A clean log-stream
+// end does not imply that the remote process completed. Explicit Close is clean.
+func (sc *StreamControl) Err() error {
+	sc.Wait()
+	return sc.err
+}
+
+var errStreamClosed = errors.New("stream explicitly closed")
 
 // WatchEvent represents a filesystem change event
 type WatchEvent struct {
@@ -491,36 +504,76 @@ func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier 
 	return r.service.GetLogs(ctx, identifier, opts...)
 }
 
-// Wait waits for a process to complete
+// Wait waits for a process to complete. maxWait -1 waits without an added deadline;
+// the context can still cancel or expire. maxWait 0 defaults to one minute.
 func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier string, maxWait time.Duration, interval time.Duration) (*ProcessResponse, error) {
+	if maxWait < -1 || interval < 0 {
+		return nil, fmt.Errorf("maxWait must be -1 or non-negative; interval must not be negative")
+	}
 	if maxWait == 0 {
-		maxWait = 60 * time.Second
+		maxWait = time.Minute
 	}
 	if interval == 0 {
 		interval = time.Second
 	}
-
-	deadline := time.Now().Add(maxWait)
-
+	if maxWait != -1 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, maxWait)
+		defer cancel()
+	}
+	var lastError error
+	timeoutError := func() error {
+		if errors.Is(ctx.Err(), context.Canceled) {
+			return ctx.Err()
+		}
+		return fmt.Errorf("process %s did not finish in time; it may still be running: %w", identifier, errors.Join(ctx.Err(), lastError))
+	}
 	for {
-		process, err := r.Get(ctx, identifier)
-		if err != nil {
-			return nil, err
+		if ctx.Err() != nil {
+			return nil, timeoutError()
 		}
-
-		if process.Status != ProcessResponseStatusRunning {
-			return process, nil
+		// This polling loop owns the retry cadence and the deadline for each GET.
+		process, err := r.Get(ctx, identifier, option.WithMaxRetries(0))
+		if ctx.Err() != nil {
+			return nil, timeoutError()
 		}
-
-		if time.Now().After(deadline) {
-			return nil, fmt.Errorf("process did not finish in time")
+		if err == nil {
+			if process == nil {
+				return nil, errors.New("empty process response")
+			}
+			switch process.Status {
+			case ProcessResponseStatusCompleted, ProcessResponseStatusFailed, ProcessResponseStatusKilled, ProcessResponseStatusStopped:
+				return process, nil
+			case ProcessResponseStatusRunning:
+				lastError = nil
+			default:
+				return nil, fmt.Errorf("unknown process status %q", process.Status)
+			}
+		} else {
+			var apiError *Error
+			var networkError net.Error
+			retryable := errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
+				errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNABORTED) || errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.EPIPE) ||
+				(errors.As(err, &networkError) && (networkError.Timeout() || networkError.Temporary()))
+			if errors.As(err, &apiError) {
+				switch apiError.StatusCode {
+				case 408, 429, 500, 502, 503, 504:
+					retryable = true
+				default:
+					retryable = false
+				}
+			}
+			if !retryable {
+				return nil, err
+			}
+			lastError = err
 		}
-
+		timer := time.NewTimer(interval)
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(interval):
-			// Continue polling
+			timer.Stop()
+			return nil, timeoutError()
+		case <-timer.C:
 		}
 	}
 }
@@ -529,46 +582,53 @@ func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier str
 // Note: Uses PrepareRequest() for streaming - the generated service methods
 // expect to parse the full response, which doesn't work for streaming.
 func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifier string, opts ProcessStreamOptions) *StreamControl {
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancelCause(ctx)
 	done := make(chan struct{})
+	control := &StreamControl{Close: func() { cancel(errStreamClosed) }, done: done}
+	reportError := func(err error) {
+		if context.Cause(ctx) == errStreamClosed {
+			return
+		}
+		control.err = err
+		if opts.OnError != nil {
+			opts.OnError(err)
+		}
+	}
 
 	go func() {
-		defer close(done)
-		defer cancel()
+		defer func() {
+			if ctx.Err() != nil && context.Cause(ctx) != errStreamClosed {
+				control.err = ctx.Err()
+			}
+			cancel(nil)
+			close(done)
+		}()
 
 		path := fmt.Sprintf("process/%s/logs/stream", identifier)
 
 		// Create config and prepare request (resolves URL, applies auth)
 		cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, nil, nil, r.options...)
 		if err != nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 
 		req, client, err := cfg.PrepareRequest()
 		if err != nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 
 		resp, err := client.Do(req)
 		if err != nil {
-			if opts.OnError != nil && ctx.Err() == nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			if opts.OnError != nil {
-				body, _ := io.ReadAll(resp.Body)
-				opts.OnError(fmt.Errorf("failed to stream logs: %s", string(body)))
-			}
+			body, _ := io.ReadAll(resp.Body)
+			reportError(fmt.Errorf("failed to stream logs (HTTP %d): %s", resp.StatusCode, string(body)))
 			return
 		}
 
@@ -602,17 +662,12 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 			}
 		}
 
-		if err := scanner.Err(); err != nil && ctx.Err() == nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+		if err := scanner.Err(); err != nil {
+			reportError(err)
 		}
 	}()
 
-	return &StreamControl{
-		Close: cancel,
-		done:  done,
-	}
+	return control
 }
 
 // ExecWithStreaming executes a command and streams logs in real-time, returning the final result.
@@ -923,12 +978,27 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 		opts = &WatchOptions{}
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancelCause(ctx)
 	done := make(chan struct{})
+	control := &StreamControl{Close: func() { cancel(errStreamClosed) }, done: done}
+	reportError := func(err error) {
+		if context.Cause(ctx) == errStreamClosed {
+			return
+		}
+		control.err = err
+		if opts.OnError != nil {
+			opts.OnError(err)
+		}
+	}
 
 	go func() {
-		defer close(done)
-		defer cancel()
+		defer func() {
+			if ctx.Err() != nil && context.Cause(ctx) != errStreamClosed {
+				control.err = ctx.Err()
+			}
+			cancel(nil)
+			close(done)
+		}()
 
 		urlPath := fmt.Sprintf("watch/filesystem/%s", path)
 
@@ -941,34 +1011,26 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 		// Create config and prepare request (resolves URL, applies auth)
 		cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, urlPath+queryParams, nil, nil, r.options...)
 		if err != nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 
 		req, client, err := cfg.PrepareRequest()
 		if err != nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 
 		resp, err := client.Do(req)
 		if err != nil {
-			if opts.OnError != nil && ctx.Err() == nil {
-				opts.OnError(err)
-			}
+			reportError(err)
 			return
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			if opts.OnError != nil {
-				body, _ := io.ReadAll(resp.Body)
-				opts.OnError(fmt.Errorf("failed to watch: %s", string(body)))
-			}
+			body, _ := io.ReadAll(resp.Body)
+			reportError(fmt.Errorf("failed to watch (HTTP %d): %s", resp.StatusCode, string(body)))
 			return
 		}
 
@@ -1008,17 +1070,12 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 			callback(event)
 		}
 
-		if err := scanner.Err(); err != nil && ctx.Err() == nil {
-			if opts.OnError != nil {
-				opts.OnError(err)
-			}
+		if err := scanner.Err(); err != nil {
+			reportError(err)
 		}
 	}()
 
-	return &StreamControl{
-		Close: cancel,
-		done:  done,
-	}
+	return control
 }
 
 // --- Binary Upload Helpers ---
