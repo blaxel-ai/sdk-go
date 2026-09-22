@@ -416,6 +416,49 @@ Available error code constants in the `blaxel` package: `ErrRouteNotFound`,
 `ErrAuthenticationRequired`, `ErrAuthenticationFailed`, `ErrForbidden`,
 `ErrBadRequest`, `ErrUsageLimitExceeded`, `ErrPolicyViolation`.
 
+### Recovering sandbox process state
+
+`Process.Wait` returns a result only for a confirmed terminal API status (`completed`,
+`failed`, `killed`, or `stopped`). A nonzero exit code is a command result. Failure to
+read the status, timeout, or cancellation returns a `*blaxel.ProcessError` instead.
+Its `Identifier` can be used with `Get`, `Wait`, or `GetLogs`; `LastKnownProcess` is
+only the last observation. `errors.Is` and `errors.As` preserve the underlying cause.
+
+```go
+result, err := sandbox.Process.Wait(ctx, "my-command", time.Minute, time.Second)
+if err != nil {
+    var processErr *blaxel.ProcessError
+    if errors.As(err, &processErr) {
+        // Use a fresh context if the original wait was canceled or timed out.
+        recoveryCtx, cancel := context.WithTimeout(context.Background(), time.Minute)
+        defer cancel()
+        result, err = sandbox.Process.Wait(recoveryCtx, processErr.Identifier, time.Minute, time.Second)
+    }
+}
+// Handle err before inspecting result.Status, result.ExitCode, or result.Logs.
+```
+
+`Process.New` and `ExecWithStreaming` assign a name before sending when one is not
+provided. Errors carry that identity even if the creation response was lost. Process
+creation is never automatically retried, including when `WithMaxRetries` is set:
+reconnect to the original command instead of submitting it again. An identity lets
+you look up a command; it does not make repeated creation idempotent.
+
+`Wait` retries connection failures and HTTP 408, 429, 500, 502, 503, and 504 with
+bounded backoff and jitter. Its deadline covers requests and delays. Cancellation
+stops waiting, leaving the remote command alone. To explicitly stop and confirm:
+
+```go
+result, err := sandbox.Process.KillAndWait(ctx, "my-command", 30*time.Second, time.Second)
+// For a graceful stop, use StopAndWait with the same arguments.
+```
+
+These helpers confirm the terminal state reported by the API, not OS-level process
+reaping. An error means the stop outcome is unconfirmed. After `StreamLogs`, call
+`stream.Wait()` then `stream.Err()` to inspect a failure even without an `OnError`
+callback. Explicit `stream.Close()` is not a failure; clean log-stream completion
+does not itself confirm that the command completed.
+
 ### Timeouts
 
 Requests do not time out by default; use context to configure a timeout for a request lifecycle.
