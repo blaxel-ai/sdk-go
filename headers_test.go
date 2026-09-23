@@ -34,7 +34,7 @@ func TestBlaxelVersionHeader(t *testing.T) {
 	)
 
 	_, _ = client.Sandboxes.List(context.Background(), blaxel.SandboxListParams{})
-	if blaxelVersion != "2026-04-28" {
+	if blaxelVersion != "2026-09-22" {
 		t.Errorf("Expected Blaxel-Version to be correct, but got: %#v", blaxelVersion)
 	}
 }
