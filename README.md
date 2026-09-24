@@ -345,6 +345,30 @@ if err != nil {
 }
 ```
 
+### Image summaries and tags
+
+The SDK sends `Blaxel-Version: 2026-09-22` by default. `Images.List` returns a
+page of `ImageSummary` values, and `Images.Get` returns one summary. Summaries
+include `Spec.Size` and `Spec.TagCount`; fetch tags separately instead of loading
+all tags with every image:
+
+```go
+iter := client.Images.Tags.ListAutoPaging(ctx, "my-image", blaxel.ImageTagListParams{
+    ResourceType: "sandbox",
+    Limit: blaxel.Int(100),
+})
+for iter.Next() {
+    fmt.Println(iter.Current().Name)
+}
+if err := iter.Err(); err != nil {
+    return err
+}
+```
+
+Use `Images.Tags.List` to fetch only one page. For an account-shared image,
+pass `SourceWorkspace: blaxel.String("owner-workspace")` to both `Images.Get`
+and `Images.Tags.List` (or `ListAutoPaging`).
+
 ### Errors
 
 When the API returns a non-success status code, we return an error with type
