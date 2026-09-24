@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.2](https://github.com/blaxel-ai/sdk-go/compare/v0.27.1...v0.27.2) (2026-09-24)
+
+
+### Bug Fixes
+
+* use image pagination API version ([187de29](https://github.com/blaxel-ai/sdk-go/commit/187de29589cdf8283324509052dc8c9f54734494))
+
 ## [0.27.1](https://github.com/blaxel-ai/sdk-go/compare/v0.27.0...v0.27.1) (2026-09-22)
 
 
