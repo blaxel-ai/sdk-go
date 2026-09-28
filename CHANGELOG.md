@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/blaxel-ai/sdk-go/compare/v0.27.2...v0.28.0) (2026-09-28)
+
+
+### Features
+
+* **sandbox:** landlock extraArg selects the mk3.1 landlock kernel variant ([de428ba](https://github.com/blaxel-ai/sdk-go/commit/de428ba3dd1fda6f2d49d9ea603f805fd2832d09))
+
 ## [0.27.2](https://github.com/blaxel-ai/sdk-go/compare/v0.27.1...v0.27.2) (2026-09-24)
 
 
