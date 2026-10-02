@@ -672,7 +672,7 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 
 // ExecWithStreaming executes a command and streams logs in real-time, returning the final result.
 // This combines process execution with log streaming in a single request using NDJSON streaming.
-// The server must support the text/event-stream accept header for this to work with streaming;
+// Streaming is negotiated with "Accept: application/x-ndjson, text/event-stream";
 // otherwise it falls back to regular execution.
 func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, body ProcessRequestParam, opts ProcessStreamOptions) (*ProcessResponse, error) {
 	// Serialize the request body
@@ -694,7 +694,7 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 
 	// Set headers for streaming
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Accept", "application/x-ndjson, text/event-stream")
 
 	resp, err := client.Do(req)
 	if err != nil {
