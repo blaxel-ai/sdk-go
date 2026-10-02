@@ -1673,8 +1673,8 @@ func newSandboxInstance(sandbox *Sandbox, sandboxService *SandboxService, opts [
 	// The sandbox URL must be appended LAST so it takes precedence over any
 	// base URL that may already be in opts (from the parent client)
 	sandboxOpts := opts
-	if sandbox.Metadata.URL != "" {
-		sandboxOpts = append(opts, option.WithBaseURL(sandbox.Metadata.URL))
+	if baseURL := strings.TrimRight(sandbox.Metadata.URL, "/"); baseURL != "" {
+		sandboxOpts = append(opts, option.WithBaseURL(baseURL))
 	}
 
 	processService := NewSandboxProcessService(sandboxOpts...)
