@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/blaxel-ai/sdk-go/compare/v0.28.0...v0.29.0) (2026-10-09)
+
+
+### Features
+
+* **sandbox:** enforce a 5 minute minimum TTL ([403048a](https://github.com/blaxel-ai/sdk-go/commit/403048a9af08b5459aedd7de929dfb722706bc1a))
+
 ## [0.28.0](https://github.com/blaxel-ai/sdk-go/compare/v0.27.2...v0.28.0) (2026-09-28)
 
 
