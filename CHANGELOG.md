@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/blaxel-ai/sdk-go/compare/v0.29.0...v0.29.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* **drives:** delete folders through native storage (ENG-2250) ([27fb1c1](https://github.com/blaxel-ai/sdk-go/commit/27fb1c13befc2615805e97ae58cfd356cb47262c))
+
 ## [0.29.0](https://github.com/blaxel-ai/sdk-go/compare/v0.28.0...v0.29.0) (2026-10-09)
 
 
