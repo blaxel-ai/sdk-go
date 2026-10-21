@@ -16,20 +16,56 @@ import (
 	"github.com/blaxel-ai/sdk-go/packages/pagination"
 )
 
-// VolumeUpdateMetadataParams contains parameters for updating volume metadata
+// VolumeUpdateMetadataParams holds the metadata that
+// [VolumeService.UpdateInstanceMetadata] changes. Zero values keep the
+// current value.
 type VolumeUpdateMetadataParams struct {
-	Labels      map[string]string
+	// Labels replaces the whole label map when not nil, so include the labels
+	// to keep.
+	Labels map[string]string
+	// DisplayName is the human-readable name, at most 63 characters. Empty
+	// keeps the current one.
 	DisplayName string
 }
 
-// VolumeInstance wraps a Volume with convenience methods
+// VolumeInstance is a persistent volume: storage whose files outlive the
+// sandboxes that use it. Attach it to a sandbox in the same region through
+// Spec.Volumes when you create the sandbox. The embedded [Volume] is a copy
+// from when this value was read and is not refreshed.
+//
+// Size is in MB, 1024 by default, and can grow but never shrink. Region and
+// template are fixed at creation.
+//
+// Example:
+//
+//	vol, err := client.Volumes.CreateInstanceIfNotExists(ctx, blaxel.VolumeNewParams{
+//		Volume: blaxel.VolumeParam{
+//			Metadata: blaxel.MetadataParam{Name: "my-data"},
+//			Spec:     blaxel.VolumeSpecParam{Region: blaxel.String("us-pdx-1")},
+//		},
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	sbx, err := client.Sandboxes.NewInstance(ctx, blaxel.SandboxNewParams{
+//		Sandbox: blaxel.SandboxParam{
+//			Metadata: blaxel.MetadataParam{Name: "worker"},
+//			Spec: blaxel.SandboxSpecParam{
+//				Region: blaxel.String("us-pdx-1"),
+//				Volumes: []blaxel.VolumeAttachmentParam{{
+//					Name:      blaxel.String(vol.Name()),
+//					MountPath: blaxel.String("/data"),
+//				}},
+//			},
+//		},
+//	})
 type VolumeInstance struct {
 	*Volume
 	service *VolumeService
 	options []option.RequestOption
 }
 
-// Name returns the volume name
+// Name returns the volume name, used to attach it to a sandbox.
 func (v *VolumeInstance) Name() string {
 	return v.Metadata.Name
 }
@@ -49,21 +85,31 @@ func (v *VolumeInstance) Region() string {
 	return v.Spec.Region
 }
 
-// Delete deletes this volume
+// Delete permanently deletes this volume and its data.
 func (v *VolumeInstance) Delete(ctx context.Context, opts ...option.RequestOption) error {
 	opts = slices.Concat(v.options, opts)
 	_, err := v.service.Delete(ctx, v.Metadata.Name, opts...)
 	return err
 }
 
-// Update updates this volume with the given params
+// Update writes body to this volume and returns the result as a new
+// [VolumeInstance]. See [VolumeService.UpdateInstance] for what can change.
 func (v *VolumeInstance) Update(ctx context.Context, body VolumeUpdateParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(v.options, opts)
 	return v.service.UpdateInstance(ctx, v.Metadata.Name, body, opts...)
 }
 
-// NewInstance creates a new volume and returns a VolumeInstance.
-// This allows fluent access to volume operations:
+// NewInstance creates a volume and returns it as a [VolumeInstance].
+//
+// Unset fields get SDK defaults: a name like volume-1a2b3c4d, a size of 1024
+// MB, the region from the BL_REGION environment variable, and the name as the
+// display name. Without a region or BL_REGION it returns an error before
+// sending any request. Names use lowercase letters, digits and hyphens, at
+// most 49 characters. Size is in MB and can only grow later; region and
+// template cannot change after creation. A name already in use is rejected
+// with HTTP 409; use [VolumeService.CreateInstanceIfNotExists] to reuse it.
+//
+// Example:
 //
 //	vol, err := client.Volumes.NewInstance(ctx, blaxel.VolumeNewParams{
 //	    Volume: blaxel.VolumeParam{
@@ -113,7 +159,8 @@ func (r *VolumeService) NewInstance(ctx context.Context, body VolumeNewParams, o
 	}, nil
 }
 
-// GetInstance returns a volume as a VolumeInstance
+// GetInstance returns the volume with this name as a [VolumeInstance]. It
+// returns an [*Error] with StatusCode 404 when no volume has this name.
 func (r *VolumeService) GetInstance(ctx context.Context, volumeName string, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 	volume, err := r.Get(ctx, volumeName, opts...)
@@ -128,8 +175,12 @@ func (r *VolumeService) GetInstance(ctx context.Context, volumeName string, opts
 	}, nil
 }
 
+// VolumeInstanceListResponse is one page of volumes from
+// [VolumeService.ListInstances].
 type VolumeInstanceListResponse struct {
+	// Data holds the volumes of this page.
 	Data []*VolumeInstance
+	// Meta holds the cursor of the next page and whether there is one.
 	Meta pagination.CursorPageMeta
 
 	raw            string
@@ -138,12 +189,15 @@ type VolumeInstanceListResponse struct {
 	service        *VolumeService
 }
 
+// RawJSON returns the JSON of the page as the API sent it.
 func (r VolumeInstanceListResponse) RawJSON() string { return r.raw }
 
+// HasNextPage reports whether another page follows this one.
 func (r *VolumeInstanceListResponse) HasNextPage() bool {
 	return r != nil && r.Meta.HasMore && r.Meta.NextCursor != ""
 }
 
+// NextCursor returns the cursor of the next page, or an empty string.
 func (r *VolumeInstanceListResponse) NextCursor() string {
 	if r == nil {
 		return ""
@@ -151,6 +205,8 @@ func (r *VolumeInstanceListResponse) NextCursor() string {
 	return r.Meta.NextCursor
 }
 
+// NextPageParams returns the query of the next page: the original query with
+// the next cursor. It returns false when there is no next page.
 func (r *VolumeInstanceListResponse) NextPageParams() (VolumeListParams, bool) {
 	if r == nil {
 		return VolumeListParams{}, false
@@ -163,6 +219,8 @@ func (r *VolumeInstanceListResponse) NextPageParams() (VolumeListParams, bool) {
 	return query, true
 }
 
+// NextPage fetches the next page with the original query and request
+// options. It returns nil and no error when there is no next page.
 func (r *VolumeInstanceListResponse) NextPage(ctx context.Context) (*VolumeInstanceListResponse, error) {
 	query, ok := r.NextPageParams()
 	if !ok {
@@ -256,14 +314,17 @@ func volumeListResponseDataToVolume(data VolumeListResponse) Volume {
 	}
 }
 
-// DeleteInstance deletes a volume by name
+// DeleteInstance permanently deletes a volume and its data, by name.
 func (r *VolumeService) DeleteInstance(ctx context.Context, volumeName string, opts ...option.RequestOption) error {
 	opts = slices.Concat(r.Options, opts)
 	_, err := r.Delete(ctx, volumeName, opts...)
 	return err
 }
 
-// UpdateInstance updates a volume and returns a VolumeInstance
+// UpdateInstance writes body to the volume and returns the result as a
+// [VolumeInstance]. The size can grow but never shrink, and the region and
+// template cannot change; such changes are rejected. It waits 500 ms after
+// the update before it returns.
 func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, body VolumeUpdateParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 
@@ -282,7 +343,9 @@ func (r *VolumeService) UpdateInstance(ctx context.Context, volumeName string, b
 	}, nil
 }
 
-// UpdateInstanceMetadata updates only the metadata of a volume
+// UpdateInstanceMetadata changes the display name or labels of a volume. It
+// reads the volume, then writes it back with the change, so two updates of
+// the same volume at the same time can overwrite each other.
 func (r *VolumeService) UpdateInstanceMetadata(ctx context.Context, volumeName string, metadata VolumeUpdateMetadataParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	// Get current volume first
 	instance, err := r.GetInstance(ctx, volumeName, opts...)
@@ -311,7 +374,11 @@ func (r *VolumeService) UpdateInstanceMetadata(ctx context.Context, volumeName s
 	return r.UpdateInstance(ctx, volumeName, updateParams, opts...)
 }
 
-// CreateInstanceIfNotExists creates a volume if it doesn't exist, or returns the existing one
+// CreateInstanceIfNotExists creates a volume, or returns the existing one
+// when the name is taken (HTTP 409). The existing volume is returned as it
+// is: the size, region and template in body are not applied. Set a name in
+// body; without one a new volume is always created. See
+// [VolumeService.NewInstance] for the defaults.
 func (r *VolumeService) CreateInstanceIfNotExists(ctx context.Context, body VolumeNewParams, opts ...option.RequestOption) (*VolumeInstance, error) {
 	instance, err := r.NewInstance(ctx, body, opts...)
 	if err != nil {

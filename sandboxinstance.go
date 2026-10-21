@@ -30,36 +30,95 @@ import (
 // Types
 // ============================================================================
 
-// SandboxInstance wraps a Sandbox with scoped services that automatically use
-// the sandbox name in API calls.
+// SandboxInstance is a sandbox you can work in: a lightweight VM that runs
+// commands, holds files and serves ports. It scales to zero when idle and
+// resumes with its memory, processes and filesystem intact.
+//
+// Get one with [SandboxService.NewInstance],
+// [SandboxService.NewInstanceIfNotExists], [SandboxService.GetInstance] or
+// [SandboxService.ListInstances]. Then use its services: FS for files,
+// Process for commands, Previews and Sessions for URLs, Codegen for AI code
+// edits and System for the sandbox API itself. They already target this
+// sandbox, so no call takes its name. The embedded [Sandbox] (Metadata, Spec,
+// Status) is a copy from when this value was read and is not refreshed; call
+// [SandboxService.GetInstance] for current values.
+//
+// [NewClient] reads BL_WORKSPACE and BL_API_KEY from the environment, or the
+// Blaxel CLI login.
+//
+// Example:
+//
+//	client := blaxel.NewClient()
+//	sbx, err := client.Sandboxes.NewInstanceIfNotExists(ctx, blaxel.SandboxNewParams{
+//		Sandbox: blaxel.SandboxParam{
+//			Metadata: blaxel.MetadataParam{Name: "my-sandbox"},
+//			Spec: blaxel.SandboxSpecParam{
+//				Region: blaxel.String("us-pdx-1"),
+//				Lifecycle: blaxel.SandboxLifecycleParam{
+//					ExpirationPolicies: []blaxel.ExpirationPolicyParam{{
+//						Type:   blaxel.ExpirationPolicyTypeTtlIdle,
+//						Value:  blaxel.String("30m"),
+//						Action: blaxel.ExpirationPolicyActionDelete,
+//					}},
+//				},
+//			},
+//		},
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	if _, err := sbx.FS.Write(ctx, "/app/hello.txt", "Hello, world"); err != nil {
+//		return err
+//	}
+//	res, err := sbx.Process.New(ctx, blaxel.ProcessRequestParam{
+//		Command:           "cat /app/hello.txt",
+//		WaitForCompletion: blaxel.Bool(true),
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	fmt.Println(res.ExitCode, res.Stdout)
+//	return sbx.Delete(ctx)
 type SandboxInstance struct {
 	*Sandbox
 
-	// Process provides process operations for this sandbox
+	// Process runs commands in this sandbox and reads their output.
 	Process *SandboxInstanceProcessService
-	// FS provides filesystem operations for this sandbox
+	// FS reads, writes, lists, searches and watches files in this sandbox.
 	FS *SandboxInstanceFSService
-	// Codegen provides code generation operations for this sandbox
+	// Codegen applies AI code edits and ranks files. It needs a provider key
+	// in the sandbox environment.
 	Codegen *SandboxInstanceCodegenService
-	// Previews provides preview operations scoped to this sandbox
+	// Previews serves ports of this sandbox at public or token-protected URLs.
 	Previews *SandboxInstancePreviewService
-	// Sessions provides session operations scoped to this sandbox
+	// Sessions creates short-lived URLs and tokens that reach the sandbox API
+	// without an API key.
 	Sessions *SandboxInstanceSessionService
-	// System provides system operations for this sandbox
+	// System upgrades the sandbox API and reports its health.
 	System *SandboxInstanceSystemService
 
 	sandboxService *SandboxService
 	options        []option.RequestOption
 }
 
-// SandboxUpdateMetadataParams contains parameters for updating sandbox metadata
+// SandboxUpdateMetadataParams holds the metadata that
+// [SandboxService.UpdateInstanceMetadata] changes. Zero values keep the
+// current value.
 type SandboxUpdateMetadataParams struct {
-	Labels      map[string]string
+	// Labels replaces the whole label map when not nil, so include the labels
+	// to keep.
+	Labels map[string]string
+	// DisplayName is the human-readable name, at most 63 characters. Empty
+	// keeps the current one.
 	DisplayName string
 }
 
+// SandboxInstanceListResponse is one page of sandboxes from
+// [SandboxService.ListInstances].
 type SandboxInstanceListResponse struct {
+	// Data holds the sandboxes of this page.
 	Data []*SandboxInstance
+	// Meta holds the cursor of the next page and whether there is one.
 	Meta pagination.CursorPageMeta
 
 	raw            string
@@ -68,12 +127,15 @@ type SandboxInstanceListResponse struct {
 	service        *SandboxService
 }
 
+// RawJSON returns the JSON of the page as the API sent it.
 func (r SandboxInstanceListResponse) RawJSON() string { return r.raw }
 
+// HasNextPage reports whether another page follows this one.
 func (r *SandboxInstanceListResponse) HasNextPage() bool {
 	return r != nil && r.Meta.HasMore && r.Meta.NextCursor != ""
 }
 
+// NextCursor returns the cursor of the next page, or an empty string.
 func (r *SandboxInstanceListResponse) NextCursor() string {
 	if r == nil {
 		return ""
@@ -81,6 +143,8 @@ func (r *SandboxInstanceListResponse) NextCursor() string {
 	return r.Meta.NextCursor
 }
 
+// NextPageParams returns the query of the next page: the original query with
+// the next cursor. It returns false when there is no next page.
 func (r *SandboxInstanceListResponse) NextPageParams() (SandboxListParams, bool) {
 	if r == nil {
 		return SandboxListParams{}, false
@@ -93,6 +157,8 @@ func (r *SandboxInstanceListResponse) NextPageParams() (SandboxListParams, bool)
 	return query, true
 }
 
+// NextPage fetches the next page with the original query and request
+// options. It returns nil and no error when there is no next page.
 func (r *SandboxInstanceListResponse) NextPage(ctx context.Context) (*SandboxInstanceListResponse, error) {
 	query, ok := r.NextPageParams()
 	if !ok {
@@ -104,31 +170,51 @@ func (r *SandboxInstanceListResponse) NextPage(ctx context.Context) (*SandboxIns
 	return r.service.ListInstances(ctx, query, r.nextPageOpts...)
 }
 
-// SessionWithToken represents a session with its authentication token
+// SessionWithToken is a session of a sandbox: a private preview of the
+// sandbox API and a token for it. It lets a client without a Blaxel API key,
+// such as a browser, use the sandbox through [SandboxService.FromSession].
 type SessionWithToken struct {
-	Name      string
-	URL       string
-	Token     string
+	// Name of the session, session-<unix milliseconds> when created by the SDK.
+	Name string
+	// URL of the sandbox API through the session.
+	URL string
+	// Token to send in the X-Blaxel-Preview-Token header.
+	Token string
+	// ExpiresAt is when the token stops working.
 	ExpiresAt time.Time
 }
 
-// SessionCreateOptions contains options for creating a session
+// SessionCreateOptions configures [SandboxInstanceSessionService.Create]. A nil
+// value uses the defaults.
 type SessionCreateOptions struct {
-	ExpiresAt       *time.Time
-	RequestHeaders  map[string]string
+	// ExpiresAt is when the session and its token expire. Defaults to 24 hours
+	// from now.
+	ExpiresAt *time.Time
+	// RequestHeaders are set on every request that goes through the session.
+	RequestHeaders map[string]string
+	// ResponseHeaders are set on every response sent through the session, for
+	// example CORS headers for a browser client.
 	ResponseHeaders map[string]string
 }
 
-// ProcessStreamOptions contains options for streaming process logs
+// ProcessStreamOptions holds the callbacks of
+// [SandboxInstanceProcessService.StreamLogs] and
+// [SandboxInstanceProcessService.ExecWithStreaming]. Each one is optional.
 type ProcessStreamOptions struct {
-	OnLog    func(log string)
+	// OnLog receives stdout and stderr output as it arrives.
+	OnLog func(log string)
+	// OnStdout receives stdout output only.
 	OnStdout func(stdout string)
+	// OnStderr receives stderr output only.
 	OnStderr func(stderr string)
-	OnError  func(err error)
+	// OnError receives a stream failure.
+	OnError func(err error)
 }
 
-// StreamControl provides control over a streaming operation
+// StreamControl controls a stream that runs in the background, returned by
+// [SandboxInstanceProcessService.StreamLogs] and [SandboxInstanceFSService.Watch].
 type StreamControl struct {
+	// Close stops the stream. It does not stop the process or change any file.
 	Close func()
 	done  chan struct{}
 	err   error // Written before done closes.
@@ -150,23 +236,37 @@ func (sc *StreamControl) Err() error {
 
 var errStreamClosed = errors.New("stream explicitly closed")
 
-// WatchEvent represents a filesystem change event
+// WatchEvent is a filesystem change reported by [SandboxInstanceFSService.Watch].
 type WatchEvent struct {
-	Op      string `json:"op"`
-	Path    string `json:"path"`
-	Name    string `json:"name"`
+	// Op is the change: CREATE, WRITE, REMOVE, RENAME or CHMOD. Several can be
+	// joined with "|".
+	Op string `json:"op"`
+	// Path is the directory that holds the changed entry.
+	Path string `json:"path"`
+	// Name is the base name of the changed entry.
+	Name string `json:"name"`
+	// Content is the file content after the change. It is set only with
+	// WatchOptions.WithContent, on CREATE and WRITE events.
 	Content string `json:"content,omitempty"`
 }
 
-// WatchOptions contains options for watching filesystem changes
+// WatchOptions configures [SandboxInstanceFSService.Watch]. A nil value uses
+// the defaults.
 type WatchOptions struct {
-	OnError     func(err error)
+	// OnError receives a stream failure.
+	OnError func(err error)
+	// WithContent reads the content of each created or written file into
+	// WatchEvent.Content, with one extra request per event.
 	WithContent bool
-	Ignore      []string
+	// Ignore skips events whose full path contains one of these substrings,
+	// such as "node_modules".
+	Ignore []string
 }
 
-// SandboxInstancePreviewUpdateParams is used for updating previews via SandboxInstance
+// SandboxInstancePreviewUpdateParams holds the new settings of a preview for
+// [SandboxInstancePreviewService.Update].
 type SandboxInstancePreviewUpdateParams struct {
+	// Preview holds the preview metadata and settings to write.
 	Preview PreviewParam
 	paramObj
 }
@@ -175,12 +275,42 @@ type SandboxInstancePreviewUpdateParams struct {
 // SandboxService Instance Methods
 // ============================================================================
 
-// NewInstance creates a new sandbox and returns a SandboxInstance with scoped services.
-// This allows fluent access to sub-resources like previews:
+// NewInstance creates a sandbox and returns it as a [SandboxInstance].
 //
-//	sbx, err := client.Sandboxes.NewInstance(ctx, params)
-//	preview, err := sbx.Previews.New(ctx, previewParams)
-//	token, err := preview.Tokens.New(ctx, tokenParams)
+// Unset fields get SDK defaults: image blaxel/base-image:latest, 4096 MB of
+// memory, a name like sandbox-1a2b3c4d, and the region from the BL_REGION
+// environment variable. Without a region or BL_REGION it returns an error
+// before sending any request.
+//
+// Sandbox names use lowercase letters and digits, optionally joined by
+// single hyphens (no leading, trailing or doubled hyphen), at most 49
+// characters, like my-sandbox-1. Other names are rejected with HTTP 400. A
+// name already held by a live sandbox is rejected with HTTP 409 (an [*Error]
+// with StatusCode 409); use [SandboxService.NewInstanceIfNotExists] to get
+// that sandbox back instead.
+//
+// Spec.Runtime.Ttl and Spec.Lifecycle delete the sandbox automatically.
+// Durations use the units s, m, h, d or w (for example "30m", "24h", "7d")
+// and the only action is "delete". The minimums are 5m for Ttl and for
+// ttl-max-age policies, and 60s for ttl-idle policies; shorter values are
+// rejected with HTTP 400. See https://docs.blaxel.ai/Sandboxes/Lifecycle-recipe
+// to choose between them.
+//
+// Example:
+//
+//	sbx, err := client.Sandboxes.NewInstance(ctx, blaxel.SandboxNewParams{
+//		Sandbox: blaxel.SandboxParam{
+//			Metadata: blaxel.MetadataParam{Name: "build-42"},
+//			Spec: blaxel.SandboxSpecParam{
+//				Region: blaxel.String("us-pdx-1"),
+//				Runtime: blaxel.SandboxRuntimeParam{
+//					Image:  blaxel.String("blaxel/base-image:latest"),
+//					Memory: blaxel.Int(8192),
+//					Ttl:    blaxel.String("2h"),
+//				},
+//			},
+//		},
+//	})
 func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 	if !body.Sandbox.Spec.Runtime.Image.Valid() || body.Sandbox.Spec.Runtime.Image.Value == "" {
@@ -207,12 +337,17 @@ func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams,
 	return newSandboxInstance(sandbox, r, opts), nil
 }
 
-// GetInstance returns a sandbox as a SandboxInstance with scoped services.
-// This allows fluent access to sub-resources like previews:
+// GetInstance returns the sandbox with this name as a [SandboxInstance], with
+// its current status and configuration. It returns an [*Error] with
+// StatusCode 404 when no sandbox in the workspace has this name.
+//
+// Example:
 //
 //	sbx, err := client.Sandboxes.GetInstance(ctx, "my-sandbox")
-//	preview, err := sbx.Previews.New(ctx, previewParams)
-//	token, err := preview.Tokens.New(ctx, tokenParams)
+//	if err != nil {
+//		return err
+//	}
+//	dir, err := sbx.FS.LS(ctx, "/app")
 func (r *SandboxService) GetInstance(ctx context.Context, sandboxName string, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 	sandbox, err := r.Get(ctx, sandboxName, SandboxGetParams{}, opts...)
@@ -280,7 +415,12 @@ func (r *SandboxService) ListInstances(ctx context.Context, query SandboxListPar
 	}, nil
 }
 
-// UpdateInstance updates a sandbox's configuration and returns a SandboxInstance with scoped services.
+// UpdateInstance writes body to the sandbox and returns the result as a
+// [SandboxInstance]. Changing the image or memory may restart the sandbox and
+// lose its memory state. To change only the TTL, the lifecycle or the
+// metadata, use [SandboxService.UpdateInstanceTTL],
+// [SandboxService.UpdateInstanceLifecycle] or
+// [SandboxService.UpdateInstanceMetadata], which keep everything else.
 func (r *SandboxService) UpdateInstance(ctx context.Context, sandboxName string, body SandboxUpdateParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 	sandbox, err := r.Update(ctx, sandboxName, body, opts...)
@@ -290,8 +430,9 @@ func (r *SandboxService) UpdateInstance(ctx context.Context, sandboxName string,
 	return newSandboxInstance(sandbox, r, opts), nil
 }
 
-// DeleteInstance permanently deletes a sandbox and returns a SandboxInstance.
-// This action cannot be undone.
+// DeleteInstance permanently deletes a sandbox with its memory and
+// filesystem, and returns the deleted record as a [SandboxInstance]. This
+// cannot be undone. Attached volumes are kept.
 func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 	sandbox, err := r.Delete(ctx, sandboxName, opts...)
@@ -301,8 +442,25 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 	return newSandboxInstance(sandbox, r, opts), nil
 }
 
-// NewInstanceIfNotExists creates a new sandbox if it doesn't exist, or returns the existing one.
-// If the existing sandbox is TERMINATED, it creates a new one.
+// NewInstanceIfNotExists creates a sandbox, or returns the existing one with
+// the same name. It is safe to call on every run: the first call creates,
+// later calls reuse.
+//
+// It calls [SandboxService.NewInstance]. When that is rejected because the
+// name is taken (HTTP 409), it fetches the sandbox with that name and returns
+// it, unless it is TERMINATED, in which case it tries the create once more.
+// A sandbox in standby counts as existing: it is returned, and resumes with
+// its memory, processes and files on the next call. The existing sandbox
+// keeps its own configuration: nothing in body is applied to it, including
+// the image, memory, region, envs and lifecycle. Set a name in body; without
+// one a new sandbox is always created.
+//
+// Setting CreateIfNotExist in [SandboxNewParams] makes the API do the reuse
+// itself in one request.
+//
+// See [SandboxService.NewInstance] for the defaults and the name and
+// lifecycle rules, and https://docs.blaxel.ai/Sandboxes/Lifecycle-recipe to
+// choose a lifecycle.
 func (r *SandboxService) NewInstanceIfNotExists(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	instance, err := r.NewInstance(ctx, body, opts...)
 	if err != nil {
@@ -328,8 +486,18 @@ func (r *SandboxService) NewInstanceIfNotExists(ctx context.Context, body Sandbo
 	return instance, nil
 }
 
-// UpdateInstanceTTL updates only the TTL of a sandbox without recreating it.
-// Pass an empty string to clear the existing TTL.
+// UpdateInstanceTTL sets or removes the maximum age (Spec.Runtime.Ttl) of a
+// sandbox without recreating it: the sandbox is deleted this long after it
+// was created, whether it is active or not.
+//
+// ttl is a duration with the unit s, m, h, d or w, such as "30m", "24h" or
+// "7d", at least "5m"; a shorter value is rejected with HTTP 400. An empty
+// string removes the TTL. For deletion after inactivity, use a ttl-idle
+// policy with [SandboxService.UpdateInstanceLifecycle]. See
+// https://docs.blaxel.ai/Sandboxes/Lifecycle-recipe.
+//
+// It reads the sandbox, then writes it back with the change, so two updates
+// of the same sandbox at the same time can overwrite each other.
 func (r *SandboxService) UpdateInstanceTTL(ctx context.Context, sandboxName string, ttl string, opts ...option.RequestOption) (*SandboxInstance, error) {
 	// Get current sandbox first
 	instance, err := r.GetInstance(ctx, sandboxName, opts...)
@@ -357,8 +525,27 @@ func (r *SandboxService) UpdateInstanceTTL(ctx context.Context, sandboxName stri
 	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
 }
 
-// UpdateInstanceLifecycle updates only the lifecycle configuration of a sandbox without recreating it.
-// Pass nil to clear all lifecycle policies.
+// UpdateInstanceLifecycle replaces the lifecycle (automatic deletion rules) of
+// a sandbox without recreating it. Pass nil to remove it.
+//
+// Each expiration policy has the action "delete" and a type: ttl-idle
+// deletes the sandbox after that long without activity (at least "60s"),
+// ttl-max-age that long after creation (at least "5m"), and date at an ISO
+// 8601 time. Durations use the unit s, m, h, d or w; shorter values than the
+// minimums are rejected with HTTP 400. The first condition met triggers the
+// deletion. See https://docs.blaxel.ai/Sandboxes/Lifecycle-recipe.
+//
+// It reads the sandbox, then writes it back with the change, so two updates
+// of the same sandbox at the same time can overwrite each other.
+//
+// Example:
+//
+//	sbx, err := client.Sandboxes.UpdateInstanceLifecycle(ctx, "my-sandbox", &blaxel.SandboxLifecycleParam{
+//		ExpirationPolicies: []blaxel.ExpirationPolicyParam{
+//			{Type: blaxel.ExpirationPolicyTypeTtlIdle, Value: blaxel.String("30m"), Action: blaxel.ExpirationPolicyActionDelete},
+//			{Type: blaxel.ExpirationPolicyTypeTtlMaxAge, Value: blaxel.String("7d"), Action: blaxel.ExpirationPolicyActionDelete},
+//		},
+//	})
 func (r *SandboxService) UpdateInstanceLifecycle(ctx context.Context, sandboxName string, lifecycle *SandboxLifecycleParam, opts ...option.RequestOption) (*SandboxInstance, error) {
 	// Get current sandbox first
 	instance, err := r.GetInstance(ctx, sandboxName, opts...)
@@ -386,7 +573,10 @@ func (r *SandboxService) UpdateInstanceLifecycle(ctx context.Context, sandboxNam
 	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
 }
 
-// UpdateInstanceMetadata updates only the metadata of a sandbox
+// UpdateInstanceMetadata changes the display name or labels of a sandbox. The
+// name itself cannot change. It reads the sandbox, then writes it back with
+// the change, so two updates of the same sandbox at the same time can
+// overwrite each other.
 func (r *SandboxService) UpdateInstanceMetadata(ctx context.Context, sandboxName string, metadata SandboxUpdateMetadataParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	// Get current sandbox first
 	instance, err := r.GetInstance(ctx, sandboxName, opts...)
@@ -416,7 +606,28 @@ func (r *SandboxService) UpdateInstanceMetadata(ctx context.Context, sandboxName
 	return r.UpdateInstance(ctx, sandboxName, updateParams, opts...)
 }
 
-// FromSession creates a SandboxInstance from a session token for preview-based access
+// FromSession returns a [SandboxInstance] that reaches the sandbox through a
+// session instead of an API key, for example in a program that received the
+// session from your backend. No request is made.
+//
+// Requests go to the session URL with the session token, so use the services
+// served by the sandbox itself: Process, FS, Codegen, System and Fetch.
+// Previews, Sessions and Delete go through the Blaxel API, which a session
+// does not open; call them on a sandbox from [SandboxService.GetInstance]
+// with an API key instead. The instance stops working when the session
+// token expires. opts are added to every request; the options of the client
+// are not used.
+//
+// Example:
+//
+//	// Backend, with an API key:
+//	session, err := sbx.Sessions.CreateIfExpired(ctx, nil, 0)
+//	// Elsewhere, with only the session:
+//	remote := client.Sandboxes.FromSession(*session)
+//	out, err := remote.Process.New(ctx, blaxel.ProcessRequestParam{
+//		Command:           "ls /app",
+//		WaitForCompletion: blaxel.Bool(true),
+//	})
 func (r *SandboxService) FromSession(session SessionWithToken, opts ...option.RequestOption) *SandboxInstance {
 	// Extract sandbox name from session name if it contains a separator
 	sandboxName := session.Name
@@ -444,8 +655,11 @@ func (r *SandboxService) FromSession(session SessionWithToken, opts ...option.Re
 // SandboxInstance Methods
 // ============================================================================
 
-// Fetch makes an HTTP request to a resource served on a sandbox port.
-// The request is proxied through the sandbox's /port/{port} endpoint.
+// Fetch sends a GET request to a server listening on a port of this sandbox,
+// at path (for example "/health"), and returns the raw response. The request
+// goes through the sandbox API's /port/{port} endpoint, so the port needs no
+// preview. Close the response body when done. A status of 400 or more also
+// returns an [*Error].
 func (r *SandboxInstance) Fetch(ctx context.Context, port int, path string, opts ...option.RequestOption) (*http.Response, error) {
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
@@ -457,7 +671,8 @@ func (r *SandboxInstance) Fetch(ctx context.Context, port int, path string, opts
 	return res, err
 }
 
-// Delete permanently deletes this sandbox. This action cannot be undone.
+// Delete permanently deletes this sandbox with its memory and filesystem.
+// This cannot be undone. Attached volumes are kept.
 func (r *SandboxInstance) Delete(ctx context.Context, opts ...option.RequestOption) error {
 	_, err := r.sandboxService.Delete(ctx, r.Metadata.Name, opts...)
 	return err
@@ -467,45 +682,110 @@ func (r *SandboxInstance) Delete(ctx context.Context, opts ...option.RequestOpti
 // Process Service
 // ============================================================================
 
-// SandboxInstanceProcessService provides process operations for a specific sandbox
+// SandboxInstanceProcessService runs commands in one sandbox. Reach it through
+// the Process field of a [SandboxInstance].
+//
+// Commands run through a shell, so pipes, && and cd work. A process is
+// addressed by its PID or by the Name you give it. Its output is kept after
+// it ends, so Get and GetLogs also work on finished processes. A command that
+// exits non-zero is not an error: check Status ("failed") and ExitCode in the
+// [ProcessResponse].
+//
+// Three ways to run a command:
+//   - New with WaitForCompletion returns once the command ends, with
+//     ExitCode, Stdout and Stderr. The request stays open meanwhile, and the
+//     edge in front of the sandbox closes it after about 60 seconds with
+//     HTTP 504 while the command keeps running. Use it for short commands.
+//   - ExecWithStreaming also returns once the command ends, but sends the
+//     output to callbacks as it arrives, with keepalives that hold the
+//     connection open. Use it for long commands.
+//   - New without WaitForCompletion returns as soon as the process starts.
+//     Follow it with Wait, StreamLogs, Get or GetLogs. Use it for servers
+//     and background jobs.
+//
+// Example:
+//
+//	res, err := sbx.Process.New(ctx, blaxel.ProcessRequestParam{
+//		Command:           "npm test",
+//		WorkingDir:        blaxel.String("/app"),
+//		WaitForCompletion: blaxel.Bool(true),
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	if res.ExitCode != 0 {
+//		return fmt.Errorf("tests failed: %s", res.Stderr)
+//	}
 type SandboxInstanceProcessService struct {
 	sandboxName string
 	options     []option.RequestOption
 	service     *SandboxProcessService
 }
 
-// New executes a command in this sandbox and returns process information
+// New starts a command in this sandbox and returns the process. See
+// [SandboxInstanceProcessService] for when to wait, stream or return right
+// away.
+//
+// Main fields of body: Command, the shell command. Name, an identifier to
+// use instead of the PID; starting a process with the name of one still
+// running is rejected with HTTP 400. WorkingDir and Env. WaitForCompletion,
+// to return only when the command ends. WaitForPorts, to return once the
+// process listens on these ports (for servers). Timeout, seconds before the
+// process is killed: no limit when unset or 0, except that KeepAlive without
+// a Timeout gets 600. KeepAlive, to keep the sandbox from scaling to zero
+// while the process runs.
+//
+// New is not retried, because a replayed request could run the command
+// twice.
 func (r *SandboxInstanceProcessService) New(ctx context.Context, body ProcessRequestParam, opts ...option.RequestOption) (*ProcessResponse, error) {
 	return r.service.New(ctx, SandboxProcessNewParams{ProcessRequest: body}, opts...)
 }
 
-// Get returns information about a process by its PID or name
+// Get returns a process, running or ended, by PID or name, with its status,
+// exit code and output. It returns an [*Error] with StatusCode 404 when no
+// process matches.
 func (r *SandboxInstanceProcessService) Get(ctx context.Context, identifier string, opts ...option.RequestOption) (*ProcessResponse, error) {
 	return r.service.Get(ctx, identifier, opts...)
 }
 
-// List returns all running and completed processes in this sandbox
+// List returns the processes of this sandbox, running and ended.
 func (r *SandboxInstanceProcessService) List(ctx context.Context, opts ...option.RequestOption) (*[]ProcessResponse, error) {
 	return r.service.List(ctx, opts...)
 }
 
-// Kill forcefully kills a running process
+// Kill stops a process at once with SIGKILL. identifier is its PID or name.
 func (r *SandboxInstanceProcessService) Kill(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessKillResponse, error) {
 	return r.service.Kill(ctx, identifier, opts...)
 }
 
-// Stop gracefully stops a running process
+// Stop asks a process to stop with SIGTERM and returns once the signal is
+// sent. Use Wait to know when it has ended, and Kill if it does not.
+// identifier is its PID or name.
 func (r *SandboxInstanceProcessService) Stop(ctx context.Context, identifier string, opts ...option.RequestOption) (*SandboxProcessStopResponse, error) {
 	return r.service.Stop(ctx, identifier, opts...)
 }
 
-// GetLogs returns the stdout and stderr output of a process
+// GetLogs returns the output of a process so far, running or ended: Stdout,
+// Stderr, and Logs, which is stdout followed by stderr, not interleaved. For
+// live output in order, use StreamLogs or ExecWithStreaming.
 func (r *SandboxInstanceProcessService) GetLogs(ctx context.Context, identifier string, opts ...option.RequestOption) (*ProcessLogs, error) {
 	return r.service.GetLogs(ctx, identifier, opts...)
 }
 
-// Wait waits for a process to complete. maxWait -1 waits without an added deadline;
-// the context can still cancel or expire. maxWait 0 defaults to one minute.
+// Wait polls a process until it ends (completed, failed, killed or stopped)
+// and returns it. maxWait -1 waits without an added deadline; the context can
+// still cancel or expire. maxWait 0 defaults to one minute, and interval 0 to
+// one second between polls. Network errors and HTTP 408, 429, 500, 502, 503
+// and 504 are retried until the deadline. When the deadline passes, Wait
+// returns an error and the command keeps running; call Stop or Kill to end it.
+//
+// Example:
+//
+//	p, err := sbx.Process.New(ctx, blaxel.ProcessRequestParam{Command: "make build"})
+//	if err != nil {
+//		return err
+//	}
+//	done, err := sbx.Process.Wait(ctx, p.Pid, 10*time.Minute, 2*time.Second)
 func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier string, maxWait time.Duration, interval time.Duration) (*ProcessResponse, error) {
 	if maxWait < -1 || interval < 0 {
 		return nil, fmt.Errorf("maxWait must be -1 or non-negative; interval must not be negative")
@@ -578,7 +858,12 @@ func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier str
 	}
 }
 
-// StreamLogs streams logs for a process in real-time.
+// StreamLogs sends the output of a process to the callbacks in opts, in the
+// background: the output so far first, then new output until the process
+// ends. It returns at once. Call Wait or Err on the returned [StreamControl]
+// to block until the stream ends, and Close to stop streaming; Close does not
+// stop the process. identifier is the PID or name.
+//
 // Note: Uses PrepareRequest() for streaming - the generated service methods
 // expect to parse the full response, which doesn't work for streaming.
 func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifier string, opts ProcessStreamOptions) *StreamControl {
@@ -670,10 +955,26 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 	return control
 }
 
-// ExecWithStreaming executes a command and streams logs in real-time, returning the final result.
+// ExecWithStreaming runs a command, sends its output to the callbacks in opts
+// as it arrives, and returns the final [ProcessResponse] once the command
+// ends. The API sends a keepalive every 5 seconds, so this suits commands
+// that run longer than the edge allows a waiting New (about 60 seconds). The
+// streamed request always waits for the command to end, whatever
+// WaitForCompletion says. A command that exits non-zero is not an error:
+// check Status and ExitCode.
+//
 // This combines process execution with log streaming in a single request using NDJSON streaming.
 // The server must support the text/event-stream accept header for this to work with streaming;
 // otherwise it falls back to regular execution.
+//
+// Example:
+//
+//	res, err := sbx.Process.ExecWithStreaming(ctx, blaxel.ProcessRequestParam{
+//		Command:    "npm ci && npm run build",
+//		WorkingDir: blaxel.String("/app"),
+//	}, blaxel.ProcessStreamOptions{
+//		OnLog: func(line string) { fmt.Print(line) },
+//	})
 func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, body ProcessRequestParam, opts ProcessStreamOptions) (*ProcessResponse, error) {
 	// Serialize the request body
 	bodyBytes, err := json.Marshal(body)
@@ -820,7 +1121,25 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 // Filesystem Service
 // ============================================================================
 
-// SandboxInstanceFSService provides filesystem operations for a specific sandbox
+// SandboxInstanceFSService reads and writes the filesystem of one sandbox.
+// Reach it through the FS field of a [SandboxInstance].
+//
+// Use absolute paths such as /app/main.py. Writes create missing parent
+// directories and replace existing files, so retrying a write is safe.
+// WriteBinary uploads data over 5 MB in 5 MB parts, up to 3 at a time,
+// with no change to the call.
+//
+// Example:
+//
+//	if _, err := sbx.FS.Write(ctx, "/app/main.py", "print('hi')"); err != nil {
+//		return err
+//	}
+//	code, err := sbx.FS.Read(ctx, "/app/main.py")
+//	dir, err := sbx.FS.LS(ctx, "/app")
+//	hits, err := sbx.FS.Grep(ctx, "/app", blaxel.SandboxFilesystemContentSearchParams{
+//		Query:       "TODO",
+//		FilePattern: blaxel.String("*.py"),
+//	})
 type SandboxInstanceFSService struct {
 	sandboxName string
 	options     []option.RequestOption
@@ -829,7 +1148,8 @@ type SandboxInstanceFSService struct {
 
 // --- Basic File Operations ---
 
-// Read returns the content of a file as a string
+// Read returns the content of a text file as a string. Use ReadBinary for
+// binary files and LS for directories.
 func (r *SandboxInstanceFSService) Read(ctx context.Context, path string, opts ...option.RequestOption) (string, error) {
 	res, err := r.service.Get(ctx, path, SandboxFilesystemGetParams{}, opts...)
 	if err != nil {
@@ -853,7 +1173,9 @@ func (r *SandboxInstanceFSService) ReadBinary(ctx context.Context, path string, 
 	return result, nil
 }
 
-// Write creates or updates a text file
+// Write writes a text file, replacing any existing content and creating
+// missing parent directories. The content goes in one request; for binary or
+// large content use WriteBinary, which uploads in parts.
 func (r *SandboxInstanceFSService) Write(ctx context.Context, path string, content string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
 	return r.service.Write(ctx, path, SandboxFilesystemWriteParams{
 		FilesystemWriteRequest: FilesystemWriteRequestParam{
@@ -862,8 +1184,12 @@ func (r *SandboxInstanceFSService) Write(ctx context.Context, path string, conte
 	}, opts...)
 }
 
-// WriteBinary writes binary data to a file using multipart upload.
-// For files larger than 5MB, it automatically uses chunked multipart upload.
+// WriteBinary writes bytes to a file, replacing any existing content and
+// creating missing parent directories. permissions is an octal mode such as
+// "0755", "0644" when empty; it applies when the file is created, and an
+// existing file keeps its mode. Data over 5 MB (5 * 1024 * 1024 bytes) is
+// uploaded in 5 MB parts, up to 3 at a time, through the multipart upload
+// API; a failed upload is aborted.
 func (r *SandboxInstanceFSService) WriteBinary(ctx context.Context, path string, data []byte, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
 	const multipartThreshold = 5 * 1024 * 1024 // 5MB
 
@@ -878,7 +1204,16 @@ func (r *SandboxInstanceFSService) WriteBinary(ctx context.Context, path string,
 	return r.writeBinaryForm(ctx, path, data, permissions, opts...)
 }
 
-// WriteTree writes multiple files at once
+// WriteTree writes several text files in one request. files maps each path,
+// relative to destinationPath (such as "/app"), to its content. Missing
+// directories are created and existing files are replaced.
+//
+// Example:
+//
+//	err := sbx.FS.WriteTree(ctx, map[string]string{
+//		"package.json": `{"name":"app"}`,
+//		"src/index.js": "console.log('hi')",
+//	}, "/app")
 func (r *SandboxInstanceFSService) WriteTree(ctx context.Context, files map[string]string, destinationPath string, opts ...option.RequestOption) error {
 	opts = slices.Concat(r.options, opts)
 
@@ -891,7 +1226,8 @@ func (r *SandboxInstanceFSService) WriteTree(ctx context.Context, files map[stri
 	return err
 }
 
-// Download downloads a file from the sandbox to the local filesystem
+// Download copies a file from the sandbox to localPath on this machine, with
+// mode 0644, replacing any existing file. The whole file is held in memory.
 func (r *SandboxInstanceFSService) Download(ctx context.Context, remotePath string, localPath string, opts ...option.RequestOption) error {
 	data, err := r.ReadBinary(ctx, remotePath, opts...)
 	if err != nil {
@@ -907,7 +1243,8 @@ func (r *SandboxInstanceFSService) Download(ctx context.Context, remotePath stri
 
 // --- Directory Operations ---
 
-// Mkdir creates a directory
+// Mkdir creates a directory with any missing parents. An existing directory
+// is kept. permissions is an octal mode, "0755" when empty.
 func (r *SandboxInstanceFSService) Mkdir(ctx context.Context, path string, permissions string, opts ...option.RequestOption) (*SandboxFilesystemWriteResponse, error) {
 	if permissions == "" {
 		permissions = "0755"
@@ -920,7 +1257,7 @@ func (r *SandboxInstanceFSService) Mkdir(ctx context.Context, path string, permi
 	}, opts...)
 }
 
-// LS returns the listing of a directory
+// LS returns the files and subdirectories directly inside a directory.
 func (r *SandboxInstanceFSService) LS(ctx context.Context, path string, opts ...option.RequestOption) (Directory, error) {
 	res, err := r.service.Get(ctx, path, SandboxFilesystemGetParams{}, opts...)
 	if err != nil {
@@ -929,14 +1266,20 @@ func (r *SandboxInstanceFSService) LS(ctx context.Context, path string, opts ...
 	return res.AsDirectory(), nil
 }
 
-// RM deletes a file or directory
+// RM deletes a file or directory. Set recursive to delete a directory with
+// its content.
 func (r *SandboxInstanceFSService) RM(ctx context.Context, path string, recursive bool, opts ...option.RequestOption) (*SandboxFilesystemDeleteResponse, error) {
 	return r.service.Delete(ctx, path, SandboxFilesystemDeleteParams{
 		Recursive: Bool(recursive),
 	}, opts...)
 }
 
-// CP copies files using the process service
+// CP copies source to destination inside the sandbox by running cp -r
+// through processService, usually the Process field of the same
+// [SandboxInstance]. The paths go into the shell command as they are, so
+// quote paths that hold spaces or shell characters. It waits for the copy to
+// end, so a copy that takes more than about 60 seconds fails at the edge; run
+// cp with [SandboxInstanceProcessService.ExecWithStreaming] instead.
 func (r *SandboxInstanceFSService) CP(ctx context.Context, source string, destination string, processService *SandboxInstanceProcessService) error {
 	resp, err := processService.New(ctx, ProcessRequestParam{
 		Command:           fmt.Sprintf("cp -r %s %s", source, destination),
@@ -953,26 +1296,48 @@ func (r *SandboxInstanceFSService) CP(ctx context.Context, source string, destin
 
 // --- Search Operations ---
 
-// Search performs fuzzy search on filesystem paths
+// Search finds files under path whose relative path fuzzy-matches
+// query.Query (for example "mngo" matches src/main.go). By default it returns
+// at most 20 results and skips hidden files and common build and dependency
+// directories; see [SandboxFilesystemSearchParams].
 func (r *SandboxInstanceFSService) Search(ctx context.Context, path string, query SandboxFilesystemSearchParams, opts ...option.RequestOption) (*FuzzySearchResponse, error) {
 	return r.service.Search(ctx, path, query, opts...)
 }
 
-// Find finds files and directories using the find command
+// Find lists the files or directories under path that match query.Patterns,
+// comma-separated globs such as "*.go,*.js". By default it returns at most 20
+// results (0 for all) and skips hidden files and common build and dependency
+// directories; see [SandboxFilesystemFindParams].
 func (r *SandboxInstanceFSService) Find(ctx context.Context, path string, query SandboxFilesystemFindParams, opts ...option.RequestOption) (*FindResponse, error) {
 	return r.service.Find(ctx, path, query, opts...)
 }
 
-// Grep searches for text content inside files
+// Grep searches the content of the files under path for query.Query. By
+// default the search ignores case, returns at most 100 matches and skips
+// common build and dependency directories; FilePattern limits the files
+// searched, such as "*.go". See [SandboxFilesystemContentSearchParams].
 func (r *SandboxInstanceFSService) Grep(ctx context.Context, path string, query SandboxFilesystemContentSearchParams, opts ...option.RequestOption) (*ContentSearchResponse, error) {
 	return r.service.ContentSearch(ctx, path, query, opts...)
 }
 
 // --- Watch Operations ---
 
-// Watch watches for filesystem changes in a directory.
+// Watch calls callback for each change in a directory, in the background,
+// and returns at once. Only the direct entries of path are watched; end path
+// with "/**" to also watch every subdirectory, including new ones. Changes
+// before the call are not reported. opts may be nil; see [WatchOptions].
+// Call Close on the returned [StreamControl] to stop, and Wait or Err to
+// block until the stream ends.
+//
 // Note: Uses PrepareRequest() for streaming - the generated service returns
 // the full response, but this endpoint streams events continuously.
+//
+// Example:
+//
+//	w := sbx.FS.Watch(ctx, "/app/**", func(e blaxel.WatchEvent) {
+//		fmt.Println(e.Op, e.Path, e.Name)
+//	}, &blaxel.WatchOptions{Ignore: []string{"node_modules"}})
+//	defer w.Close()
 func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callback func(event WatchEvent), opts *WatchOptions) *StreamControl {
 	if opts == nil {
 		opts = &WatchOptions{}
@@ -1207,7 +1572,11 @@ func (r *SandboxInstanceFSService) writeBinaryMultipart(ctx context.Context, pat
 // Codegen Service
 // ============================================================================
 
-// SandboxInstanceCodegenService provides code generation operations for a specific sandbox
+// SandboxInstanceCodegenService runs AI code edits in one sandbox. Reach it
+// through the Codegen field of a [SandboxInstance]. It calls a model
+// provider with a key from the sandbox environment: set RELACE_API_KEY or
+// MORPH_API_KEY in Spec.Runtime.Envs when creating the sandbox. Without one,
+// calls fail with HTTP 503.
 type SandboxInstanceCodegenService struct {
 	sandboxName string
 	options     []option.RequestOption
@@ -1215,11 +1584,15 @@ type SandboxInstanceCodegenService struct {
 }
 
 // Fastapply uses the configured LLM provider to apply a code edit to a file
+// and writes the result. In the edit, the comment "// ... existing code ..."
+// stands for each unchanged span of the file.
 func (r *SandboxInstanceCodegenService) Fastapply(ctx context.Context, path string, body ApplyEditRequestParam, opts ...option.RequestOption) (*ApplyEditResponse, error) {
 	return r.service.Fastapply(ctx, path, SandboxCodegenFastapplyParams{ApplyEditRequest: body}, opts...)
 }
 
-// Reranking uses Relace's code reranking model to find the most relevant files for a query
+// Reranking uses Relace's code reranking model to find the most relevant
+// files for a query. It needs RELACE_API_KEY; with only MORPH_API_KEY it
+// fails with HTTP 503.
 func (r *SandboxInstanceCodegenService) Reranking(ctx context.Context, path string, query SandboxCodegenRerankingParams, opts ...option.RequestOption) (*RerankingResponse, error) {
 	return r.service.Reranking(ctx, path, query, opts...)
 }
@@ -1228,14 +1601,36 @@ func (r *SandboxInstanceCodegenService) Reranking(ctx context.Context, path stri
 // Preview Service
 // ============================================================================
 
-// SandboxInstancePreviewService provides preview operations for a specific sandbox
+// SandboxInstancePreviewService manages the previews of one sandbox: URLs
+// that serve a port of the sandbox over HTTPS, for example a dev server.
+// Reach it through the Previews field of a [SandboxInstance]. A public
+// preview is open to anyone; a private one needs a token, sent in the
+// X-Blaxel-Preview-Token header.
+//
+// Example:
+//
+//	preview, err := sbx.Previews.NewIfNotExists(ctx, blaxel.SandboxPreviewNewParams{
+//		Preview: blaxel.PreviewParam{
+//			Metadata: blaxel.PreviewMetadataParam{Name: "web"},
+//			Spec: blaxel.PreviewSpecParam{
+//				Port:   blaxel.Int(3000),
+//				Public: blaxel.Bool(true),
+//			},
+//		},
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	fmt.Println(preview.Spec.URL)
 type SandboxInstancePreviewService struct {
 	sandboxName string
 	options     []option.RequestOption
 	service     *SandboxPreviewService
 }
 
-// New creates a preview for this sandbox and returns a PreviewInstance with scoped token service
+// New creates a preview of a port of this sandbox and returns it with its
+// Tokens service. The URL is in Spec.URL. A preview with the same name is
+// rejected with HTTP 409; use NewIfNotExists to reuse it.
 func (r *SandboxInstancePreviewService) New(ctx context.Context, body SandboxPreviewNewParams, opts ...option.RequestOption) (*PreviewInstance, error) {
 	preview, err := r.service.New(ctx, r.sandboxName, body, opts...)
 	if err != nil {
@@ -1244,7 +1639,8 @@ func (r *SandboxInstancePreviewService) New(ctx context.Context, body SandboxPre
 	return newPreviewInstance(preview, r.sandboxName, r.options), nil
 }
 
-// NewIfNotExists creates a preview if it doesn't exist, or returns the existing one
+// NewIfNotExists returns the preview named in body as it is, or creates it
+// when it cannot be fetched. The settings in body apply only on creation.
 func (r *SandboxInstancePreviewService) NewIfNotExists(ctx context.Context, body SandboxPreviewNewParams, opts ...option.RequestOption) (*PreviewInstance, error) {
 	// Try to get the existing preview first
 	name := body.Preview.Metadata.Name
@@ -1257,7 +1653,8 @@ func (r *SandboxInstancePreviewService) NewIfNotExists(ctx context.Context, body
 	return r.New(ctx, body, opts...)
 }
 
-// Get returns a preview by name for this sandbox as a PreviewInstance
+// Get returns a preview of this sandbox by name. It returns an [*Error] with
+// StatusCode 404 when no preview has this name.
 func (r *SandboxInstancePreviewService) Get(ctx context.Context, previewName string, opts ...option.RequestOption) (*PreviewInstance, error) {
 	preview, err := r.service.Get(ctx, previewName, SandboxPreviewGetParams{SandboxName: r.sandboxName}, opts...)
 	if err != nil {
@@ -1266,7 +1663,7 @@ func (r *SandboxInstancePreviewService) Get(ctx context.Context, previewName str
 	return newPreviewInstance(preview, r.sandboxName, r.options), nil
 }
 
-// Update updates a preview for this sandbox and returns a PreviewInstance
+// Update writes new settings to a preview of this sandbox and returns it.
 func (r *SandboxInstancePreviewService) Update(ctx context.Context, previewName string, params SandboxInstancePreviewUpdateParams, opts ...option.RequestOption) (*PreviewInstance, error) {
 	preview, err := r.service.Update(ctx, previewName, SandboxPreviewUpdateParams{
 		SandboxName: r.sandboxName,
@@ -1278,13 +1675,15 @@ func (r *SandboxInstancePreviewService) Update(ctx context.Context, previewName 
 	return newPreviewInstance(preview, r.sandboxName, r.options), nil
 }
 
-// List returns all previews for this sandbox
+// List returns the previews of this sandbox, including the session previews
+// named session-... that the Sessions service creates.
 func (r *SandboxInstancePreviewService) List(ctx context.Context, opts ...option.RequestOption) (*[]Preview, error) {
 	return r.service.List(ctx, r.sandboxName, opts...)
 }
 
-// Delete deletes a preview for this sandbox.
-// If the preview is in DELETING state, waits for it to be fully deleted.
+// Delete deletes a preview of this sandbox. If the preview is in DELETING
+// state, it waits up to 10 seconds for it to be gone and returns an error if
+// it is still there.
 func (r *SandboxInstancePreviewService) Delete(ctx context.Context, previewName string, opts ...option.RequestOption) (*Preview, error) {
 	preview, err := r.service.Delete(ctx, previewName, SandboxPreviewDeleteParams{SandboxName: r.sandboxName}, opts...)
 	if err != nil {
@@ -1330,7 +1729,9 @@ func (r *SandboxInstancePreviewService) waitForDeletion(ctx context.Context, pre
 	return fmt.Errorf("preview deletion timeout: %s is still in DELETING state after %v", previewName, timeout)
 }
 
-// NewToken creates a token for a preview in this sandbox
+// NewToken creates an access token for a private preview of this sandbox,
+// valid until expiresAt. Send its value (Spec.Token) in the
+// X-Blaxel-Preview-Token header.
 func (r *SandboxInstancePreviewService) NewToken(ctx context.Context, previewName string, expiresAt time.Time, opts ...option.RequestOption) (*PreviewToken, error) {
 	return r.service.Tokens.New(ctx, previewName, SandboxPreviewTokenNewParams{
 		SandboxName: r.sandboxName,
@@ -1345,12 +1746,13 @@ func (r *SandboxInstancePreviewService) NewToken(ctx context.Context, previewNam
 	}, opts...)
 }
 
-// ListTokens returns all tokens for a preview in this sandbox
+// ListTokens returns the access tokens of a preview of this sandbox.
 func (r *SandboxInstancePreviewService) ListTokens(ctx context.Context, previewName string, opts ...option.RequestOption) (*[]PreviewToken, error) {
 	return r.service.Tokens.Get(ctx, previewName, SandboxPreviewTokenGetParams{SandboxName: r.sandboxName}, opts...)
 }
 
-// DeleteToken deletes a token for a preview in this sandbox
+// DeleteToken deletes an access token of a preview so it no longer opens the
+// preview. tokenName is the name of the token, not its value.
 func (r *SandboxInstancePreviewService) DeleteToken(ctx context.Context, previewName string, tokenName string, opts ...option.RequestOption) (*SandboxPreviewTokenDeleteResponse, error) {
 	return r.service.Tokens.Delete(ctx, tokenName, SandboxPreviewTokenDeleteParams{
 		SandboxName: r.sandboxName,
@@ -1360,15 +1762,16 @@ func (r *SandboxInstancePreviewService) DeleteToken(ctx context.Context, preview
 
 // --- PreviewInstance ---
 
-// PreviewInstance wraps a Preview with scoped token service that automatically uses
-// the sandbox name and preview name in API calls.
+// PreviewInstance is a preview of a sandbox port. Its URL is in Spec.URL. A
+// private preview answers HTTP 401 without a token.
 type PreviewInstance struct {
 	*Preview
-	// Tokens provides token operations scoped to this preview
+	// Tokens manages the access tokens of this preview.
 	Tokens *PreviewInstanceTokenService
 }
 
-// PreviewInstanceTokenService provides token operations for a specific preview
+// PreviewInstanceTokenService manages the access tokens of one private
+// preview. Public previews need no token.
 type PreviewInstanceTokenService struct {
 	sandboxName string
 	previewName string
@@ -1376,7 +1779,9 @@ type PreviewInstanceTokenService struct {
 	service     *SandboxPreviewTokenService
 }
 
-// New creates a token for this preview
+// New creates an access token for this preview from body. Read the value
+// from Spec.Token. [SandboxInstancePreviewService.NewToken] fills in the name
+// and expiry for you.
 func (r *PreviewInstanceTokenService) New(ctx context.Context, body PreviewTokenParam, opts ...option.RequestOption) (*PreviewToken, error) {
 	return r.service.New(ctx, r.previewName, SandboxPreviewTokenNewParams{
 		SandboxName:  r.sandboxName,
@@ -1384,12 +1789,13 @@ func (r *PreviewInstanceTokenService) New(ctx context.Context, body PreviewToken
 	}, opts...)
 }
 
-// List returns all tokens for this preview
+// List returns the access tokens of this preview.
 func (r *PreviewInstanceTokenService) List(ctx context.Context, opts ...option.RequestOption) (*[]PreviewToken, error) {
 	return r.service.Get(ctx, r.previewName, SandboxPreviewTokenGetParams{SandboxName: r.sandboxName}, opts...)
 }
 
-// Delete deletes a token for this preview
+// Delete deletes an access token of this preview. tokenName is the name of
+// the token, not its value.
 func (r *PreviewInstanceTokenService) Delete(ctx context.Context, tokenName string, opts ...option.RequestOption) (*SandboxPreviewTokenDeleteResponse, error) {
 	return r.service.Delete(ctx, tokenName, SandboxPreviewTokenDeleteParams{
 		SandboxName: r.sandboxName,
@@ -1401,14 +1807,21 @@ func (r *PreviewInstanceTokenService) Delete(ctx context.Context, tokenName stri
 // Session Service
 // ============================================================================
 
-// SandboxInstanceSessionService provides session operations for a specific sandbox
+// SandboxInstanceSessionService manages the sessions of one sandbox:
+// short-lived, token-protected URLs of the sandbox API that let a client
+// without a Blaxel API key, such as a browser, use the sandbox. A session is
+// a private preview named session-<unix milliseconds> plus a preview token.
+// Reach it through the Sessions field of a [SandboxInstance], and open a
+// session with [SandboxService.FromSession].
 type SandboxInstanceSessionService struct {
 	sandboxName string
 	options     []option.RequestOption
 	service     *SandboxPreviewService
 }
 
-// Create creates a new session for this sandbox
+// Create creates a session: a private preview of the sandbox API and a
+// token for it, both expiring at opts.ExpiresAt (24 hours from now by
+// default). opts may be nil.
 func (r *SandboxInstanceSessionService) Create(ctx context.Context, opts *SessionCreateOptions) (*SessionWithToken, error) {
 	if opts == nil {
 		opts = &SessionCreateOptions{}
@@ -1466,7 +1879,9 @@ func (r *SandboxInstanceSessionService) Create(ctx context.Context, opts *Sessio
 	}, nil
 }
 
-// CreateIfExpired creates a new session if the current one is expired or about to expire
+// CreateIfExpired returns the first session of this sandbox while it stays
+// valid for at least delta (1 hour when 0). Otherwise it deletes that session
+// and creates a new one with opts. It creates one when there is none.
 func (r *SandboxInstanceSessionService) CreateIfExpired(ctx context.Context, opts *SessionCreateOptions, delta time.Duration) (*SessionWithToken, error) {
 	if delta == 0 {
 		delta = time.Hour // Default: 1 hour threshold
@@ -1495,7 +1910,9 @@ func (r *SandboxInstanceSessionService) CreateIfExpired(ctx context.Context, opt
 	return r.Create(ctx, opts)
 }
 
-// List returns all sessions for this sandbox
+// List returns the sessions of this sandbox (its previews named
+// session-...), each with its first token. Sessions without a token are left
+// out.
 func (r *SandboxInstanceSessionService) List(ctx context.Context) ([]SessionWithToken, error) {
 	previews, err := r.service.List(ctx, r.sandboxName, r.options...)
 	if err != nil {
@@ -1537,7 +1954,7 @@ func (r *SandboxInstanceSessionService) List(ctx context.Context) ([]SessionWith
 	return sessions, nil
 }
 
-// Get returns a session by name
+// Get returns a session by name with its URL, first token and expiry.
 func (r *SandboxInstanceSessionService) Get(ctx context.Context, name string) (*SessionWithToken, error) {
 	preview, err := r.service.Get(ctx, name, SandboxPreviewGetParams{
 		SandboxName: r.sandboxName,
@@ -1571,7 +1988,7 @@ func (r *SandboxInstanceSessionService) Get(ctx context.Context, name string) (*
 	}, nil
 }
 
-// Delete deletes a session by name
+// Delete deletes a session by name. Its URL and token stop working.
 func (r *SandboxInstanceSessionService) Delete(ctx context.Context, name string) error {
 	_, err := r.service.Delete(ctx, name, SandboxPreviewDeleteParams{
 		SandboxName: r.sandboxName,
@@ -1583,7 +2000,8 @@ func (r *SandboxInstanceSessionService) Delete(ctx context.Context, name string)
 // System Service
 // ============================================================================
 
-// SandboxInstanceSystemService provides system operations for a specific sandbox
+// SandboxInstanceSystemService maintains the sandbox API server that runs in
+// one sandbox. Reach it through the System field of a [SandboxInstance].
 type SandboxInstanceSystemService struct {
 	sandboxName string
 	options     []option.RequestOption
