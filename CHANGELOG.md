@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/blaxel-ai/sdk-go/compare/v0.29.1...v0.30.0) (2026-10-31)
+
+
+### Features
+
+* **sandbox:** kernelPreview extraArg selects the mk3.1 preview kernel ([74096c8](https://github.com/blaxel-ai/sdk-go/commit/74096c874c49ac7cd67546f5f381a913c6930831))
+
 ## [0.29.1](https://github.com/blaxel-ai/sdk-go/compare/v0.29.0...v0.29.1) (2026-10-12)
 
 
