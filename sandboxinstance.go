@@ -339,7 +339,10 @@ func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams,
 
 // GetInstance returns the sandbox with this name as a [SandboxInstance], with
 // its current status and configuration. It returns an [*Error] with
-// StatusCode 404 when no sandbox in the workspace has this name.
+// StatusCode 404 when no sandbox in the workspace has this name; read it with
+// errors.As(err, &apiErr), where apiErr is a *blaxel.Error. A deleted sandbox
+// is still returned, with Status TERMINATED, until its lifecycle's
+// TerminatedRetention (5 minutes by default) has passed.
 //
 // Example:
 //
@@ -432,7 +435,14 @@ func (r *SandboxService) UpdateInstance(ctx context.Context, sandboxName string,
 
 // DeleteInstance permanently deletes a sandbox with its memory and
 // filesystem, and returns the deleted record as a [SandboxInstance]. This
-// cannot be undone. Attached volumes are kept.
+// cannot be undone. Attached volumes are kept. The returned instance only
+// describes the record: its services no longer reach a running sandbox.
+//
+// The deletion runs in the background. The record then stays readable for the
+// lifecycle's TerminatedRetention (5 minutes by default): [SandboxService.GetInstance]
+// returns it with Status TERMINATED instead of a 404, and ListInstances no
+// longer includes it. To confirm a deletion, check for TERMINATED or for the
+// name to leave ListInstances.
 func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
 	sandbox, err := r.Delete(ctx, sandboxName, opts...)
@@ -672,7 +682,9 @@ func (r *SandboxInstance) Fetch(ctx context.Context, port int, path string, opts
 }
 
 // Delete permanently deletes this sandbox with its memory and filesystem.
-// This cannot be undone. Attached volumes are kept.
+// This cannot be undone. Attached volumes are kept. As with
+// [SandboxService.DeleteInstance], the record stays readable with Status
+// TERMINATED for TerminatedRetention (5 minutes by default).
 func (r *SandboxInstance) Delete(ctx context.Context, opts ...option.RequestOption) error {
 	_, err := r.sandboxService.Delete(ctx, r.Metadata.Name, opts...)
 	return err
