@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/blaxel-ai/sdk-go/compare/v0.30.0...v0.31.0) (2026-11-05)
+
+
+### Features
+
+* **sandboxes:** let v1 callers choose the sandbox CPU ([1eb50b5](https://github.com/blaxel-ai/sdk-go/commit/1eb50b56fe9bda939df7fb8ca968900b65a4d59f))
+
 ## [0.30.0](https://github.com/blaxel-ai/sdk-go/compare/v0.29.1...v0.30.0) (2026-10-31)
 
 
