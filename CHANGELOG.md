@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.0](https://github.com/blaxel-ai/sdk-go/compare/v0.31.0...v0.32.0) (2026-11-07)
+
+
+### Features
+
+* **regions:** gate eu-lon-1 behind region-eu-lon-1, restrict mk3.0 to flags ([c7b3f2a](https://github.com/blaxel-ai/sdk-go/commit/c7b3f2ab8c844543768af86cc38dde6ccd564680))
+
+
+### Documentation
+
+* document SandboxInstance and VolumeInstance for editors and agents ([55cd9eb](https://github.com/blaxel-ai/sdk-go/commit/55cd9ebcc34fbdeaa33f7a0e65f7e177054bcfa2))
+
 ## [0.31.0](https://github.com/blaxel-ai/sdk-go/compare/v0.30.0...v0.31.0) (2026-11-05)
 
 
