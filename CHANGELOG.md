@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.1](https://github.com/blaxel-ai/sdk-go/compare/v0.33.0...v0.33.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **core:** do not follow HTTP redirects ([8b29b91](https://github.com/blaxel-ai/sdk-go/commit/8b29b91cdf11a128d2147db3fa1603803a0deaea))
+* **core:** do not follow HTTP redirects ([d236894](https://github.com/blaxel-ai/sdk-go/commit/d236894ca532ad9654065f8c4d8e7e9c22533238))
+
 ## [0.32.0](https://github.com/blaxel-ai/sdk-go/compare/v0.31.0...v0.32.0) (2026-11-07)
 
 
