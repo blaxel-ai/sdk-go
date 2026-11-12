@@ -427,22 +427,22 @@ func (cfg *RequestConfig) Execute() (err error) {
 	}
 
 	// Handle OAuth2 refresh token flow (access token + refresh token)
-	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("Authorization") == "" {
 		token, err := cfg.OAuth2RefreshState.GetToken(cfg)
 		if err != nil {
 			return err
 		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("Authorization") == "" {
 		// Handle OAuth2 client credentials flow
 		token, err := cfg.OAuth2State.GetToken(cfg)
 		if err != nil {
 			return err
 		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("Authorization") == "" {
 		// Handle direct access token usage (without OAuth2 state machinery)
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
 	}
 
 	handler := cfg.HTTPClient.Do
@@ -705,22 +705,22 @@ func (cfg *RequestConfig) PrepareRequest() (*http.Request, *http.Client, error) 
 	}
 
 	// Handle OAuth2 refresh token flow (access token + refresh token)
-	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+	if cfg.OAuth2RefreshState != nil && cfg.AccessToken != "" && cfg.RefreshToken != "" && cfg.Request.Header.Get("Authorization") == "" {
 		token, err := cfg.OAuth2RefreshState.GetToken(cfg)
 		if err != nil {
 			return nil, nil, err
 		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.OAuth2State != nil && cfg.Request.Header.Get("Authorization") == "" {
 		// Handle OAuth2 client credentials flow
 		token, err := cfg.OAuth2State.GetToken(cfg)
 		if err != nil {
 			return nil, nil, err
 		}
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", token))
-	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("X-Blaxel-Authorization") == "" {
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	} else if cfg.AccessToken != "" && cfg.Request.Header.Get("Authorization") == "" {
 		// Handle direct access token usage (without OAuth2 state machinery)
-		cfg.Request.Header.Set("X-Blaxel-Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
+		cfg.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", cfg.AccessToken))
 	}
 
 	return cfg.Request, cfg.HTTPClient, nil
