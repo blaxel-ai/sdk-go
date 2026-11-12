@@ -24,7 +24,19 @@ func defaultHTTPClient() *http.Client {
 	if t, ok := http.DefaultTransport.(*http.Transport); ok {
 		t = t.Clone()
 		t.ResponseHeaderTimeout = defaultResponseHeaderTimeout
-		return &http.Client{Transport: t}
+		return &http.Client{Transport: t, CheckRedirect: noFollowRedirect}
 	}
-	return &http.Client{Transport: http.DefaultTransport}
+	return &http.Client{Transport: http.DefaultTransport, CheckRedirect: noFollowRedirect}
+}
+
+// noFollowRedirect stops the client from following 3xx responses. A redirect
+// returned by a sandbox-api call can be attacker-controlled (a malicious
+// sandbox returning a 302/307 to its own host): following it would re-send the
+// request body (for example the command and environment variables of a process
+// exec) to the attacker and make the SDK trust the attacker's forged response.
+// The custom X-Blaxel-Authorization header is also not stripped by net/http on
+// a redirect, so following one leaks the credential too. Returning
+// [http.ErrUseLastResponse] hands the 3xx back to the caller instead.
+func noFollowRedirect(*http.Request, []*http.Request) error {
+	return http.ErrUseLastResponse
 }
