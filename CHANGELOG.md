@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.0](https://github.com/blaxel-ai/sdk-go/compare/v0.32.0...v0.33.0) (2026-11-12)
+
+
+### Features
+
+* **builds:** image builds as queued k8s Jobs with per-account memory/CPU/disk quota (AGI-69) ([f790d2f](https://github.com/blaxel-ai/sdk-go/commit/f790d2f562bcaef417aa759387c2330c5abb952d))
+
 ## [0.32.0](https://github.com/blaxel-ai/sdk-go/compare/v0.31.0...v0.32.0) (2026-11-07)
 
 
