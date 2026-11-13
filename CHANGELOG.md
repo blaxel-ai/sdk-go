@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.2](https://github.com/blaxel-ai/sdk-go/compare/v0.33.1...v0.33.2) (2026-11-13)
+
+
+### Bug Fixes
+
+* **core:** send credential in standard Authorization header ([e25849d](https://github.com/blaxel-ai/sdk-go/commit/e25849d9cabd119ec383a060d5d67ce17880985f))
+* **core:** send credential in standard Authorization header ([1a3485a](https://github.com/blaxel-ai/sdk-go/commit/1a3485ae49aec79cfc3f8205c29ba43fde806709))
+
 ## [0.33.1](https://github.com/blaxel-ai/sdk-go/compare/v0.33.0...v0.33.1) (2026-11-12)
 
 
