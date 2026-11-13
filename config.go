@@ -59,7 +59,7 @@ func (c Credentials) AuthHeaders(ctx context.Context, workspace string) (map[str
 	headers := make(map[string]string)
 
 	if c.APIKey != "" {
-		headers["X-Blaxel-Authorization"] = "Bearer " + c.APIKey
+		headers["Authorization"] = "Bearer " + c.APIKey
 	} else if c.AccessToken != "" && c.RefreshToken != "" {
 		// Access token with refresh token - check if refresh needed
 		baseURL, _ := url.Parse(GetBaseURL())
@@ -78,9 +78,9 @@ func (c Credentials) AuthHeaders(ctx context.Context, workspace string) (map[str
 		if err != nil {
 			return nil, fmt.Errorf("failed to refresh token: %w", err)
 		}
-		headers["X-Blaxel-Authorization"] = "Bearer " + token
+		headers["Authorization"] = "Bearer " + token
 	} else if c.AccessToken != "" {
-		headers["X-Blaxel-Authorization"] = "Bearer " + c.AccessToken
+		headers["Authorization"] = "Bearer " + c.AccessToken
 	} else if c.ClientCredentials != "" {
 		// Decode and exchange client credentials for token
 		decoded, err := base64.StdEncoding.DecodeString(c.ClientCredentials)
@@ -106,7 +106,7 @@ func (c Credentials) AuthHeaders(ctx context.Context, workspace string) (map[str
 		if err != nil {
 			return nil, fmt.Errorf("failed to get client credentials token: %w", err)
 		}
-		headers["X-Blaxel-Authorization"] = "Bearer " + token
+		headers["Authorization"] = "Bearer " + token
 	}
 
 	if workspace != "" {
