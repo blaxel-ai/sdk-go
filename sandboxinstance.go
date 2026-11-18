@@ -431,6 +431,42 @@ func (r *SandboxService) waitForCreation(ctx context.Context, name string, maxWa
 	}
 }
 
+// ErrDeploymentFailed is the code of a sandbox creation that ended without the
+// sandbox becoming DEPLOYED. The API returns it in [Error.ErrorCode] when a
+// creation fails while the request is still open, and
+// [SandboxService.NewInstance] sets it in [SandboxDeploymentError.Code] when a
+// creation fails after the API answered 202.
+const ErrDeploymentFailed = "DEPLOYMENT_FAILED"
+
+// SandboxDeploymentError is the error [SandboxService.NewInstance] and
+// [SandboxService.NewInstanceIfNotExists] return when the API accepted a
+// creation with HTTP 202 and the sandbox then ended in a status other than
+// DEPLOYED, such as FAILED:
+//
+//	var deployErr *blaxel.SandboxDeploymentError
+//	if errors.As(err, &deployErr) {
+//		log.Printf("%s did not deploy: %s", deployErr.SandboxName, deployErr.Reason)
+//	}
+type SandboxDeploymentError struct {
+	// Code is always [ErrDeploymentFailed].
+	Code string
+	// SandboxName is the name of the sandbox.
+	SandboxName string
+	// Status is the status the sandbox ended in, such as FAILED.
+	Status Status
+	// Reason is the failure the platform recorded on the sandbox: the message
+	// of its latest FAILED event, or else of its latest fatal error. It is
+	// empty when none was recorded.
+	Reason string
+}
+
+func (e *SandboxDeploymentError) Error() string {
+	if e.Reason == "" {
+		return fmt.Sprintf("sandbox %s is %s instead of DEPLOYED", e.SandboxName, e.Status)
+	}
+	return fmt.Sprintf("sandbox %s is %s instead of DEPLOYED: %s", e.SandboxName, e.Status, e.Reason)
+}
+
 // sandboxCreationError describes a sandbox whose creation ended in a status
 // other than DEPLOYED, with the reason the platform recorded when there is
 // one: the message of its latest FAILED event, or else of its latest fatal
@@ -451,10 +487,7 @@ func sandboxCreationError(name string, sandbox *Sandbox) error {
 			}
 		}
 	}
-	if reason == "" {
-		return fmt.Errorf("sandbox %s is %s instead of DEPLOYED", name, sandbox.Status)
-	}
-	return fmt.Errorf("sandbox %s is %s instead of DEPLOYED: %s", name, sandbox.Status, reason)
+	return &SandboxDeploymentError{Code: ErrDeploymentFailed, SandboxName: name, Status: sandbox.Status, Reason: reason}
 }
 
 // isTransientReadError reports whether a failed read is worth repeating in a

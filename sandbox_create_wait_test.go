@@ -97,6 +97,14 @@ func TestNewInstanceAfter202ReturnsFailureReason(t *testing.T) {
 	if want := "sandbox sbx-409 is FAILED instead of DEPLOYED: image could not be pulled"; err.Error() != want {
 		t.Fatalf("error %q, want %q", err, want)
 	}
+	var deployErr *SandboxDeploymentError
+	if !errors.As(err, &deployErr) {
+		t.Fatalf("error %T, want a *SandboxDeploymentError", err)
+	}
+	want := SandboxDeploymentError{Code: "DEPLOYMENT_FAILED", SandboxName: "sbx-409", Status: StatusFailed, Reason: "image could not be pulled"}
+	if *deployErr != want {
+		t.Fatalf("error %+v, want %+v", *deployErr, want)
+	}
 	if got := len(calls()); got != 2 {
 		t.Fatalf("%d requests, want 2: %v", got, calls())
 	}
@@ -111,6 +119,26 @@ func TestNewInstanceAfter202UsesFatalErrorWithoutFailedEvent(t *testing.T) {
 	_, err := service.NewInstance(context.Background(), createWaitParams)
 	if err == nil || !strings.HasSuffix(err.Error(), ": out of capacity") {
 		t.Fatalf("error %v, want the fatal error's message", err)
+	}
+	var deployErr *SandboxDeploymentError
+	if !errors.As(err, &deployErr) || deployErr.Code != ErrDeploymentFailed || deployErr.Reason != "out of capacity" {
+		t.Fatalf("error %#v, want DEPLOYMENT_FAILED with the fatal error's message", err)
+	}
+}
+
+func TestNewInstanceAfter202FailureWithoutReason(t *testing.T) {
+	t.Parallel()
+	service, _ := createWaitService(t,
+		writeSandbox(http.StatusAccepted, "DEPLOYING", ""),
+		writeSandbox(http.StatusOK, "TERMINATED", ""),
+	)
+	_, err := service.NewInstance(context.Background(), createWaitParams)
+	var deployErr *SandboxDeploymentError
+	if !errors.As(err, &deployErr) || deployErr.Code != ErrDeploymentFailed || deployErr.Status != "TERMINATED" || deployErr.Reason != "" {
+		t.Fatalf("error %#v, want DEPLOYMENT_FAILED for a TERMINATED sandbox with no reason", err)
+	}
+	if want := "sandbox sbx-409 is TERMINATED instead of DEPLOYED"; err.Error() != want {
+		t.Fatalf("error %q, want %q", err, want)
 	}
 }
 
@@ -173,6 +201,10 @@ func TestNewInstanceIfNotExistsAfter202ReturnsTheFailure(t *testing.T) {
 	instance, err := service.NewInstanceIfNotExists(context.Background(), createWaitParams)
 	if instance != nil || err == nil || !strings.HasSuffix(err.Error(), ": image could not be pulled") {
 		t.Fatalf("got instance %v and error %v, want the failure", instance, err)
+	}
+	var deployErr *SandboxDeploymentError
+	if !errors.As(err, &deployErr) || deployErr.Code != ErrDeploymentFailed {
+		t.Fatalf("error %#v, want DEPLOYMENT_FAILED", err)
 	}
 	if got := len(calls()); got != 2 {
 		t.Fatalf("%d requests, want 2: %v", got, calls())
