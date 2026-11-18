@@ -613,8 +613,11 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 func (r *SandboxService) NewInstanceIfNotExists(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	instance, err := r.NewInstance(ctx, body, opts...)
 	if err != nil {
-		// Check if error indicates sandbox already exists (409 conflict)
-		if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "already exists") {
+		// Only the API's answer to the create says the name is taken (409
+		// conflict). Other errors, such as a creation that ended FAILED, can
+		// carry the sandbox name and so contain "409" without being one.
+		var apiErr *Error
+		if errors.As(err, &apiErr) && (apiErr.StatusCode == http.StatusConflict || strings.Contains(err.Error(), "already exists")) {
 			sandboxName := body.Sandbox.Metadata.Name
 			if sandboxName == "" {
 				return nil, err
