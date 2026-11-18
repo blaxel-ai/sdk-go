@@ -32,17 +32,17 @@ func (r *Client) getResourceMetadataURL(ctx context.Context, resourceType string
 	rt := strings.ToLower(resourceType)
 	switch rt {
 	case "agent", "agents":
-		agent, err := r.Agents.Get(ctx, resourceName, AgentGetParams{}, opts...)
+		agent, err := r.Agents.Get(ctx, resourceName, opts...)
 		if err == nil && agent != nil && agent.Metadata.URL != "" {
 			return agent.Metadata.URL
 		}
 	case "function", "functions":
-		function, err := r.Functions.Get(ctx, resourceName, FunctionGetParams{}, opts...)
+		function, err := r.Functions.Get(ctx, resourceName, opts...)
 		if err == nil && function != nil && function.Metadata.URL != "" {
 			return function.Metadata.URL
 		}
 	case "job", "jobs":
-		job, err := r.Jobs.Get(ctx, resourceName, JobGetParams{}, opts...)
+		job, err := r.Jobs.Get(ctx, resourceName, opts...)
 		if err == nil && job != nil && job.Metadata.URL != "" {
 			return job.Metadata.URL
 		}
@@ -52,7 +52,7 @@ func (r *Client) getResourceMetadataURL(ctx context.Context, resourceType string
 			return model.Metadata.URL
 		}
 	case "sandbox", "sandboxes":
-		sandbox, err := r.Sandboxes.Get(ctx, resourceName, SandboxGetParams{}, opts...)
+		sandbox, err := r.Sandboxes.Get(ctx, resourceName, opts...)
 		if err == nil && sandbox != nil && sandbox.Metadata.URL != "" {
 			return sandbox.Metadata.URL
 		}

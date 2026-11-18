@@ -172,7 +172,7 @@ func TestWorkspaceSnapshots(t *testing.T) {
 		if fork.Type != blaxel.SandboxForkResponseTypeSandbox {
 			t.Errorf("expected fork type sandbox, got %s", fork.Type)
 		}
-		forked, err := client.Sandboxes.Get(ctx, forkName, blaxel.SandboxGetParams{})
+		forked, err := client.Sandboxes.Get(ctx, forkName)
 		if err != nil {
 			t.Fatalf("forked sandbox %s not found: %v", forkName, err)
 		}

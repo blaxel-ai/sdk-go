@@ -70,7 +70,7 @@ func waitForSandboxDeletion(ctx context.Context, client blaxel.Client, sandboxNa
 			return false
 		default:
 		}
-		sb, err := client.Sandboxes.Get(ctx, sandboxName, blaxel.SandboxGetParams{})
+		sb, err := client.Sandboxes.Get(ctx, sandboxName)
 		if err != nil {
 			return true
 		}

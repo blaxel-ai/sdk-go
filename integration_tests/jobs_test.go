@@ -16,14 +16,14 @@ func TestJobs(t *testing.T) {
 	client := newTestClient(t)
 
 	// Check if job exists
-	_, err := client.Jobs.Get(ctx, TEST_JOB_NAME, blaxel.JobGetParams{})
+	_, err := client.Jobs.Get(ctx, TEST_JOB_NAME)
 	if err != nil {
 		t.Skipf("Job %q does not exist. Skipping Jobs API Integration tests.", TEST_JOB_NAME)
 	}
 
 	t.Run("GetJob", func(t *testing.T) {
 		t.Run("retrieves an existing job", func(t *testing.T) {
-			job, err := client.Jobs.Get(ctx, TEST_JOB_NAME, blaxel.JobGetParams{})
+			job, err := client.Jobs.Get(ctx, TEST_JOB_NAME)
 			if err != nil {
 				t.Fatalf("failed to get job: %v", err)
 			}

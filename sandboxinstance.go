@@ -353,7 +353,7 @@ func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams,
 //	dir, err := sbx.FS.LS(ctx, "/app")
 func (r *SandboxService) GetInstance(ctx context.Context, sandboxName string, opts ...option.RequestOption) (*SandboxInstance, error) {
 	opts = slices.Concat(r.Options, opts)
-	sandbox, err := r.Get(ctx, sandboxName, SandboxGetParams{}, opts...)
+	sandbox, err := r.Get(ctx, sandboxName, opts...)
 	if err != nil {
 		return nil, err
 	}
