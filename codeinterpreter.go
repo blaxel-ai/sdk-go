@@ -3,7 +3,6 @@
 package blaxel
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -253,8 +252,9 @@ func (c *CodeInterpreter) RunCode(ctx context.Context, code string, opts *RunCod
 		},
 	}
 
-	// Parse streaming response
-	scanner := bufio.NewScanner(resp.Body)
+	// Parse streaming response. A result line can hold a large output, such
+	// as a base64 image, so lines are not capped at 64 KB.
+	scanner := newStreamLineScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
