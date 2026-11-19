@@ -3,7 +3,6 @@
 package blaxel
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -207,8 +206,101 @@ type ProcessStreamOptions struct {
 	OnStdout func(stdout string)
 	// OnStderr receives stderr output only.
 	OnStderr func(stderr string)
-	// OnError receives a stream failure.
+	// OnError receives a stream failure. In ExecWithStreaming that includes
+	// the API's error event, as a [*ProcessStreamError].
 	OnError func(err error)
+}
+
+// ProcessStreamError is the error event that ends the stream of
+// [SandboxInstanceProcessService.ExecWithStreaming]: the sandbox API could not
+// start the command (its working directory is unusable, for example) or could
+// not stream its output. Error returns the API's message. Sandbox APIs that
+// send a stable error code also fill Code and the fields after it; older ones
+// send only the message. Check it with errors.As.
+type ProcessStreamError struct {
+	// Message is the API's error message.
+	Message string
+	// Code is the stable error code, such as PROCESS_WORKING_DIR_UNUSABLE.
+	// Branch on it, not on Message. Empty when the API sent none.
+	Code string
+	// Action is the next step that works.
+	Action string
+	// DoNot is the tempting wrong move, when there is one.
+	DoNot string
+	// DocsURL links the code's entry in the error codes reference.
+	DocsURL string
+	// Retryable is true when the same request may succeed later unchanged.
+	Retryable bool
+	// SafeToRetryRequest is true when resending the request cannot run the
+	// command twice.
+	SafeToRetryRequest bool
+	// DispatchState says whether the command may have started:
+	// "not_dispatched" or "dispatched_unknown".
+	DispatchState string
+	// Status is the HTTP status the API gives the same error outside a
+	// stream, such as 422. 0 when the API sent none.
+	Status int
+	// RequestID identifies the request in the sandbox's logs.
+	RequestID string
+
+	raw string
+}
+
+func (e *ProcessStreamError) Error() string {
+	message := e.Message
+	if message == "" {
+		message = "the sandbox API ended the stream with an error and no message"
+	}
+	if e.Code != "" {
+		return fmt.Sprintf("%s (code %s)", message, e.Code)
+	}
+	return message
+}
+
+// RawJSON returns the error event as the API sent it.
+func (e *ProcessStreamError) RawJSON() string { return e.raw }
+
+// newProcessStreamError reads an error event of a streamed exec. Fields of an
+// unexpected type are left empty rather than losing the message.
+func newProcessStreamError(event []byte) *ProcessStreamError {
+	var wire struct {
+		Data               string          `json:"data"`
+		Message            string          `json:"message"`
+		Code               string          `json:"code"`
+		ErrorCode          string          `json:"error_code"`
+		Action             string          `json:"action"`
+		DoNot              string          `json:"do_not"`
+		DocsURL            string          `json:"docs_url"`
+		Retryable          bool            `json:"retryable"`
+		SafeToRetryRequest bool            `json:"safe_to_retry_request"`
+		DispatchState      string          `json:"dispatch_state"`
+		Status             json.RawMessage `json:"status"`
+		RequestID          string          `json:"request_id"`
+	}
+	_ = json.Unmarshal(event, &wire)
+	e := &ProcessStreamError{
+		Message:            wire.Data,
+		Code:               wire.Code,
+		Action:             wire.Action,
+		DoNot:              wire.DoNot,
+		DocsURL:            wire.DocsURL,
+		Retryable:          wire.Retryable,
+		SafeToRetryRequest: wire.SafeToRetryRequest,
+		DispatchState:      wire.DispatchState,
+		RequestID:          wire.RequestID,
+		raw:                string(event),
+	}
+	if e.Message == "" {
+		e.Message = wire.Message
+	}
+	if e.Code == "" {
+		e.Code = wire.ErrorCode
+	}
+	var status int
+	if json.Unmarshal(wire.Status, &status) == nil {
+		e.Status = status
+	}
+	return e
 }
 
 // StreamControl controls a stream that runs in the background, returned by
@@ -929,7 +1021,7 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 			return
 		}
 
-		scanner := bufio.NewScanner(resp.Body)
+		scanner := newStreamLineScanner(resp.Body)
 		for scanner.Scan() {
 			line := scanner.Text()
 
@@ -973,7 +1065,10 @@ func (r *SandboxInstanceProcessService) StreamLogs(ctx context.Context, identifi
 // that run longer than the edge allows a waiting New (about 60 seconds). The
 // streamed request always waits for the command to end, whatever
 // WaitForCompletion says. A command that exits non-zero is not an error:
-// check Status and ExitCode.
+// check Status and ExitCode. When the API ends the stream with an error
+// event instead (the command could not start, for example), it returns a
+// [*ProcessStreamError] with the API's message and error code, and passes
+// it to OnError.
 //
 // This combines process execution with log streaming in a single request using NDJSON streaming.
 // The server must support the text/event-stream accept header for this to work with streaming;
@@ -1062,13 +1157,14 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 		return &result, nil
 	}
 
-	// Streaming response handling
-	scanner := bufio.NewScanner(resp.Body)
+	// Streaming response handling. The final result event repeats the output
+	// the API kept, so its line can be far longer than 64 KB.
+	scanner := newStreamLineScanner(resp.Body)
 	var result *ProcessResponse
 
 	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" {
+		line := scanner.Bytes()
+		if len(line) == 0 {
 			continue
 		}
 
@@ -1077,10 +1173,10 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 			Type string `json:"type"`
 			Data string `json:"data"`
 		}
-		if err := json.Unmarshal([]byte(line), &streamLine); err != nil {
+		if err := json.Unmarshal(line, &streamLine); err != nil {
 			// Try to parse as raw result if it's not a stream line
 			var rawResult ProcessResponse
-			if json.Unmarshal([]byte(line), &rawResult) == nil && rawResult.Name != "" {
+			if json.Unmarshal(line, &rawResult) == nil && rawResult.Name != "" {
 				result = &rawResult
 				continue
 			}
@@ -1115,6 +1211,13 @@ func (r *SandboxInstanceProcessService) ExecWithStreaming(ctx context.Context, b
 				continue
 			}
 			result = &processResult
+		case "error":
+			// The API ends the stream after an error event.
+			streamErr := newProcessStreamError(line)
+			if opts.OnError != nil {
+				opts.OnError(streamErr)
+			}
+			return nil, streamErr
 		}
 	}
 
@@ -1411,7 +1514,7 @@ func (r *SandboxInstanceFSService) Watch(ctx context.Context, path string, callb
 			return
 		}
 
-		scanner := bufio.NewScanner(resp.Body)
+		scanner := newStreamLineScanner(resp.Body)
 		for scanner.Scan() {
 			line := scanner.Text()
 
