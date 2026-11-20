@@ -121,7 +121,7 @@ func TestSandboxCRUD(t *testing.T) {
 			}
 			trackSandbox(name)
 
-			retrieved, err := client.Sandboxes.Get(ctx, name, blaxel.SandboxGetParams{})
+			retrieved, err := client.Sandboxes.Get(ctx, name)
 			if err != nil {
 				t.Fatalf("failed to get sandbox: %v", err)
 			}
@@ -186,7 +186,7 @@ func TestSandboxCRUD(t *testing.T) {
 			}
 			trackSandbox(name)
 
-			retrieved, err := client.Sandboxes.Get(ctx, name, blaxel.SandboxGetParams{})
+			retrieved, err := client.Sandboxes.Get(ctx, name)
 			if err != nil {
 				t.Fatalf("failed to get sandbox: %v", err)
 			}
@@ -220,7 +220,7 @@ func TestSandboxCRUD(t *testing.T) {
 			}
 			trackSandbox(name)
 
-			retrieved, err := client.Sandboxes.Get(ctx, name, blaxel.SandboxGetParams{})
+			retrieved, err := client.Sandboxes.Get(ctx, name)
 			if err != nil {
 				t.Fatalf("failed to get sandbox: %v", err)
 			}
@@ -250,7 +250,7 @@ func TestSandboxCRUD(t *testing.T) {
 			}
 			trackSandbox(name)
 
-			retrieved, err := client.Sandboxes.Get(ctx, name, blaxel.SandboxGetParams{})
+			retrieved, err := client.Sandboxes.Get(ctx, name)
 			if err != nil {
 				t.Fatalf("failed to get sandbox: %v", err)
 			}
@@ -675,7 +675,7 @@ func TestSandboxLifecycle(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 
 			// Verify sandbox is running
-			status, err := client.Sandboxes.Get(ctx, name, blaxel.SandboxGetParams{})
+			status, err := client.Sandboxes.Get(ctx, name)
 			if err != nil {
 				t.Fatalf("failed to get sandbox: %v", err)
 			}
