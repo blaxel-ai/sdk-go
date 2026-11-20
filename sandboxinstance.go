@@ -289,6 +289,13 @@ type SandboxInstancePreviewUpdateParams struct {
 // with StatusCode 409); use [SandboxService.NewInstanceIfNotExists] to get
 // that sandbox back instead.
 //
+// When the API accepts the creation before the sandbox is ready (HTTP 202,
+// with the sandbox still DEPLOYING), NewInstance reads the sandbox until it is
+// DEPLOYED, for up to 4 minutes, and returns it then. It returns an error if
+// the sandbox ends FAILED, with the reason the platform recorded, or is still
+// not ready by then. A creation answered with HTTP 200 returns at once,
+// whatever the sandbox's status.
+//
 // Spec.Runtime.Ttl and Spec.Lifecycle delete the sandbox automatically.
 // Durations use the units s, m, h, d or w (for example "30m", "24h", "7d")
 // and the only action is "delete". The minimums are 5m for Ttl and for
@@ -330,11 +337,176 @@ func (r *SandboxService) NewInstance(ctx context.Context, body SandboxNewParams,
 		}
 	}
 
-	sandbox, err := r.New(ctx, body, opts...)
+	// The API answers 202 instead of 200 when it accepted the creation but the
+	// sandbox was not ready before its own wait ran out. The body is then the
+	// sandbox, still DEPLOYING, and the creation goes on in the background.
+	var status int
+	captureStatus := option.WithMiddleware(func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
+		res, err := next(req)
+		if res != nil {
+			status = res.StatusCode
+		}
+		return res, err
+	})
+	sandbox, err := r.New(ctx, body, append(slices.Clone(opts), captureStatus)...)
 	if err != nil {
 		return nil, err
 	}
+	if status == http.StatusAccepted {
+		name := body.Sandbox.Metadata.Name
+		if sandbox != nil && sandbox.Metadata.Name != "" {
+			name = sandbox.Metadata.Name
+		}
+		sandbox, err = r.waitForCreation(ctx, name, sandboxCreateWaitMax, opts)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return newSandboxInstance(sandbox, r, opts), nil
+}
+
+// sandboxCreateWaitMax bounds how long [SandboxService.NewInstance] waits for a
+// sandbox whose creation the API accepted with HTTP 202. The platform marks a
+// creation FAILED 3 minutes after it was requested; this leaves a margin past
+// that.
+const sandboxCreateWaitMax = 4 * time.Minute
+
+// Delays between reads of a sandbox whose creation goes on after the API
+// answered 202: 500ms at first, doubling up to 3s.
+const (
+	sandboxCreatePollMin = 500 * time.Millisecond
+	sandboxCreatePollMax = 3 * time.Second
+)
+
+// waitForCreation reads the sandbox named name, whose creation the API
+// accepted with HTTP 202, until it is DEPLOYED, for up to maxWait. A sandbox
+// that ends in any other status, such as FAILED, is an error carrying the
+// reason the platform recorded.
+func (r *SandboxService) waitForCreation(ctx context.Context, name string, maxWait time.Duration, opts []option.RequestOption) (*Sandbox, error) {
+	waitCtx, cancel := context.WithTimeout(ctx, maxWait)
+	defer cancel()
+	status := StatusDeploying
+	var lastError error
+	timeoutError := func() error {
+		if err := ctx.Err(); err != nil {
+			return fmt.Errorf("waiting for sandbox %s to deploy: %w", name, err)
+		}
+		return fmt.Errorf("sandbox %s is still %s %s after the API accepted its creation; it may still become ready, check it later with GetInstance: %w", name, status, maxWait, errors.Join(waitCtx.Err(), lastError))
+	}
+	// This polling loop owns the retry cadence and the deadline for each GET.
+	getOpts := append(slices.Clone(opts), option.WithMaxRetries(0))
+	for delay := sandboxCreatePollMin; ; delay = min(2*delay, sandboxCreatePollMax) {
+		timer := time.NewTimer(delay)
+		select {
+		case <-waitCtx.Done():
+			timer.Stop()
+			return nil, timeoutError()
+		case <-timer.C:
+		}
+		sandbox, err := r.Get(waitCtx, name, getOpts...)
+		if waitCtx.Err() != nil {
+			return nil, timeoutError()
+		}
+		if err != nil {
+			if !isTransientReadError(err) {
+				return nil, err
+			}
+			lastError = err
+			continue
+		}
+		if sandbox == nil {
+			return nil, errors.New("empty sandbox response")
+		}
+		lastError = nil
+		switch sandbox.Status {
+		case StatusDeployed:
+			return sandbox, nil
+		case StatusDeploying, StatusBuilding, StatusUploading, "":
+			if sandbox.Status != "" {
+				status = sandbox.Status
+			}
+		default:
+			return nil, sandboxCreationError(name, sandbox)
+		}
+	}
+}
+
+// ErrDeploymentFailed is the code of a sandbox creation that ended without the
+// sandbox becoming DEPLOYED. The API returns it in [Error.ErrorCode] when a
+// creation fails while the request is still open, and
+// [SandboxService.NewInstance] sets it in [SandboxDeploymentError.Code] when a
+// creation fails after the API answered 202.
+const ErrDeploymentFailed = "DEPLOYMENT_FAILED"
+
+// SandboxDeploymentError is the error [SandboxService.NewInstance] and
+// [SandboxService.NewInstanceIfNotExists] return when the API accepted a
+// creation with HTTP 202 and the sandbox then ended in a status other than
+// DEPLOYED, such as FAILED:
+//
+//	var deployErr *blaxel.SandboxDeploymentError
+//	if errors.As(err, &deployErr) {
+//		log.Printf("%s did not deploy: %s", deployErr.SandboxName, deployErr.Reason)
+//	}
+type SandboxDeploymentError struct {
+	// Code is always [ErrDeploymentFailed].
+	Code string
+	// SandboxName is the name of the sandbox.
+	SandboxName string
+	// Status is the status the sandbox ended in, such as FAILED.
+	Status Status
+	// Reason is the failure the platform recorded on the sandbox: the message
+	// of its latest FAILED event, or else of its latest fatal error. It is
+	// empty when none was recorded.
+	Reason string
+}
+
+func (e *SandboxDeploymentError) Error() string {
+	if e.Reason == "" {
+		return fmt.Sprintf("sandbox %s is %s instead of DEPLOYED", e.SandboxName, e.Status)
+	}
+	return fmt.Sprintf("sandbox %s is %s instead of DEPLOYED: %s", e.SandboxName, e.Status, e.Reason)
+}
+
+// sandboxCreationError describes a sandbox whose creation ended in a status
+// other than DEPLOYED, with the reason the platform recorded when there is
+// one: the message of its latest FAILED event, or else of its latest fatal
+// error.
+func sandboxCreationError(name string, sandbox *Sandbox) error {
+	reason := ""
+	for _, event := range slices.Backward(sandbox.Events) {
+		if event.Status == string(StatusFailed) && event.Message != "" {
+			reason = event.Message
+			break
+		}
+	}
+	if reason == "" {
+		for _, failure := range slices.Backward(sandbox.Errors) {
+			if failure.Fatal && failure.Message != "" {
+				reason = failure.Message
+				break
+			}
+		}
+	}
+	return &SandboxDeploymentError{Code: ErrDeploymentFailed, SandboxName: name, Status: sandbox.Status, Reason: reason}
+}
+
+// isTransientReadError reports whether a failed read is worth repeating in a
+// polling loop: a dropped, refused or timed-out connection, or HTTP 408, 429,
+// 500, 502, 503 or 504.
+func isTransientReadError(err error) bool {
+	var apiError *Error
+	if errors.As(err, &apiError) {
+		switch apiError.StatusCode {
+		case 408, 429, 500, 502, 503, 504:
+			return true
+		default:
+			return false
+		}
+	}
+	var networkError net.Error
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
+		errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNABORTED) || errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.EPIPE) ||
+		(errors.As(err, &networkError) && (networkError.Timeout() || networkError.Temporary()))
 }
 
 // GetInstance returns the sandbox with this name as a [SandboxInstance], with
@@ -474,8 +646,11 @@ func (r *SandboxService) DeleteInstance(ctx context.Context, sandboxName string,
 func (r *SandboxService) NewInstanceIfNotExists(ctx context.Context, body SandboxNewParams, opts ...option.RequestOption) (*SandboxInstance, error) {
 	instance, err := r.NewInstance(ctx, body, opts...)
 	if err != nil {
-		// Check if error indicates sandbox already exists (409 conflict)
-		if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "already exists") {
+		// Only the API's answer to the create says the name is taken (409
+		// conflict). Other errors, such as a creation that ended FAILED, can
+		// carry the sandbox name and so contain "409" without being one.
+		var apiErr *Error
+		if errors.As(err, &apiErr) && (apiErr.StatusCode == http.StatusConflict || strings.Contains(err.Error(), "already exists")) {
 			sandboxName := body.Sandbox.Metadata.Name
 			if sandboxName == "" {
 				return nil, err
@@ -842,20 +1017,7 @@ func (r *SandboxInstanceProcessService) Wait(ctx context.Context, identifier str
 				return nil, fmt.Errorf("unknown process status %q", process.Status)
 			}
 		} else {
-			var apiError *Error
-			var networkError net.Error
-			retryable := errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
-				errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNABORTED) || errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.EPIPE) ||
-				(errors.As(err, &networkError) && (networkError.Timeout() || networkError.Temporary()))
-			if errors.As(err, &apiError) {
-				switch apiError.StatusCode {
-				case 408, 429, 500, 502, 503, 504:
-					retryable = true
-				default:
-					retryable = false
-				}
-			}
-			if !retryable {
+			if !isTransientReadError(err) {
 				return nil, err
 			}
 			lastError = err
